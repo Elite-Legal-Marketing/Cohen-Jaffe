@@ -57,8 +57,12 @@ Both are **dashboard-only** and can't be done from a session:
 1. **Sanity local CORS** — https://www.sanity.io/manage → project `evo4n0ua` → **API →
    CORS origins** → add `http://localhost:4321` **with credentials**. Until then, signing
    in to the local Studio fails. *(Not confirmed done.)*
-2. **Sanity production CORS** — add the live Vercel URL the same way, **with
-   credentials**, or the deployed `/admin` won't work. *(Not confirmed done.)*
+2. **Sanity production CORS** — **confirmed outstanding, verified failing.** The
+   deployed Studio at https://cohen-jaffe.vercel.app/admin loads but hangs on a spinner;
+   the browser console shows the call to `evo4n0ua.api.sanity.io/.../users/me` blocked by
+   CORS policy. Add `https://cohen-jaffe.vercel.app` at
+   https://www.sanity.io/manage → `evo4n0ua` → **API → CORS origins**, **with
+   credentials**. The site itself (`/`) is unaffected.
 
 Neither blocks local development except Studio sign-in.
 

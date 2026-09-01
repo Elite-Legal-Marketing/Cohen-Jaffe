@@ -96,6 +96,13 @@ them in this section, and have every later page use them rather than one-off val
   prerendering `/admin` with `Error: Configuration must contain 'projectId'` — and because
   that fails the whole build, **every route 404s**, not just `/admin`. Env-var changes
   alone don't rebuild; trigger a redeploy.
+- **Deployed `/admin` stuck on an endless spinner = missing Sanity CORS origin**, not a
+  build problem. The Studio ships fine and the page is served; it just can't call
+  `https://<projectId>.api.sanity.io/.../users/me` from an origin Sanity doesn't allow.
+  The console says so explicitly (`blocked by CORS policy`). Fix in the Sanity dashboard →
+  **API → CORS origins** → add the exact origin **with credentials**. Every new
+  origin needs its own entry: localhost, the `.vercel.app` URL, and the eventual custom
+  domain. Don't go hunting through the build logs for this one.
 - **`npx tsc --noEmit` reports ~8 errors** (`Cannot find name 'process'`, `string |
   undefined` on `projectId`/`dataset`, two in `theme.ts`). These are pre-existing and
   shared with the other Elite sites; `astro build` does not run `tsc`, so they are not a
