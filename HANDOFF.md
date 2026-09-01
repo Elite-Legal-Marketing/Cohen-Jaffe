@@ -52,32 +52,25 @@ schema get added on request.
 
 ## Open questions / waiting on the user
 
-Both are **dashboard-only** and can't be done from a session:
+**None.** Both Sanity CORS origins are configured with credentials and verified by
+preflight (`access-control-allow-origin` + `access-control-allow-credentials: true`):
 
-1. **Sanity local CORS** — https://www.sanity.io/manage → project `evo4n0ua` → **API →
-   CORS origins** → add `http://localhost:4321` **with credentials**. Until then, signing
-   in to the local Studio fails. *(Not confirmed done.)*
-2. **Sanity production CORS** — **confirmed outstanding, verified failing.** The
-   deployed Studio at https://cohen-jaffe.vercel.app/admin loads but hangs on a spinner;
-   the browser console shows the call to `evo4n0ua.api.sanity.io/.../users/me` blocked by
-   CORS policy. Add `https://cohen-jaffe.vercel.app` at
-   https://www.sanity.io/manage → `evo4n0ua` → **API → CORS origins**, **with
-   credentials**. The site itself (`/`) is unaffected.
+- `http://localhost:4321` — local Studio sign-in works.
+- `https://cohen-jaffe.vercel.app` — deployed Studio login card renders.
 
-Neither blocks local development except Studio sign-in.
+Add a new CORS origin **with credentials** for any future origin (notably the eventual
+custom domain), or that origin's `/admin` will hang on a spinner.
 
 ## What's next
 
 Nothing in flight. Natural next steps:
 
-1. Confirm the deploy is serving `dist/` (the first deploy after the framework fix). If
-   the live site shows the blank "Cohen & Jaffe" heading, it's correct.
-2. Decide the first content types and add them to `src/sanity/schemaTypes/index.ts`
+1. Decide the first content types and add them to `src/sanity/schemaTypes/index.ts`
    (empty today), or build the first page from the designs.
-3. Build `src/layouts/Layout.astro` when the first real page needs it, and define the
+2. Build `src/layouts/Layout.astro` when the first real page needs it, and define the
    design tokens/breakpoints at the same time — `AGENTS.md` has a placeholder section
    waiting for them.
-4. Designs are in `~/Downloads/Cohen & Jaffe/Claude Files/` (`.dc.html` artboards); the
+3. Designs are in `~/Downloads/Cohen & Jaffe/Claude Files/` (`.dc.html` artboards); the
    old WordPress site is mirrored in `.../Sitesucker/` for copy and URL structure. See
    `AGENTS.md` → "Where designs and content come from".
 
