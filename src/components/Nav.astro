@@ -1,0 +1,563 @@
+---
+/**
+ * Site header — logo, primary nav, 24/7 contact cluster, CTA.
+ *
+ * Design: `CJNav.dc.html` / the nav band at the top of
+ * `Cohen & Jaffe Homepage v1.dc.html`. 104px bar, cream on a hairline border.
+ * Architecture: `src/data/navigation.ts` (parsed from the live WordPress nav).
+ *
+ * There is ONE dropdown style: an anchored card under its trigger. Groups with
+ * a title stack vertically inside it. (An earlier full-width mega variant was
+ * removed — one style only.)
+ *
+ * Dropdowns open on hover AND `:focus-within`, so keyboard users reach them by
+ * tabbing — no JS on desktop. The panels are always in the DOM, which keeps
+ * every link crawlable and readable by assistive tech. Only the mobile drawer
+ * needs script, and its sub-menus are native `<details>`.
+ */
+import { Image } from "astro:assets";
+import logoDark from "../assets/logo-dark.png";
+import MobileNav from "./MobileNav.astro";
+import { PRIMARY_NAV, FIRM } from "../data/navigation";
+import { isWithin } from "../lib/urls";
+
+interface Props {
+  /** The current pathname, for active state. Pass `Astro.url.pathname`. */
+  pathname: string;
+}
+
+const { pathname } = Astro.props;
+
+// A panel with second-level flyouts must not clip them, so only flat panels get
+// the scroll cap. Areas We Serve is the one that actually needs it (19 rows).
+const hasFlyouts = (item: (typeof PRIMARY_NAV)[number]) =>
+  item.children?.some((child) => child.children?.length) ?? false;
+---
+
+<header class="site-header">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="container site-header__inner">
+    <a href="/" class="site-header__logo" aria-label={`${FIRM.name} — home`}>
+      <Image src={logoDark} alt={FIRM.name} width={243} height={52} densities={[1, 2]} loading="eager" />
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <ul class="nav__list" role="list">
+        {
+          PRIMARY_NAV.map((item) => {
+            const active = isWithin(pathname, item.href);
+            return (
+              <li class:list={["nav__item", item.children && "nav__item--dropdown"]}>
+                <a href={item.href} class="nav__link" aria-current={active ? "page" : undefined}>
+                  {item.label}
+                  {item.children && (
+                    <svg class="nav__caret" width="10" height="7" viewBox="0 0 10 7" aria-hidden="true">
+                      <path d="M1 1.5 5 5.5 9 1.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  )}
+                </a>
+
+                {item.children && (
+                  <div class="nav__panel">
+                    <div class:list={["nav__panel-inner", !hasFlyouts(item) && "nav__panel-inner--scroll"]}>
+                      <ul class="nav__sublist" role="list">
+                        {item.children.map((child) => (
+                          <li class:list={["nav__row", child.children && "nav__row--parent"]}>
+                            {child.href ? (
+                              <a
+                                href={child.href}
+                                class="nav__sublink"
+                                aria-current={isWithin(pathname, child.href) ? "page" : undefined}
+                              >
+                                {child.label}
+                                {child.children && (
+                                  <svg class="nav__chevron" width="7" height="10" viewBox="0 0 7 10" aria-hidden="true">
+                                    <path d="M1.5 1 5.5 5l-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                                  </svg>
+                                )}
+                              </a>
+                            ) : (
+                              <button type="button" class="nav__sublink nav__sublink--category" aria-haspopup="true">
+                                {child.label}
+                                <svg class="nav__chevron" width="7" height="10" viewBox="0 0 7 10" aria-hidden="true">
+                                  <path d="M1.5 1 5.5 5l-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                              </button>
+                            )}
+
+                            {child.children && (
+                              <div class="nav__flyout">
+                                <ul class="nav__sublist" role="list">
+                                  {child.children.map((leaf) => (
+                                    <li>
+                                      <a
+                                        href={leaf.href}
+                                        class="nav__sublink"
+                                        aria-current={isWithin(pathname, leaf.href) ? "page" : undefined}
+                                      >
+                                        {leaf.label}
+                                      </a>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+
+                      {item.footerLink && (
+                        <a href={item.footerLink.href} class="nav__panel-footer link-arrow">
+                          {item.footerLink.label} <span class="arrow" aria-hidden="true">→</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </li>
+            );
+          })
+        }
+
+      </ul>
+    </nav>
+
+    <div class="site-header__contact">
+      <div class="site-header__reach">
+        <span class="site-header__reach-label">Reach us 24/7</span>
+        <a href={FIRM.phone.href} class="site-header__phone">{FIRM.phone.display}</a>
+      </div>
+      <a href="/contact/" class="btn btn--gold btn--wide site-header__cta">Free Consultation</a>
+    </div>
+
+    <a href={FIRM.phone.href} class="header-call" aria-label={`Call ${FIRM.phone.display}`}>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M6.5 4h3l1.5 4-2 1.4a10 10 0 0 0 5.6 5.6l1.4-2 4 1.5v3a1.6 1.6 0 0 1-1.8 1.6C11.9 18.3 5.7 12.1 4.9 5.8A1.6 1.6 0 0 1 6.5 4z"></path>
+      </svg>
+    </a>
+
+    <button
+      type="button"
+      class="nav-toggle"
+      id="nav-toggle"
+      aria-expanded="false"
+      aria-controls="mobile-drawer"
+      aria-label="Open menu"
+    >
+      <span class="nav-toggle__bars" aria-hidden="true"><span></span><span></span><span></span></span>
+    </button>
+  </div>
+
+</header>
+
+<MobileNav items={PRIMARY_NAV} pathname={pathname} />
+
+<style>
+  /* ---- Bar --------------------------------------------------------------- */
+
+  .site-header {
+    /* Positioned so z-index applies. The mobile drawer is NOT a child — it is a
+       sibling, precisely so this stacking context cannot trap it. */
+    position: relative;
+    --nav-panel-lift: 20px;
+    background: var(--cream);
+    border-block-end: 1px solid var(--border);
+    z-index: var(--z-header);
+  }
+
+  /* The bar uses its OWN gutter, not the content one — see --gutter-header.
+     Everything inside it ramps together between 1440px (the narrowest viewport
+     the full bar fits in) and 1920px (where it reaches the artboard's spacing
+     and finally aligns with the content column). Without this the nav silently
+     overflowed its own box and slid under the phone number. */
+  .site-header__inner.site-header__inner {
+    max-width: calc(100% - var(--gutter-header) * 2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: clamp(12px, -1.75rem + 3.125vw, 32px);
+    height: var(--nav-height);
+  }
+
+  /* Never let the nav shrink below its content: if it ever stops fitting, the
+     bar should visibly break at the breakpoint rather than quietly overlap. */
+  .nav {
+    flex: none;
+  }
+
+  .site-header__logo {
+    flex: none;
+    display: block;
+  }
+
+  /* Shrinks to 44px at 1280px so the bar clears the breakpoint, back to the
+     artboard's 52px by 1920px. */
+  .site-header__logo :global(img) {
+    height: clamp(44px, 1.75rem + 1.25vw, 52px);
+    width: auto;
+    display: block;
+  }
+
+  /* ---- Primary nav ------------------------------------------------------- */
+
+  .nav {
+    height: 100%;
+  }
+
+  .nav__list {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, -0.625rem + 1.5625vw, 20px);
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav__item {
+    display: flex;
+    align-items: center;
+    height: 100%;
+  }
+
+  .nav__item--dropdown {
+    position: relative;
+  }
+
+  .nav__link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-6);
+    font-family: var(--font-label);
+    font-size: clamp(13px, 0.5625rem + 0.3125vw, 15px);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-nav);
+    text-transform: uppercase;
+    color: var(--body);
+    white-space: nowrap;
+    text-decoration-color: transparent;
+    text-underline-offset: 4px;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .nav__link:hover,
+  .nav__item:focus-within > .nav__link {
+    color: var(--gold-ink);
+    text-decoration: underline;
+    text-decoration-color: currentColor;
+  }
+
+  .nav__link[aria-current="page"] {
+    color: var(--gold-ink);
+  }
+
+  .nav__caret {
+    color: var(--gold-ink);
+    flex: none;
+    transition: transform var(--duration) var(--ease);
+  }
+
+  .nav__item:hover .nav__caret,
+  .nav__item:focus-within .nav__caret {
+    transform: rotate(180deg);
+  }
+
+  /* ---- Dropdown panels --------------------------------------------------- */
+
+  .nav__panel {
+    position: absolute;
+    /* NOT `top: 100%`. The links are centred in a 104px bar, so the bar's own
+       lower half left ~39px of dead space between a label and its card and the
+       card read as detached. Pulling it up by --nav-panel-lift halves that; the
+       card tucks under the bar, which also removes any hover gap to cross. */
+    top: calc(100% - var(--nav-panel-lift));
+    inset-inline-start: 0;
+    min-width: 280px;
+    z-index: var(--z-dropdown);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-8px);
+    transition: opacity var(--duration) var(--ease),
+      transform var(--duration) var(--ease),
+      visibility var(--duration) var(--ease);
+  }
+
+  /* The last item sits closest to the right edge — open its panel inward. */
+  .nav__item--dropdown:last-of-type .nav__panel {
+    inset-inline-start: auto;
+    inset-inline-end: 0;
+  }
+
+  .nav__item:hover > .nav__panel,
+  .nav__item:focus-within > .nav__panel {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .nav__panel-inner {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    /* Rows carry their own padding so their hover fill can extend past the
+       text, so the card's own padding is small and even. */
+    padding: var(--space-12);
+  }
+
+  /* Only panels WITHOUT flyouts may scroll — `overflow` on a panel that has
+     them would clip the flyout instead of letting it escape. Areas We Serve is
+     the one that needs it (19 rows). */
+  .nav__panel-inner--scroll {
+    max-height: calc(100vh - var(--nav-height) - var(--space-24));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  /* 4px between rows so two hover fills can never touch. */
+  .nav__sublist {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .nav__sublink {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+    width: 100%;
+    padding: var(--space-8) var(--space-12);
+    border-radius: var(--radius-sm);
+    font-family: inherit;
+    font-size: var(--fs-16);
+    line-height: var(--lh-card);
+    text-align: start;
+    color: var(--body);
+    transition: background var(--duration) var(--ease),
+      color var(--duration) var(--ease);
+  }
+
+  .nav__sublink:hover,
+  .nav__sublink[aria-current="page"],
+  .nav__row--parent:hover > .nav__sublink,
+  .nav__row--parent:focus-within > .nav__sublink {
+    background: var(--gold-wash);
+    color: var(--ink);
+  }
+
+  /* A category row has no page behind it — it only opens its flyout. */
+  .nav__sublink--category {
+    cursor: default;
+  }
+
+  .nav__chevron {
+    flex: none;
+    color: var(--gold-ink);
+    transition: transform var(--duration) var(--ease);
+  }
+
+  .nav__row--parent:hover .nav__chevron,
+  .nav__row--parent:focus-within .nav__chevron {
+    transform: translateX(3px);
+  }
+
+  /* ---- Second level ------------------------------------------------------
+     Opens to the right of its row, top-aligned with it. `left: 100%` means the
+     row and the flyout touch, so there is no dead gap for the pointer to cross.
+     Only About and Practice Areas have these, and both sit at the left of the
+     bar, so a right-opening flyout has room. */
+  .nav__row--parent {
+    position: relative;
+  }
+
+  .nav__flyout {
+    position: absolute;
+    inset-inline-start: 100%;
+    top: calc(var(--space-12) * -1);
+    min-width: 260px;
+    padding-inline-start: var(--space-4);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateX(-6px);
+    transition: opacity var(--duration) var(--ease),
+      transform var(--duration) var(--ease),
+      visibility var(--duration) var(--ease);
+  }
+
+  .nav__flyout > .nav__sublist {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-card);
+    padding: var(--space-12);
+  }
+
+  .nav__row--parent:hover > .nav__flyout,
+  .nav__row--parent:focus-within > .nav__flyout {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(0);
+  }
+
+  .nav__panel-footer {
+    display: block;
+    margin: var(--space-12) var(--space-12) var(--space-4);
+    padding-block-start: var(--space-16);
+    border-block-start: 1px solid var(--border);
+  }
+
+  /* ---- Contact cluster --------------------------------------------------- */
+
+  .site-header__contact {
+    display: flex;
+    align-items: center;
+    gap: var(--space-22);
+    white-space: nowrap;
+  }
+
+  .site-header__reach {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    text-align: right;
+  }
+
+  /* Reaches the artboard's 250px at 1920px and gives width back below it. */
+  .site-header__cta.site-header__cta {
+    width: clamp(160px, -1.25rem + 14.0625vw, 250px);
+  }
+
+  .site-header__reach-label {
+    display: block;
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    color: var(--faint);
+    line-height: var(--lh-card);
+  }
+
+  .site-header__phone {
+    display: block;
+    font-family: var(--font-display);
+    font-size: clamp(22px, 0.875rem + 0.625vw, 26px);
+    font-weight: var(--fw-semibold);
+    letter-spacing: 0.01em;
+    line-height: 1.15;
+    color: var(--ink);
+    text-underline-offset: 4px;
+    transition: color var(--duration) var(--ease);
+  }
+
+  .site-header__phone:hover {
+    color: var(--gold-ink);
+    text-decoration: underline;
+  }
+
+  /* ---- Mobile toggle ----------------------------------------------------- */
+
+  /* Tap-to-call, mobile only. The whole contact cluster is hidden below the
+     breakpoint, which otherwise puts the firm's primary conversion path two
+     taps deep inside the drawer. */
+  .header-call {
+    display: none;
+    flex: none;
+    /* The bar is `space-between`, which would otherwise treat this as a third
+       group and strand it midway between the logo and the hamburger. `auto`
+       absorbs the free space before it, so the two icon buttons sit together at
+       the right edge with only the flex gap between them. */
+    margin-inline-start: auto;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-sm);
+    color: var(--gold-ink);
+    transition: background var(--duration) var(--ease),
+      color var(--duration) var(--ease);
+  }
+
+  .header-call:hover {
+    background: var(--sand);
+    color: var(--ink);
+  }
+
+  .nav-toggle {
+    display: none;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
+    color: var(--ink);
+    transition: background var(--duration) var(--ease);
+  }
+
+  .nav-toggle:hover {
+    background: var(--sand);
+  }
+
+  .nav-toggle__bars {
+    display: block;
+    width: 24px;
+  }
+
+  .nav-toggle__bars span {
+    display: block;
+    height: 2px;
+    background: currentColor;
+    border-radius: 2px;
+    transition: transform var(--duration) var(--ease),
+      opacity var(--duration) var(--ease);
+  }
+
+  .nav-toggle__bars span + span {
+    margin-block-start: 6px;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bars span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bars span:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-toggle__bars span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+  }
+
+  /* ---- Mobile drawer ----------------------------------------------------- */
+
+  /* ---- Responsive -------------------------------------------------------- */
+
+  /* The bar carries six menus, a phone number and the CTA. Everything in it —
+     gutter, gaps, logo height, label size, phone size, CTA width — ramps
+     together from 1280px to 1920px so it fits at the breakpoint and reaches the
+     artboard's proportions at the top. Below 1280px it becomes the drawer. */
+  @media (max-width: 1279px) {
+    .nav,
+    .site-header__contact {
+      display: none;
+    }
+
+    .nav-toggle,
+    .header-call {
+      display: inline-flex;
+    }
+  }
+
+  @media (max-width: 768px) {
+    .site-header__logo :global(img) {
+      height: 40px;
+    }
+  }
+</style>

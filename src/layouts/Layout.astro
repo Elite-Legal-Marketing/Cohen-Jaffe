@@ -1,0 +1,70 @@
+---
+/**
+ * The site shell: <head>, nav, main, footer.
+ *
+ * Every page wraps this. Content goes in the default slot and lands inside
+ * <main id="main">, which is the skip-link's target — so don't add another
+ * <main> inside a page.
+ */
+import "../styles/global.css";
+import Nav from "../components/Nav.astro";
+import Footer from "../components/Footer.astro";
+import { FIRM } from "../data/navigation";
+
+interface Props {
+  title: string;
+  description?: string;
+  /** Opt a page out of the shared chrome (thank-you pages, landing pages). */
+  bare?: boolean;
+}
+
+const { title, description, bare = false } = Astro.props;
+
+// The full <title>, without doubling the firm name on the homepage.
+const pageTitle = title.includes(FIRM.shortName) ? title : `${title} | ${FIRM.shortName}`;
+
+// Canonical URLs are slash-terminated site-wide — `trailingSlash: "always"` in
+// astro.config.mjs already guarantees `pathname` carries it, so this is a
+// straight pass-through, NOT a place to normalise. See AGENTS.md.
+const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : undefined;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate icon" href="/favicon.ico" />
+
+    <title>{pageTitle}</title>
+    {description && <meta name="description" content={description} />}
+    {canonical && <link rel="canonical" href={canonical} />}
+
+    <meta name="generator" content={Astro.generator} />
+
+    {/*
+      The union of every weight the artboards use. Newsreader is variable on
+      optical size (6..72), so the range must be requested, not a single value.
+      /page-speed will decide at launch whether to self-host these.
+    */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@400;500;600;700&family=Roboto+Condensed:wght@400;600;700&family=Mrs+Saint+Delafield&display=swap"
+    />
+
+    <slot name="head" />
+  </head>
+
+  <body>
+    {!bare && <Nav pathname={Astro.url.pathname} />}
+
+    <main id="main">
+      <slot />
+    </main>
+
+    {!bare && <Footer />}
+  </body>
+</html>

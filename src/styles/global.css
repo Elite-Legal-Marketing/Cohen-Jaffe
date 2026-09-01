@@ -1,0 +1,1061 @@
+/* ==========================================================================
+   Cohen & Jaffe — global stylesheet
+   --------------------------------------------------------------------------
+   Every token below is lifted from the approved `.dc.html` artboards in
+   ~/Downloads/Cohen & Jaffe/Claude Files/ — the values are what the designs
+   actually use, ranked by frequency, not invented here. Two deliberate
+   departures are marked DEPARTURE and explained where they occur.
+
+   The artboards are fixed-width 1660px boards with `min-width:1660px` and no
+   @media rules anywhere, so they describe the desktop end of the ramp only.
+   The fluid behaviour (clamp ramps, gutters, breakpoints) is established here.
+
+   Fluid ramp: 375px -> 1660px. Below 375 everything pins to its floor; at and
+   above 1660 everything sits at the artboard value.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. Tokens
+   -------------------------------------------------------------------------- */
+
+:root {
+  /* --- Brand colour ----------------------------------------------------- */
+
+  /* Gold — the primary brand accent. `--gold` is the fill; `--gold-ink` is the
+     only gold dark enough to set type in on cream. `--gold-deep` is the
+     universal hover for gold fills (paired with white text in the designs). */
+  --gold: #d9b978;
+  --gold-ink: #a97e37;
+  --gold-deep: #c08f3f;
+  --gold-light: #e2c88f;
+  --gold-dark: #c9a75c;
+  --gold-muted: #cba85f;
+  /* Hover fill for menu rows — gold at low alpha so it tints whatever it sits
+     on (cream card, white card) instead of fighting it. */
+  --gold-wash: rgba(217, 185, 120, 0.26);
+
+  /* Green — link colour and the secondary CTA fill. */
+  --green: #4d5e37;
+
+  /* Forest — the dark section family. These are gradient stops, not flat
+     surfaces; see --gradient-forest-* below. */
+  --forest-500: #3b4a2a;
+  --forest-600: #384629;
+  --forest-700: #2f3a21;
+  --forest-750: #2d3821;
+  --forest-800: #2c3620;
+  --forest-850: #232b19;
+  --forest-900: #222a19;
+  --forest-950: #1f2617;
+  --forest-1000: #1c2215;
+
+  /* --- Neutrals --------------------------------------------------------- */
+
+  /* Cream is the page. Sand is the alternating section. White is the card. */
+  --cream: #f8f4ec;
+  --sand: #efe8d9;
+  --white: #ffffff;
+  --white-warm: #fffdf8;
+
+  --ink: #24231e;          /* headings, and type on gold */
+  --body: #3a382f;         /* default body copy */
+  --muted: #6b6455;        /* secondary copy inside cards */
+  --muted-2: #5f5849;
+  --faint: #8a8272;        /* micro-labels, meta */
+
+  --border: #e2dac9;       /* on cream */
+  --border-strong: #ddd4c0; /* on sand, and card dividers */
+  --border-deep: #c9bfa8;
+
+  /* On dark surfaces the designs use translucent cream, never a flat grey. */
+  --on-dark: #f8f4ec;
+  --on-dark-80: rgba(248, 244, 236, 0.8);
+  --on-dark-62: rgba(248, 244, 236, 0.62);
+  --on-dark-50: rgba(248, 244, 236, 0.5);
+  --on-dark-border: rgba(248, 244, 236, 0.18);
+  --on-dark-rule: rgba(248, 244, 236, 0.14);
+
+  /* --- Feedback --------------------------------------------------------- */
+  --error: #a33a2a;
+  --error-bright: #d9412a;
+  --error-on-dark: #e9b48f;  /* form error text inside the forest form card */
+
+  /* --- Semantic aliases ------------------------------------------------- */
+  --color-bg: var(--cream);
+  --color-text: var(--body);
+  --color-heading: var(--ink);
+  --color-link: var(--green);
+  --color-link-hover: var(--gold-ink);
+  --color-accent: var(--gold);
+
+  /* --- Gradients -------------------------------------------------------- */
+
+  /* ⚠️ NEVER put a gradient on a button. A gradient cannot cross-fade to a flat
+     hover colour — the browser has no interpolation between the two, so the fill
+     snaps instead of transitioning and the 0.5s curve is thrown away. Buttons
+     are flat fills only. The artboards do give the hero CTA a gold gradient;
+     that is deliberately not carried over. */
+  --gradient-forest: linear-gradient(165deg, #384629 0%, #2c3620 48%, #222a19 100%);
+  --gradient-forest-deep: linear-gradient(165deg, #2c3620 0%, #232b19 58%, #1c2215 100%);
+  --gradient-forest-card: linear-gradient(158deg, #3b4a2a 0%, #2d3821 60%, #232b19 100%);
+  /* Footer: a gold bloom top-left over the forest fade. */
+  --gradient-footer:
+    radial-gradient(900px 420px at 14% 0%, rgba(217, 185, 120, 0.12) 0%, rgba(217, 185, 120, 0) 60%),
+    linear-gradient(180deg, #2c3620 0%, #1f2617 100%);
+  /* Image scrims. */
+  --scrim-bottom: linear-gradient(180deg, rgba(20, 22, 14, 0.22) 0%, rgba(20, 22, 14, 0.1) 45%, rgba(20, 22, 14, 0.6) 100%);
+  --scrim-hero: linear-gradient(100deg, rgba(18, 20, 13, 0.93) 0%, rgba(18, 20, 13, 0.88) 26%, rgba(18, 20, 13, 0.72) 38%, rgba(18, 20, 13, 0.34) 50%, rgba(18, 20, 13, 0.1) 62%, rgba(18, 20, 13, 0) 78%);
+
+  /* --- Typefaces -------------------------------------------------------- */
+
+  /* Newsreader  — every heading. Variable optical size, 6..72.
+     Instrument Sans — body copy and form fields.
+     Roboto Condensed — uppercase eyebrows, labels, meta, some buttons.
+     Oswald — phone numbers, CTA buttons, stat figures.
+     Mrs Saint Delafield — the signature flourish, nothing else. */
+  --font-heading: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-label: "Roboto Condensed", "Arial Narrow", "Helvetica Neue Condensed", sans-serif;
+  --font-display: "Oswald", "Roboto Condensed", "Arial Narrow", sans-serif;
+  --font-script: "Mrs Saint Delafield", "Snell Roundhand", cursive;
+
+  --fw-light: 300;
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  /* --- Type scale ------------------------------------------------------- */
+
+  /* Named for the artboard value, so a design that says 42px uses --fs-42 and
+     the mapping stays checkable. Everything above 16px is fluid; 16px and
+     below is fixed — those are already at the legibility floor. */
+  --fs-10: 10px;
+  --fs-11: 11px;
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+
+  --fs-17: clamp(16.42px, 1.0157rem + 0.0451vw, 17px);
+  --fs-18: clamp(16.84px, 1.0313rem + 0.0903vw, 18px);
+  --fs-19: clamp(17.26px, 1.047rem + 0.1354vw, 19px);
+  --fs-21: clamp(18.1px, 1.0784rem + 0.2257vw, 21px);
+  --fs-22: clamp(18.52px, 1.094rem + 0.2708vw, 22px);
+  --fs-23: clamp(18.94px, 1.1097rem + 0.316vw, 23px);
+  --fs-24: clamp(19.36px, 1.1254rem + 0.3611vw, 24px);
+  --fs-26: clamp(20.2px, 1.1567rem + 0.4514vw, 26px);
+  --fs-28: clamp(21.04px, 1.1881rem + 0.5416vw, 28px);
+  --fs-30: clamp(21.88px, 1.2194rem + 0.6319vw, 30px);
+  --fs-32: clamp(22.72px, 1.2507rem + 0.7222vw, 32px);
+  --fs-34: clamp(23.56px, 1.2821rem + 0.8125vw, 34px);
+  --fs-36: clamp(24.4px, 1.3134rem + 0.9027vw, 36px);
+  --fs-38: clamp(25.24px, 1.3448rem + 0.993vw, 38px);
+  --fs-42: clamp(26.92px, 1.4075rem + 1.1735vw, 42px);
+  --fs-48: clamp(29.44px, 1.5015rem + 1.4444vw, 48px);
+  --fs-52: clamp(31.12px, 1.5642rem + 1.6249vw, 52px);
+  --fs-56: clamp(32.8px, 1.6268rem + 1.8054vw, 56px);
+  --fs-62: clamp(35.32px, 1.7209rem + 2.0763vw, 62px);
+  --fs-66: clamp(37px, 1.7836rem + 2.2568vw, 66px);
+  --fs-72: clamp(39.52px, 1.8776rem + 2.5276vw, 72px);
+  --fs-88: clamp(46.24px, 2.1283rem + 3.2498vw, 88px);
+
+  /* Semantic aliases — the sizes the artboards reach for by role. */
+  --fs-hero: var(--fs-66);      /* homepage h1 */
+  --fs-page-title: var(--fs-56);/* interior h1 / big section h2 — most used */
+  --fs-section: var(--fs-42);   /* standard section h2 */
+  --fs-subsection: var(--fs-32);/* h3 */
+  --fs-card-title: var(--fs-26);/* card and list-item headings */
+  --fs-lead: var(--fs-19);      /* hero and intro paragraphs */
+  --fs-body: var(--fs-16);      /* default */
+  --fs-body-lg: var(--fs-17);   /* section intros, form fields */
+  --fs-small: var(--fs-15);
+  --fs-eyebrow: var(--fs-15);
+  --fs-meta: var(--fs-13);
+
+  /* --- Line heights ----------------------------------------------------- */
+
+  /* Headings tighten as they grow; the artboards run 1.0 at 56px+ up to ~1.26
+     at 23px. Body copy is a fixed px leading in the designs, expressed here as
+     the equivalent ratio so it survives the clamp ramp. */
+  --lh-display: 1.04;   /* 56-66px */
+  --lh-tight: 1.06;     /* 48-52px */
+  --lh-heading: 1.08;   /* 42px */
+  --lh-subhead: 1.1;    /* 32px */
+  --lh-card: 1.2;       /* 24-26px */
+  --lh-snug: 1.26;      /* 23px */
+  --lh-body: 1.75;      /* 16/28 — the single most common pairing */
+  --lh-body-lg: 1.71;   /* 17/29 */
+  --lh-lead: 1.68;      /* 19/32 */
+  --lh-small: 1.73;     /* 15/26 */
+  --lh-flat: 1;         /* pills, badges, stat figures */
+
+  /* --- Letter spacing --------------------------------------------------- */
+  --ls-display: -0.015em; /* large Newsreader only */
+  --ls-normal: 0;
+  --ls-button: 0.06em;
+  --ls-nav: 0.07em;
+  --ls-wide: 0.1em;
+  --ls-label: 0.12em;
+  --ls-eyebrow: 0.14em;
+  --ls-eyebrow-wide: 0.16em;
+  --ls-widest: 0.22em;
+
+  /* --- Spacing ---------------------------------------------------------- */
+
+  /* Fixed steps for anything inside a component — the artboards space these in
+     hard pixels and they should not drift. */
+  --space-2: 2px;
+  --space-4: 4px;
+  --space-6: 6px;
+  --space-8: 8px;
+  --space-10: 10px;
+  --space-12: 12px;
+  --space-14: 14px;
+  --space-16: 16px;
+  --space-18: 18px;
+  --space-20: 20px;
+  --space-22: 22px;
+  --space-24: 24px;
+  --space-26: 26px;
+  --space-28: 28px;
+  --space-30: 30px;
+  --space-32: 32px;
+  --space-36: 36px;
+  --space-40: 40px;
+  --space-44: 44px;
+  --space-56: 56px;
+  --space-60: 60px;
+  --space-80: 80px;
+
+  /* Fluid steps for anything that separates blocks or sections. */
+  --space-3xs: clamp(8px, 0.427rem + 0.3113vw, 12px);
+  --space-2xs: clamp(12px, 0.677rem + 0.3113vw, 16px);
+  --space-xs: clamp(16px, 0.8541rem + 0.6226vw, 24px);
+  --space-sm: clamp(20px, 1.0311rem + 0.9339vw, 32px);
+  --space-md: clamp(28px, 1.3852rem + 1.5564vw, 48px);
+  --space-lg: clamp(36px, 1.7393rem + 2.179vw, 64px);
+  --space-xl: clamp(44px, 2.0934rem + 2.8016vw, 80px);
+
+  /* Section rhythm. 130px is the artboard default; 90px is its own explicit
+     `compactSpacing` variant, not a guess. */
+  --space-section: clamp(64px, 2.7962rem + 5.1362vw, 130px);
+  --space-section-sm: clamp(52px, 2.5569rem + 2.9572vw, 90px);
+
+  /* --- Layout ----------------------------------------------------------- */
+  --container: 1660px;         /* the artboard width */
+  --container-narrow: 1040px;  /* article / long-form measure */
+  --container-prose: 790px;    /* single column of running text */
+  /* Ramps from 768px, not 375px like everything else: phones want the content
+     edge-to-edge, and the growth belongs on desktop. 20px through tablet,
+     100px once the viewport reaches the artboard width. */
+  --gutter: clamp(20px, -3.0549rem + 8.9686vw, 100px);
+
+  --nav-height: 104px;
+
+  /* The header bar cannot afford the content gutter until the viewport is very
+     wide, so it gets its own ramp: 24px at 1280px — where the bar only just
+     fits — growing to 100px at 1920px, where it finally lines up with the
+     content column. Below 1280px the bar is replaced by the drawer. */
+  --gutter-header: clamp(24px, -8rem + 11.875vw, 100px);
+
+  /* Breakpoints are documented here for reference only — custom properties do
+     not work inside @media, so the media queries below repeat the literals.
+     Change both or neither.
+       sm 480px | md 768px | lg 1024px | xl 1280px | 2xl 1660px               */
+
+  /* --- Radius ----------------------------------------------------------- */
+  --radius-sm: 4px;   /* buttons, inputs, pills, badges */
+  --radius: 8px;      /* cards, panels, media */
+  --radius-lg: 12px;
+  --radius-full: 999px;
+
+  /* --- Elevation -------------------------------------------------------- */
+  --shadow-sm: 0 5px 14px rgba(20, 22, 14, 0.32);
+  --shadow: 0 6px 18px rgba(20, 22, 14, 0.34);
+  --shadow-lg: 0 12px 34px rgba(20, 26, 14, 0.35);
+  --shadow-xl: 0 22px 60px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 8px 24px rgba(20, 22, 14, 0.1);
+  --shadow-card-lift: 0 14px 40px rgba(20, 22, 14, 0.09);
+  --ring: 0 0 0 1px var(--border-strong);
+
+  /* --- Motion ----------------------------------------------------------- */
+
+  /* DEPARTURE: the artboards animate at `.15s ease`. House standard is a
+     slower, softly-decelerating curve, applied to everything unless a specific
+     element is called out. Use `--transition` and name the properties. */
+  --ease: cubic-bezier(0.17, 0.66, 0.34, 0.98);
+  --duration: 0.5s;
+  --transition: 0.5s cubic-bezier(0.17, 0.66, 0.34, 0.98);
+
+  /* --- Layers ----------------------------------------------------------- */
+  --z-base: 1;
+  --z-sticky: 10;
+  --z-header: 100;
+  --z-dropdown: 200;
+  --z-overlay: 900;
+  --z-modal: 1000;
+}
+
+/* --------------------------------------------------------------------------
+   2. Reset
+   -------------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Anything scrolled to via #anchor clears the fixed nav. */
+  scroll-padding-top: calc(var(--nav-height) + var(--space-24));
+}
+
+body {
+  min-height: 100vh;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+video,
+canvas,
+svg,
+iframe {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+/* Long unbroken strings — case captions, URLs — must not blow out a grid. */
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+li,
+dd {
+  overflow-wrap: break-word;
+}
+
+ul[role="list"],
+ol[role="list"] {
+  list-style: none;
+  padding: 0;
+}
+
+::selection {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------------------
+   3. Base elements
+   -------------------------------------------------------------------------- */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-regular); /* Newsreader 400 carries every heading */
+  color: var(--color-heading);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-page-title);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+h2 {
+  font-size: var(--fs-section);
+  line-height: var(--lh-heading);
+}
+
+h3 {
+  font-size: var(--fs-subsection);
+  line-height: var(--lh-subhead);
+}
+
+h4 {
+  font-size: var(--fs-card-title);
+  line-height: var(--lh-card);
+}
+
+h5 {
+  font-size: var(--fs-23);
+  line-height: var(--lh-snug);
+}
+
+h6 {
+  font-size: var(--fs-21);
+  line-height: var(--lh-card);
+}
+
+p {
+  text-wrap: pretty;
+}
+
+a {
+  color: var(--color-link);
+  text-decoration: none;
+  transition: color var(--duration) var(--ease), opacity var(--duration) var(--ease);
+}
+
+a:hover {
+  color: var(--color-link-hover);
+}
+
+strong,
+b {
+  font-weight: var(--fw-semibold);
+}
+
+hr {
+  height: 1px;
+  border: 0;
+  background: var(--border);
+}
+
+/* Sanity's own summary marker is removed the same way the artboards do it. */
+details > summary {
+  list-style: none;
+  cursor: pointer;
+}
+
+details > summary::-webkit-details-marker {
+  display: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--gold-ink);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   4. Layout primitives
+   -------------------------------------------------------------------------- */
+
+.container {
+  width: var(--container);
+  max-width: calc(100% - var(--gutter) * 2);
+  margin-inline: auto;
+}
+
+.container--narrow {
+  width: var(--container-narrow);
+}
+
+.container--prose {
+  width: var(--container-prose);
+}
+
+.container--flush {
+  max-width: 100%;
+}
+
+.section {
+  padding-block: var(--space-section);
+}
+
+.section--compact {
+  padding-block: var(--space-section-sm);
+}
+
+.section--flush-top {
+  padding-block-start: 0;
+}
+
+.section--flush-bottom {
+  padding-block-end: 0;
+}
+
+/* --- Surfaces ----------------------------------------------------------- */
+
+.surface-cream {
+  background: var(--cream);
+}
+
+.surface-sand {
+  background: var(--sand);
+}
+
+.surface-white {
+  background: var(--white);
+}
+
+.surface-ink {
+  background: var(--ink);
+}
+
+.surface-forest {
+  background: var(--gradient-forest);
+}
+
+.surface-forest-deep {
+  background: var(--gradient-forest-deep);
+}
+
+/* Any dark surface flips the whole text palette, so nested components inherit
+   the right colours instead of each one restating them. */
+.surface-ink,
+.surface-forest,
+.surface-forest-deep,
+.on-dark {
+  --color-text: var(--on-dark-62);
+  --color-heading: var(--on-dark);
+  --color-link: var(--gold);
+  --color-link-hover: var(--on-dark);
+  --border: var(--on-dark-border);
+  --border-strong: var(--on-dark-rule);
+  --muted: var(--on-dark-50);
+  --faint: var(--on-dark-50);
+  color: var(--color-text);
+}
+
+/* --------------------------------------------------------------------------
+   5. Typographic primitives
+   -------------------------------------------------------------------------- */
+
+/* The gold rule + uppercase kicker that opens nearly every section. */
+.eyebrow {
+  font-family: var(--font-label);
+  font-size: var(--fs-eyebrow);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-eyebrow-wide);
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  line-height: var(--lh-flat);
+}
+
+.on-dark .eyebrow,
+.surface-ink .eyebrow,
+.surface-forest .eyebrow,
+.surface-forest-deep .eyebrow {
+  color: var(--gold);
+}
+
+/* `.eyebrow--rule` adds the 52x2 gold dash the artboards set to its left. */
+.eyebrow--rule {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.eyebrow--rule::before {
+  content: "";
+  flex: none;
+  width: 52px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.label {
+  font-family: var(--font-label);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  color: var(--faint);
+  line-height: var(--lh-flat);
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: var(--lh-lead);
+  color: var(--color-text);
+}
+
+.signature {
+  font-family: var(--font-script);
+  font-weight: var(--fw-regular);
+}
+
+/* Oswald numerals — phone links, stat figures, anything set as a figure. */
+.figure-text {
+  font-family: var(--font-display);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-card);
+}
+
+/* Long-form body copy: rhythm for anything coming out of Portable Text. */
+.prose > * + * {
+  margin-block-start: var(--space-24);
+}
+
+.prose h2,
+.prose h3,
+.prose h4 {
+  margin-block-start: var(--space-xs);
+}
+
+.prose p,
+.prose li {
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body-lg);
+}
+
+.prose a {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--gold);
+  transition: color var(--duration) var(--ease),
+    text-decoration-color var(--duration) var(--ease);
+}
+
+.prose ul,
+.prose ol {
+  padding-inline-start: var(--space-24);
+}
+
+.prose li + li {
+  margin-block-start: var(--space-12);
+}
+
+.prose blockquote {
+  border-inline-start: 2px solid var(--gold);
+  padding-inline-start: var(--space-28);
+  font-family: var(--font-heading);
+  font-size: var(--fs-24);
+  line-height: var(--lh-snug);
+  color: var(--ink);
+}
+
+/* --------------------------------------------------------------------------
+   6. Buttons
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-12);
+  height: 60px;
+  padding-inline: var(--space-28);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: var(--fs-16);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-button);
+  text-transform: uppercase;
+  text-align: center;
+  line-height: var(--lh-flat);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background var(--duration) var(--ease),
+    color var(--duration) var(--ease),
+    border-color var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease);
+}
+
+.btn--sm {
+  height: 48px;
+  font-size: var(--fs-15);
+}
+
+/* The artboards give the main CTAs a fixed width rather than letting them hug. */
+.btn--wide {
+  width: 250px;
+  padding-inline: var(--space-16);
+}
+
+.btn--xwide {
+  width: 300px;
+  padding-inline: var(--space-16);
+}
+
+.btn--block {
+  display: flex;
+  width: 100%;
+}
+
+/* Gold — the primary. Hover deepens the fill and flips type to white.
+   Flat fills only; see the gradient note in the token block above. */
+.btn--gold {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.btn--gold:hover {
+  background: var(--gold-deep);
+  color: var(--white);
+}
+
+/* Cream — the secondary, used against photography and dark sections. */
+.btn--cream {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+.btn--cream:hover {
+  background: var(--white);
+  color: var(--green);
+}
+
+/* Green — the alternate solid, set in Roboto Condensed in the artboards. */
+.btn--green {
+  background: var(--green);
+  color: var(--cream);
+  font-family: var(--font-label);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+}
+
+.btn--green:hover {
+  background: var(--forest-700);
+  color: var(--white);
+}
+
+.btn--outline {
+  background: transparent;
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--border-deep);
+}
+
+.btn--outline:hover {
+  background: var(--ink);
+  color: var(--cream);
+  box-shadow: inset 0 0 0 1px var(--ink);
+}
+
+.on-dark .btn--outline,
+.surface-forest .btn--outline,
+.surface-ink .btn--outline {
+  color: var(--on-dark);
+  box-shadow: inset 0 0 0 1px var(--on-dark-border);
+}
+
+.on-dark .btn--outline:hover,
+.surface-forest .btn--outline:hover,
+.surface-ink .btn--outline:hover {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
+/* Any link or button that ends in an arrow: wrap the glyph in
+   `<span class="arrow" aria-hidden="true">→</span>` and it slides on hover and
+   on keyboard focus. Sized in `em` so it scales with the type it sits in, and
+   `inline-block` because a bare inline span cannot be transformed. The global
+   reduced-motion block already flattens it. */
+.arrow {
+  display: inline-block;
+  transition: transform var(--duration) var(--ease);
+}
+
+a:hover .arrow,
+button:hover .arrow,
+a:focus-visible .arrow,
+button:focus-visible .arrow {
+  transform: translateX(0.25em);
+}
+
+/* For a back-arrow, so it moves the way it points. */
+.arrow--back {
+  transform: none;
+}
+
+a:hover .arrow--back,
+button:hover .arrow--back,
+a:focus-visible .arrow--back,
+button:focus-visible .arrow--back {
+  transform: translateX(-0.25em);
+}
+
+/* A text link that reads as an action — "Get directions →". */
+.link-arrow {
+  font-family: var(--font-label);
+  font-size: var(--fs-meta);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  transition: color var(--duration) var(--ease),
+    text-decoration-color var(--duration) var(--ease);
+}
+
+.link-arrow:hover {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.on-dark .link-arrow,
+.surface-forest .link-arrow {
+  color: var(--gold);
+}
+
+.on-dark .link-arrow:hover,
+.surface-forest .link-arrow:hover {
+  color: var(--on-dark);
+}
+
+/* --------------------------------------------------------------------------
+   7. Cards, pills, rules
+   -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-32);
+  transition: border-color var(--duration) var(--ease),
+    box-shadow var(--duration) var(--ease),
+    transform var(--duration) var(--ease);
+}
+
+.card--interactive:hover {
+  border-color: var(--gold-ink);
+  box-shadow: var(--shadow-card);
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  background: var(--gold);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 7px var(--space-16);
+  font-family: var(--font-label);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  line-height: var(--lh-flat);
+}
+
+.rule {
+  width: 52px;
+  height: 2px;
+  background: var(--gold);
+  border: 0;
+}
+
+/* --------------------------------------------------------------------------
+   8. Forms
+   -------------------------------------------------------------------------- */
+
+.field {
+  width: 100%;
+  height: 60px;
+  border: none;
+  background: var(--white);
+  border-radius: var(--radius-sm);
+  padding: 0 var(--space-18);
+  font-family: var(--font-body);
+  font-size: var(--fs-body-lg);
+  color: var(--ink);
+  outline: none;
+  transition: box-shadow var(--duration) var(--ease);
+}
+
+textarea.field {
+  height: 140px;
+  padding: var(--space-18);
+  line-height: var(--lh-body-lg);
+  resize: vertical;
+}
+
+.field::placeholder {
+  color: var(--faint);
+}
+
+.field:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--gold);
+}
+
+.field[aria-invalid="true"] {
+  box-shadow: inset 0 0 0 2px var(--gold-deep);
+}
+
+.field-label {
+  display: block;
+  font-family: var(--font-label);
+  font-size: var(--fs-13);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-label);
+  text-transform: uppercase;
+  color: var(--gold-ink);
+  margin-block-end: var(--space-10);
+}
+
+.on-dark .field-label,
+.surface-forest .field-label {
+  color: var(--gold);
+}
+
+.field-error {
+  display: block;
+  font-size: var(--fs-13);
+  line-height: 20px;
+  color: var(--error);
+  margin-block-start: var(--space-8);
+}
+
+.on-dark .field-error,
+.surface-forest .field-error {
+  color: var(--error-on-dark);
+}
+
+/* --------------------------------------------------------------------------
+   9. Utilities
+   -------------------------------------------------------------------------- */
+
+/* Locks the page while the mobile drawer is open. A class rather than an inline
+   style, so nothing else can clobber it and the state is visible in devtools. */
+body.drawer-open {
+  overflow: hidden;
+}
+
+.visually-hidden:not(:focus):not(:active) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.skip-link {
+  position: absolute;
+  top: var(--space-8);
+  left: var(--space-8);
+  z-index: var(--z-modal);
+  padding: var(--space-12) var(--space-20);
+  background: var(--ink);
+  color: var(--cream);
+  border-radius: var(--radius-sm);
+  transform: translateY(-200%);
+  transition: transform var(--duration) var(--ease);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.stack > * + * {
+  margin-block-start: var(--flow, var(--space-24));
+}
+
+.text-gold { color: var(--gold); }
+.text-gold-ink { color: var(--gold-ink); }
+.text-ink { color: var(--ink); }
+.text-muted { color: var(--muted); }
+.text-cream { color: var(--cream); }
+.text-center { text-align: center; }
+.no-wrap { white-space: nowrap; }
+
+/* --------------------------------------------------------------------------
+   10. Responsive
+   --------------------------------------------------------------------------
+   Not derived from the designs — the artboards are 1660px only. Type and
+   spacing already ramp via clamp, so these handle structure alone. Literals
+   repeat the breakpoints documented in :root.
+   -------------------------------------------------------------------------- */
+
+/* lg and below — tablet landscape */
+@media (max-width: 1024px) {
+  :root {
+    --nav-height: 88px;
+  }
+}
+
+/* md and below — the point where multi-column layouts collapse */
+@media (max-width: 768px) {
+  :root {
+    --nav-height: 72px;
+  }
+
+  .btn--wide,
+  .btn--xwide {
+    width: 100%;
+  }
+
+  .card {
+    padding: var(--space-24);
+  }
+}
+
+/* sm and below — phones */
+@media (max-width: 480px) {
+  .eyebrow--rule {
+    gap: var(--space-12);
+  }
+
+  .eyebrow--rule::before {
+    width: 32px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   11. Print
+   -------------------------------------------------------------------------- */
+
+@media print {
+  body {
+    background: #fff;
+    color: #000;
+  }
+
+  .skip-link,
+  nav,
+  footer {
+    display: none;
+  }
+}

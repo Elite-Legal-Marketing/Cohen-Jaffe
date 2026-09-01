@@ -48,6 +48,14 @@ that slash matters locally.
 | `src/sanity/eliteTheme.js` | Generated Themer palette (do not hand-edit) |
 | `src/sanity/eliteTheme.d.ts` | Precise types for the above — why it's narrow is in the file |
 | `src/sanity/components/EliteMark.tsx` | ELITE emblem + login-card CSS |
+| `src/styles/global.css` | **The design system** — tokens, reset, layout + component primitives |
+| `src/layouts/Layout.astro` | The shell — `<head>`, nav, `<main id="main">`, footer |
+| `src/components/Nav.astro` | Header: logo, dropdown menus, contact cluster, hamburger, call icon |
+| `src/components/MobileNav.astro` | **The mobile drawer** — drill-down panels, its own CSS + script |
+| `src/components/Footer.astro` | Four-column footer on the forest gradient |
+| `src/data/navigation.ts` | **Nav + footer architecture and every URL** — the Sanity seam |
+| `src/lib/urls.ts` | `isCurrent` / `isWithin` — comparison-only URL helpers |
+| `src/assets/` | Images that go through Astro's pipeline (the two logos) |
 | `src/pages/` | Routes |
 | `.claude/launch.json` | Dev-server config for the preview tooling |
 
@@ -67,6 +75,135 @@ working directory):
   folders). This is the content and URL source for the migration: it's where existing
   copy, page inventory, and the live URL structure come from. Preserve those URLs, or
   plan redirects, when the new site goes up.
+
+## Navigation
+
+`src/data/navigation.ts` holds the whole IA — primary nav, footer columns, office
+details — as plain typed constants. **This is the seam where Sanity takes over:** swap the
+constants for a GROQ query returning the same shapes and no component changes.
+
+The **architecture** (which items exist, what nests under what, every URL) was parsed out
+of the live WordPress nav in the `Sitesucker/` mirror, and every href was checked against
+that page's own `og:url`. These are the already-indexed URLs — changing one is a redirect
+to write, not a free edit. The **presentation** — the "Practice Areas" label where live says "Personal Injury" —
+comes from the artboards. The **top-level order** (About, Practice Areas, Areas We Serve,
+Case Results, Resources, Contact) is the client's, and matches neither source.
+
+Rendering rules, ours — the artboards only ever draw the collapsed "▾":
+- **One dropdown style only:** an anchored card under its trigger. (A full-width mega
+  variant existed briefly and was removed — don't reintroduce it.)
+- **Two levels, maximum.** A row with `children` opens a flyout to its right. Only
+  Practice Areas (three categories) and About (Attorneys) use the second level; every other
+  row is a plain link.
+- **A menu whose top-level item already links to its own page gets no `footerLink`** — About
+  does not, because "About" in the bar goes to `/about/`. On mobile the drawer's top row is a
+  `<summary>` that toggles rather than navigates, so the component falls back to an
+  "<label> overview" link automatically when `footerLink` is absent. Don't remove that
+  fallback: without it `/about/` is unreachable from the drawer.
+- **A row without `href` is a category** ("Mass Torts", "Defective Medical Devices") — the
+  live site renders those as `href="#"` headings and inventing URLs for them would be worse. They render as
+  a `<button>`, not a `<span>`, so Tab reaches them and `:focus-within` opens the flyout.
+- **Only flat panels get `--scroll`.** `overflow` on a panel that has flyouts clips them
+  instead of letting them escape, so the max-height cap is applied conditionally
+  (`hasFlyouts()` in the component). Areas We Serve is the one that needs it.
+- Panels are always in the DOM and revealed with CSS `:hover` / `:focus-within`, so every
+  link stays crawlable and keyboard-reachable with no JS. The only script is the mobile
+  drawer's open/close.
+- The card is capped at `100vh - nav-height` and scrolls: Practice Areas is 17 links plus
+  three headings.
+- **Any link or button ending in an arrow animates it.** Wrap the glyph in
+  `<span class="arrow" aria-hidden="true">→</span>` and `global.css` slides it 0.25em on
+  hover *and* on keyboard focus (`.arrow--back` for a `←`). Sized in `em` so it scales with
+  its type; reduced-motion is already handled globally. This is a site-wide convention, not
+  a nav one — use it in page content too.
+- **Child rows hover with a gold wash (`--gold-wash`), not an underline.** Each row carries
+  its own padding and radius so the fill extends past the text, the card's padding is small
+  and even, and `--space-4` between rows guarantees two fills can never touch. Adding
+  vertical rhythm here means increasing that gap, never removing it.
+- **The panel is `top: calc(100% - var(--nav-panel-lift))`, not `top: 100%`.** Nav links
+  are centred in a 104px bar, so the bar's own lower half left ~39px of dead space between
+  a label and its card and the card read as detached. The lift halves that to ~19px and
+  tucks the card under the bar, which also removes any hover gap to cross. Note this gap
+  is *outside* the card — trimming the card's padding does not touch it.
+
+### The mobile drawer
+
+Below 1280px the bar is replaced by **`MobileNav.astro`** — a fixed right-side drawer with
+**drill-down panels**, ported from the sibling Cogdell Law site. It is not an accordion:
+every level is a separate `<ul>` absolutely positioned in the same box, all parked at
+`translateX(100%)` except `root`, and drilling slides a child panel *over* its parent. A
+`stack` of panel ids in the script is the entire state model. The bar's title swaps to the
+current panel and a back chevron appears below root.
+
+Five things about it are load-bearing:
+
+- **It must be a SIBLING of `<header>`, never a child.** `.site-header` is
+  `position: relative; z-index: var(--z-header)`, which creates a stacking context that
+  would trap a fixed drawer at z-index 100. As a sibling it uses `--z-overlay` for the
+  scrim and `--z-modal` for the drawer.
+- **The closed drawer is NOT `visibility: hidden`** — only translated off-screen and
+  `inert`. A hidden element cannot take focus, so focusing the close button on open was a
+  silent no-op that stranded focus outside the dialog; worse, a `visibility` transition
+  only resolves on an animation frame, so no amount of style-flushing fixes it. `inert` is
+  what makes it non-interactive; the box-shadow is **faded** rather than hidden so it does
+  not bleed over the page.
+- **Focus containment is `inert` on every other child of `<body>`**, not a hand-rolled Tab
+  trap. It must be lifted *before* focus returns to the toggle, or that call lands on an
+  inert element and does nothing.
+- **Panels reset on `transitionend`**, not a fixed timeout. (Cogdell uses a 300ms timeout
+  against a 500ms transition, so its panels visibly snap back mid-close.) A 600ms timer is
+  kept only as a fallback.
+- **Leaving the breakpoint while open is guarded twice**, on `matchMedia` *change* and on
+  `resize`. If it is missed the page is left inert AND scroll-locked with the toggle
+  hidden — nothing on screen can recover it. Hold the MediaQueryList in a variable; an
+  unreferenced one can be garbage-collected along with its listener.
+
+Scroll lock is `body.drawer-open { overflow: hidden }` in `global.css`, not an inline
+style. The drawer always opens at the root panel — it does not auto-drill to the current
+section.
+
+**Panels carry no "overview" row.** Every row that opens a panel is itself a link, so the
+section's own page is always one tap away in the level above — a row inside the panel would
+just duplicate it. `footerLink` in `navigation.ts` is therefore desktop-only; the drawer
+ignores it.
+
+A **tap-to-call icon** (`.header-call`) sits next to the hamburger below 1280px, because
+the whole contact cluster is hidden there and the phone is the firm's primary conversion
+path.
+
+**The header bar has its own gutter, `--gutter-header`, and it is not a mistake.** The
+artboard's bar fills 1660px edge to edge with *zero* gutter, so it cannot also fit the
+content column's 100px gutter — it silently compressed the nav until it slid under the
+phone number. So **seven things in the bar ramp together from 1280px to 1920px**: the
+header gutter (24 → 100px), the outer gap (12 → 32px), the nav gap (10 → 20px), the nav
+label size (13 → 15px), the logo height (44 → 52px), the phone size (22 → 26px) and the
+CTA width (160 → 250px). At 1280px they sit at their minimums and the bar clears with ~58px
+either side; at 1920px they are all back to the artboard's values and the bar finally
+aligns with the content column.
+
+**Below 1280px the bar becomes the drawer.** Changing any one of those seven ramps moves
+that limit — re-measure before touching the breakpoint. `.nav` is `flex: none` on purpose:
+if the bar ever stops fitting it should break visibly at the breakpoint rather than
+quietly overlap again.
+
+## The Spanish section — deferred, not forgotten
+
+The artboard's **"En Español"** control has been removed from the build on request. The
+live site does have a Spanish section at `https://www.cohenjaffe.com/es/`, so this will
+come back — but **it is not a mirror of the English site.** It is 17 pages, with a fully
+translated menu whose links all point back at *English* pages; none of those 17 pages
+appear in it. Several of its place names are machine-translated ("Bahía de Ostras" for
+Oyster Bay, "Yo Resbalo" for Islip, "Playa Larga" for Long Beach, "Babilonia" for Babylon).
+Do not port that menu as-is — the Spanish IA needs a client decision first. The background
+is kept as a comment at the top of `src/data/navigation.ts`.
+
+Note the header currently has **no** room for a language control in the nav row (it costs
+~120px the bar does not have); when it returns it belongs in the 24/7 utility cluster.
+
+Two live-nav links point at pages **absent from the mirror** — `/medical-device-lawyer-long-island/`
+and `/personal-injury-lawyer-nassau-county/`. Both are written as absolute paths in the
+live nav, which is exactly how SiteSucker leaves a link it never downloaded. Confirm they
+still resolve before launch.
 
 ## URLs: trailing slash — ALWAYS
 
@@ -93,16 +230,72 @@ Also applies to any form `action`: a POST to a path missing its slash earns a 30
 
 ## Design tokens, breakpoints, layout grid
 
-**Not established yet** — the site is a blank scaffold with no layout or styling. When the
-first real page is built from the designs, define the tokens/breakpoints/grid once, record
-them in this section, and have every later page use them rather than one-off values.
+Established 2026-09-01 and living in **`src/styles/global.css`** — the single source of
+truth. Import it once (in `Layout.astro` when that exists) and use the tokens; do not
+introduce one-off values.
+
+Every token was extracted from the approved `.dc.html` artboards by frequency, so a design
+that says `42px` maps to `--fs-42`, and the mapping stays checkable. Two deliberate
+departures from the artboards are marked `DEPARTURE` in the file.
+
+**Type is fluid between 375px and 1660px** (smallest common phone → artboard width).
+Verified at both ends: at 1660 every token lands on its exact artboard value; at 375 each
+sits on its floor. Floors are `16 + (design − 16) × 0.42`, so everything compresses toward
+16px and nothing goes under it.
+
+- `--fs-17` … `--fs-88` are `clamp()`. **`--fs-16` and below are fixed** — already at the
+  legibility floor, and clamping them would only shrink them.
+- Semantic aliases sit on top: `--fs-hero` (66), `--fs-page-title` (56), `--fs-section`
+  (42), `--fs-card-title` (26), `--fs-lead` (19), `--fs-body` (16).
+
+**Typefaces** — Newsreader (all headings, 400; variable `opsz` 6..72, so the range must be
+requested from Google Fonts, not a single value), Instrument Sans (body + form fields),
+Roboto Condensed (uppercase eyebrows/labels/meta), Oswald (phone numbers, CTA buttons, stat
+figures), Mrs Saint Delafield (signature flourish only).
+
+**Motion** — `--transition: 0.5s cubic-bezier(0.17, 0.66, 0.34, 0.98)` on everything unless
+a specific element is called out. This is the house standard and **overrides the artboards**,
+which animate at `.15s ease`. Name the properties; never `transition: all`.
+
+**Layout** — `.container` is `1660px` wide with `max-width: calc(100% - var(--gutter) * 2)`.
+The content gutter ramps **20px → 100px**, and unlike everything else it is anchored at
+768px, not 375px: phones want content edge-to-edge and the growth belongs on desktop.
+`--gutter-header` is a *separate*, smaller ramp for the nav bar — see "Navigation" for why. `--container-narrow` (1040px) for articles, `--container-prose`
+(790px) for a single column of running text. `.section` is `--space-section` (64 → 130px);
+`.section--compact` is `--space-section-sm` (52 → 90px) — 90px is the artboards' own
+explicit `compactSpacing` variant, not a guess.
+
+**Spacing** — fixed px steps (`--space-4` … `--space-80`) for *inside* a component, where
+the artboards use hard pixels that should not drift; fluid steps (`--space-3xs` … `--space-xl`)
+for anything separating blocks or sections.
+
+**Dark surfaces flip the palette by inheritance.** Putting `.surface-forest`, `.surface-ink`
+or `.on-dark` on a wrapper redefines `--color-text`, `--color-heading`, `--color-link` and
+the border tokens for everything nested inside, so components don't restate their colours
+per context. Build components against the semantic tokens, not the raw ones, or they will
+be unreadable on dark sections.
+
+⚠️ **Breakpoints are NOT from the designs.** The artboards are fixed `min-width:1660px`
+boards with no `@media` rules and no mobile counterparts, so they describe the desktop end
+only. The responsive layer is ours: `sm 480 · md 768 · lg 1024 · xl 1280 · 2xl 1660`.
+They are documented in `:root` as a comment and **repeated as literals in the media
+queries** — custom properties do not work inside `@media`. The header is the exception: it
+swaps to the drawer at **1280px**, a measured fit limit rather than a scale step. Change both or neither.
+Because type and spacing already ramp via `clamp()`, the media queries handle structure
+only. Confirm mobile layout decisions with the user rather than inferring them.
 
 ## Conventions
 
-- **Start blank, add on request.** No shared layout, no example schema types, no extra
-  pages until asked. When a layout is wanted, build `src/layouts/Layout.astro` (nav +
-  footer + `<head>`; props `title`, optional `description`; a `<slot/>`; scoped styles)
-  and have pages wrap it.
+- **Start blank, add on request.** No example schema types, no extra pages until asked.
+- **Every page wraps `Layout.astro`** — props `title`, optional `description`, optional
+  `bare` to drop the chrome (thank-you and landing pages). Content lands inside
+  `<main id="main">`, which is the skip-link target, so a page must not add its own
+  `<main>`. Component CSS goes in a scoped `<style>` block; only genuinely shared
+  primitives belong in `global.css`.
+- **Never put a gradient on a button.** A gradient cannot cross-fade to a flat hover
+  colour — there is no interpolation between the two, so the fill snaps and the 0.5s curve
+  is thrown away. Buttons are flat fills only. The artboards do give the hero CTA a gold
+  gradient; that is deliberately not carried over.
 - **Schema**: follow `defineType` / `defineField` from the `sanity-best-practices` skill.
   Every type gets an `icon` and a `preview` — no row should read "Untitled".
 - **Validation**: on design-coupled short strings use `.max(N).warning(...)`, **never
@@ -150,6 +343,22 @@ them in this section, and have every later page use them rather than one-off val
   dead ends** for branding in Studio 6. The workspace `icon` + modern `theme` is the path.
   `studio.components.layout` does not wrap the login screen.
 - Writing through the `CLAUDE.md` symlink is refused — **edit `AGENTS.md`**.
+
+- **A scrim can't be a negative-z-index pseudo-element on the thing it sits behind.**
+  Painting order inside a stacking context is: the element's own background, *then*
+  negative-z children, *then* its content. So `.mobile-nav::before { z-index: -1 }` dimmed
+  the drawer's own cream background while leaving its text crisp — it looked like a broken
+  colour token, not a layering bug. The scrim has to be a **sibling** of the drawer. Same
+  trap applies to any overlay drawn from inside the element it's meant to sit under.
+- **CSS transitions do not advance, and `requestAnimationFrame` never fires, while the
+  browser pane is hidden.** Computed values of transitioned properties stay frozen at their
+  start, so reading one mid-transition proves nothing. To check a transitioned property,
+  set `transition: none` on the element, toggle the class, and read the target value.
+- **`:focus` and `:focus-within` misreport when the browser window isn't focused.** In an
+  automated browser, `document.hasFocus()` is false and `el.matches(':focus')` returns
+  false while `.matches(':focus-within')` returns true — and focus styles don't paint.
+  Verifying a focus-driven dropdown that way shows it "broken" when it is fine. Click into
+  the page first and confirm `document.hasFocus()` before trusting the reading.
 
 ## How to verify
 
