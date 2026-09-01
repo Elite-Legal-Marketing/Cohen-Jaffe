@@ -222,7 +222,8 @@ sibling site, normalising for display changed what links matched and silently re
 
 ⚠️ **In dev, `localhost:4321/admin` now 404s — use `localhost:4321/admin/`.** Astro's dev
 server does not redirect the unslashed form; it just 404s. Production is fine because
-Vercel's `trailingSlash: true` issues a 301. This catches everyone once: a 404 on `/admin`
+Vercel's `trailingSlash: true` redirects — **measured as a 308, not a 301** (verified
+2026-09-01 against the production deploy). This catches everyone once: a 404 on `/admin`
 locally is almost always the missing slash, not a broken Studio.
 
 Also applies to any form `action`: a POST to a path missing its slash earns a 308 that
