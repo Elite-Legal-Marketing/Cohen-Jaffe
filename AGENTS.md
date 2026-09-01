@@ -207,6 +207,39 @@ the first section.
   that width. Below 900px the hero also **stacks** — picture above, copy below — so text is
   never laid over anyone's face. A `<picture>` element does the swap.
 
+## Sanity conventions — apply these without asking
+
+Settled 2026-09-01. These are the house rules for every schema and every section from here
+on; they exist so setup can move fast without a decision each time.
+
+1. **Fixed pages live under a "Pages" folder** in the desk, not at the root beside
+   collections. `src/sanity/structure.ts`. Collections and site settings come after a
+   divider.
+2. **Every section is a collapsible field, collapsed by default** —
+   `options: { collapsible: true, collapsed: true }` on the section object. The homepage
+   alone has fifteen sections; an always-expanded form is unusable.
+3. **More than one paragraph ⇒ Portable Text.** Use the shared `richText` type, never a
+   `text` field. Single-paragraph copy (a hero's supporting line, a card blurb) stays
+   `string`/`text`. `richText` is deliberately narrow — no H1, so an editor cannot put a
+   second `<h1>` on a page.
+4. **Buttons are an array of `ctaLink`, not named `primaryCta`/`secondaryCta` fields.**
+   It reads better in the Studio and the cap is per-section
+   (`rule.max(2).warning(...)` on the hero). Order carries the styling: first is the
+   gold button, second the light one — so the component reads the index, not a field name.
+5. **Images: in Sanity or in code?** In Sanity **only if someone interacts with the
+   image** — a card, an attorney portrait, anything an editor swaps as part of the content.
+   **Large decorative art lives in the repo** (`src/assets/`), rendered through
+   `astro:assets`. It fingerprints, converts to WebP and generates the srcset at build
+   time: the hero photographs went from 2.87 MB PNGs to ~102 KB, with no CDN round trip and
+   nothing for an editor to break.
+
+Two mechanical notes that follow from these:
+- Project **`_key`** on every array in a GROQ query. It is the render key and the handle
+  Visual Editing uses for click-to-edit.
+- **Never put a `//` comment inside a `defineQuery` template.** Typegen stops finding the
+  query entirely and silently regenerates with `0 queries`, leaving stale result types.
+  Put the comment above the export.
+
 ## The Spanish section — deferred, not forgotten
 
 The artboard's **"En Español"** control has been removed from the build on request. The

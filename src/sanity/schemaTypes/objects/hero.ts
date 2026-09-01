@@ -1,14 +1,17 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 import { StarIcon } from "@sanity/icons/Star";
 
 /**
- * The page hero: kicker, headline, supporting copy, up to two buttons, and a
- * background photograph.
+ * The page hero: kicker, headline, supporting copy and up to two buttons.
  *
  * `headingAccent` is a second heading line rather than a styling flag. The
  * design sets it in gold beneath the first line, but as content it is the
  * promise the firm makes after the question — it stays meaningful if the site
  * is redesigned.
+ *
+ * No image field, deliberately. The hero photographs are large decorative art
+ * that nobody interacts with, so they live in the repo — see AGENTS.md →
+ * "Images: in Sanity or in code?".
  */
 export const hero = defineType({
   name: "hero",
@@ -39,57 +42,22 @@ export const hero = defineType({
     defineField({
       name: "body",
       title: "Supporting copy",
+      // A single paragraph, so `text` rather than `richText` — see richText.ts.
       type: "text",
       rows: 4,
-      validation: (rule) => rule.max(320).warning("Longer copy pushes the buttons off a laptop screen."),
+      validation: (rule) =>
+        rule.max(320).warning("Longer copy pushes the buttons off a laptop screen."),
     }),
     defineField({
-      name: "primaryCta",
-      title: "Primary button",
-      type: "ctaLink",
-    }),
-    defineField({
-      name: "secondaryCta",
-      title: "Secondary button",
-      type: "ctaLink",
-    }),
-    defineField({
-      name: "image",
-      title: "Photograph — wide",
-      description: "Used on desktop, where the copy sits beside the picture.",
-      type: "image",
-      options: { hotspot: true },
-      fields: [
-        defineField({
-          name: "alt",
-          title: "Alternative text",
-          type: "string",
-          description: "Describe the photograph for screen readers and search engines.",
-          validation: (rule) => rule.required(),
-        }),
-      ],
-      validation: (rule) => rule.required(),
-    }),
-    defineField({
-      name: "imageNarrow",
-      title: "Photograph — narrow",
-      description:
-        "Used on phones, where the picture sits above the copy. A squarer crop that keeps " +
-        "everyone in frame; a wide shot loses its subjects at this width. Falls back to the " +
-        "wide photograph if empty.",
-      type: "image",
-      options: { hotspot: true },
-      fields: [
-        defineField({
-          name: "alt",
-          title: "Alternative text",
-          type: "string",
-          description: "Leave empty to reuse the wide photograph's description.",
-        }),
-      ],
+      name: "buttons",
+      title: "Buttons",
+      description: "The first is the gold button, the second the light one.",
+      type: "array",
+      of: [defineArrayMember({ type: "ctaLink" })],
+      validation: (rule) => rule.max(2).warning("The hero has room for two buttons."),
     }),
   ],
   preview: {
-    select: { title: "heading", subtitle: "eyebrow", media: "image" },
+    select: { title: "heading", subtitle: "eyebrow" },
   },
 });

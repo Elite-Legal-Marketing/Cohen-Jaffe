@@ -8,8 +8,10 @@
  *
  * Content comes from the `homePage` singleton in Sanity.
  */
+import { getImage } from "astro:assets";
+import heroWide from "../assets/hero-sidewalk-wide.png";
+import heroNarrow from "../assets/hero-partners-narrow.png";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
-import { srcSet, urlFor } from "../lib/image";
 
 type Hero = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["hero"]>;
 
@@ -19,29 +21,39 @@ interface Props {
 
 const { hero } = Astro.props;
 
-// The photograph is the LCP element, so it is a real <img> rather than a CSS
-// background: a background image is invisible to the preload scanner and
-// cannot be prioritised.
-const WIDE_WIDTHS = [1024, 1280, 1660, 2200];
-const NARROW_WIDTHS = [420, 640, 828, 1080];
+// The photographs are large decorative art nobody interacts with, so they live
+// in the repo rather than Sanity — see AGENTS.md → "Images: in Sanity or in
+// code?". Astro fingerprints and optimises them at build time.
+//
+// Two different photographs, not two crops of one: the wide shot loses its
+// subjects at phone widths, so a squarer frame takes over below 900px.
+const HERO_ALT =
+  "The three partners of Cohen & Jaffe walking a Long Island village sidewalk";
 
-// Two different photographs, not two crops of one. The wide shot loses its
-// subjects at phone widths, so a squarer frame takes over — see the schema.
-const narrow = hero.imageNarrow?.asset ? hero.imageNarrow : hero.image;
-const narrowAlt = hero.imageNarrow?.alt || hero.image.alt;
-const src = urlFor(narrow).width(828).url();
+const wide = await getImage({
+  src: heroWide,
+  widths: [1024, 1280, 1660, 2200],
+  format: "webp",
+});
+const narrow = await getImage({
+  src: heroNarrow,
+  widths: [420, 640, 828, 1080],
+  format: "webp",
+});
 ---
 
 <section class="hero on-dark">
   <div class="hero__media">
     <picture>
-      <source media="(min-width: 901px)" srcset={srcSet(hero.image, WIDE_WIDTHS)} sizes="100vw" />
+      <source media="(min-width: 901px)" srcset={wide.srcSet.attribute} sizes="100vw" type="image/webp" />
       <img
         class="hero__image"
-        src={src}
-        srcset={srcSet(narrow, NARROW_WIDTHS)}
+        src={narrow.src}
+        srcset={narrow.srcSet.attribute}
         sizes="100vw"
-        alt={narrowAlt}
+        alt={HERO_ALT}
+        width={narrow.attributes.width}
+        height={narrow.attributes.height}
         loading="eager"
         fetchpriority="high"
         decoding="async"
@@ -67,21 +79,25 @@ const src = urlFor(narrow).width(828).url();
       {hero.body && <p class="hero__body">{hero.body}</p>}
 
       {
-        (hero.primaryCta || hero.secondaryCta) && (
+        hero.buttons && hero.buttons.length > 0 && (
           <div class="hero__actions">
-            {hero.primaryCta?.href && (
-              <a href={hero.primaryCta.href} class="btn btn--gold btn--xwide">
-                {hero.primaryCta.label}
+            {hero.buttons.map((button, i) => (
+              <a
+                href={button.href}
+                class:list={[
+                  "btn",
+                  /* First button is the gold one, second the light one. */
+                  i === 0 ? "btn--gold btn--xwide" : "btn--cream btn--wide",
+                ]}
+              >
+                {i === 1 && (
+                  <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path d="M5 3.2l11 6.8-11 6.8z" />
+                  </svg>
+                )}
+                {button.label}
               </a>
-            )}
-            {hero.secondaryCta?.href && (
-              <a href={hero.secondaryCta.href} class="btn btn--cream btn--wide">
-                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path d="M5 3.2l11 6.8-11 6.8z" />
-                </svg>
-                {hero.secondaryCta.label}
-              </a>
-            )}
+            ))}
           </div>
         )
       }

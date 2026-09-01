@@ -15,17 +15,29 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type RichText = Array<{
+  children?: Array<{
+    marks?: Array<string>;
+    text?: string;
+    _type: "span";
+    _key: string;
+  }>;
+  style?: "normal" | "h2" | "h3" | "blockquote";
+  listItem?: "bullet" | "number";
+  markDefs?: Array<{
+    href: string;
+    _type: "link";
+    _key: string;
+  }>;
+  level?: number;
+  _type: "block";
+  _key: string;
+}>;
+
 export type CtaLink = {
   _type: "ctaLink";
   label: string;
   href: string;
-};
-
-export type SanityImageAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
 export type Hero = {
@@ -34,24 +46,11 @@ export type Hero = {
   heading: string;
   headingAccent?: string;
   body?: string;
-  primaryCta?: CtaLink;
-  secondaryCta?: CtaLink;
-  image: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt: string;
-    _type: "image";
-  };
-  imageNarrow?: {
-    asset?: SanityImageAssetReference;
-    media?: unknown;
-    hotspot?: SanityImageHotspot;
-    crop?: SanityImageCrop;
-    alt?: string;
-    _type: "image";
-  };
+  buttons?: Array<
+    {
+      _key: string;
+    } & CtaLink
+  >;
 };
 
 export type HomePage = {
@@ -61,22 +60,6 @@ export type HomePage = {
   _updatedAt: string;
   _rev: string;
   hero?: Hero;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -115,6 +98,22 @@ export type SanityImageMetadata = {
   thumbHash?: string;
   hasAlpha?: boolean;
   isOpaque?: boolean;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
 };
 
 export type SanityFileAsset = {
@@ -183,16 +182,16 @@ export type Slug = {
 };
 
 export type AllSanitySchemaTypes =
+  | RichText
   | CtaLink
-  | SanityImageAssetReference
   | Hero
   | HomePage
-  | SanityImageCrop
-  | SanityImageHotspot
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
   | SanityImageMetadata
+  | SanityImageHotspot
+  | SanityImageCrop
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
@@ -201,7 +200,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      primaryCta{ label, href },      secondaryCta{ label, href },      image{ ..., alt },      imageNarrow{ ..., alt }    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
@@ -212,30 +211,11 @@ export type HOME_PAGE_QUERY_RESULT =
         heading: string;
         headingAccent: string | null;
         body: string | null;
-        primaryCta: {
+        buttons: Array<{
+          _key: string;
           label: string;
           href: string;
-        } | null;
-        secondaryCta: {
-          label: string;
-          href: string;
-        } | null;
-        image: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string;
-          _type: "image";
-        };
-        imageNarrow: {
-          asset?: SanityImageAssetReference;
-          media?: unknown;
-          hotspot?: SanityImageHotspot;
-          crop?: SanityImageCrop;
-          alt: string | null;
-          _type: "image";
-        } | null;
+        }> | null;
       } | null;
     }
   | null;
@@ -244,6 +224,6 @@ export type HOME_PAGE_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      primaryCta{ label, href },\n      secondaryCta{ label, href },\n      image{ ..., alt },\n      imageNarrow{ ..., alt }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
   }
 }

@@ -9,9 +9,10 @@ import { HomeIcon } from "@sanity/icons/Home";
  * hides it from the generic document lists.
  *
  * One named field per section of the approved design, added as each section is
- * built. Sections that repeat elsewhere on the site (attorneys, practice areas,
- * case results) will reference their own document types rather than nest copies
- * here.
+ * built. **Every section is collapsible and starts collapsed** — with fifteen
+ * of them, an always-expanded form is unusable. Sections that repeat elsewhere
+ * on the site (attorneys, practice areas, case results) will reference their own
+ * document types rather than nest copies here.
  */
 export const homePage = defineType({
   name: "homePage",
@@ -23,6 +24,7 @@ export const homePage = defineType({
       name: "hero",
       title: "Hero",
       type: "hero",
+      options: { collapsible: true, collapsed: true },
     }),
   ],
   preview: {

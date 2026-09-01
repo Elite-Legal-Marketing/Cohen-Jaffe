@@ -38,10 +38,19 @@ actually enforces the singleton, by pinning the document id and hiding the type 
 generic lists) → `defineQuery` in `src/lib/queries.ts` → `HOME_PAGE_QUERY_RESULT` →
 `Hero.astro`.
 
-The hero carries **two photographs, not two crops**: `image` is the wide desktop shot,
-`imageNarrow` a squarer frame for phones, because the wide one loses its subjects at that
-width. Below 900px the hero **stacks** — picture above, copy below — so text is never laid
-over anyone's face. A `<picture>` element does the swap.
+The hero carries **two photographs, not two crops**, and both live in `src/assets/` rather
+than Sanity — they are large decorative art nobody interacts with. Rendered through
+`astro:assets`, they went from 2.87 MB PNGs to ~102 KB WebP with a build-time srcset. The
+wide shot loses its subjects at phone widths, so a squarer frame takes over below 900px,
+where the hero also **stacks** — picture above, copy below — so text is never laid over
+anyone's face. A `<picture>` element does the swap.
+
+**Five Sanity conventions are now settled** and recorded in `AGENTS.md` → "Sanity
+conventions — apply these without asking": Pages folder, collapsed section accordions,
+Portable Text past one paragraph, buttons as arrays, and images in code unless someone
+interacts with them. Apply them without asking on every new section.
+
+The production dataset currently holds **one document and no assets**.
 
 ## Open questions / waiting on the user
 
