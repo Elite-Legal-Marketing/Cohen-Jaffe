@@ -83,8 +83,15 @@ mirrored in `.../Sitesucker/`. See `AGENTS.md` → "Where designs and content co
 
 - **`localhost:4321/admin` now 404s — use `localhost:4321/admin/`.** Consequence of
   `trailingSlash: "always"`: Astro's dev server does not redirect the unslashed form, it
-  404s. Production is fine, because Vercel 301s it. This looks exactly like a broken Studio
-  and isn't.
+  404s. This looks exactly like a broken Studio and isn't.
+
+  ⚠️ **The Vercel-side redirect is configured but NOT yet verified.** `vercel.json` sets
+  `"trailingSlash": true`, which should make Vercel 301 the unslashed form — but that is
+  reasoning, not evidence. The `design_system` preview deploy sits behind Vercel
+  Deployment Protection (every request 302s to `vercel.com/sso-api`), and `master` doesn't
+  carry the setting yet, so neither environment could confirm it. **Check
+  `curl -sI https://cohen-jaffe.vercel.app/admin` returns a 301 to `/admin/` once this
+  branch merges to `master`.** If it doesn't, the unslashed form 404s in production too.
 - **A dev server is already running on port 4321** and it is the user's, from their IDE.
   Use it; don't start a second.
 - **The global slash commands were rewritten this session** (`~/.claude/commands/`, outside
