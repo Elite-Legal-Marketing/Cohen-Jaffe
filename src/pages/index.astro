@@ -2,6 +2,7 @@
 import { sanityClient } from "sanity:client";
 import Layout from "../layouts/Layout.astro";
 import Hero from "../components/Hero.astro";
+import Stats from "../components/Stats.astro";
 import { HOME_PAGE_QUERY } from "../lib/queries";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
@@ -13,4 +14,5 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   description="Long Island personal injury lawyers. For more than 100 years combined, we have fought for injury victims and their families. Free consultation, and you pay nothing unless we win."
 >
   {home?.hero && <Hero hero={home.hero} />}
+  {home?.stats && home.stats.length > 0 && <Stats stats={home.stats} />}
 </Layout>

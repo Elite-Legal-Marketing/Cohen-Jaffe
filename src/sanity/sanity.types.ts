@@ -15,6 +15,13 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type Stat = {
+  _type: "stat";
+  figure: string;
+  label: string;
+  body: string;
+};
+
 export type RichText = Array<{
   children?: Array<{
     marks?: Array<string>;
@@ -60,6 +67,11 @@ export type HomePage = {
   _updatedAt: string;
   _rev: string;
   hero?: Hero;
+  stats?: Array<
+    {
+      _key: string;
+    } & Stat
+  >;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -182,6 +194,7 @@ export type Slug = {
 };
 
 export type AllSanitySchemaTypes =
+  | Stat
   | RichText
   | CtaLink
   | Hero
@@ -200,10 +213,11 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
+      stats: null;
     }
   | {
       hero: {
@@ -217,6 +231,12 @@ export type HOME_PAGE_QUERY_RESULT =
           href: string;
         }> | null;
       } | null;
+      stats: Array<{
+        _key: string;
+        figure: string;
+        label: string;
+        body: string;
+      }> | null;
     }
   | null;
 
@@ -224,6 +244,6 @@ export type HOME_PAGE_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body }\n  }\n': HOME_PAGE_QUERY_RESULT;
   }
 }

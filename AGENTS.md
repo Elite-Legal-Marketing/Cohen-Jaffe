@@ -186,11 +186,18 @@ that limit — re-measure before touching the breakpoint. `.nav` is `flex: none`
 if the bar ever stops fitting it should break visibly at the breakpoint rather than
 quietly overlap again.
 
-## Building sections: build one, then wire it
+## Building sections: build it, approve it, then wire it
 
-Decided 2026-09-01, replacing the usual build-everything-then-integrate order. Each section
-is built, modelled in Sanity, seeded and verified before the next one starts, so modelling
-problems surface at section one rather than section twelve. It paid for itself immediately:
+Decided 2026-09-01, replacing the usual build-everything-then-integrate order, and refined
+straight after the hero: **build the section with its content hardcoded, get the design
+signed off, and only then model it in Sanity.** Modelling a section that is still moving
+means reshaping the schema and re-seeding the document for every visual change.
+
+Write the hardcoded content as a single constant shaped the way the query will project it,
+so wiring is a swap from that constant to a prop rather than a rewrite.
+
+Each section is still finished — built, approved, modelled, seeded, verified — before the
+next one starts, so modelling problems surface at section one rather than section twelve. It paid for itself immediately:
 the `@sanity/icons` export mismatch and the hero scrim's percentage stops both surfaced on
 the first section.
 
@@ -218,6 +225,10 @@ on; they exist so setup can move fast without a decision each time.
 2. **Every section is a collapsible field, collapsed by default** —
    `options: { collapsible: true, collapsed: true }` on the section object. The homepage
    alone has fifteen sections; an always-expanded form is unusable.
+   ⚠️ That option only exists on `ObjectOptions`. An **array** section cannot take it and
+   TypeScript rejects it — give the document a **fieldset** instead
+   (`fieldsets: [{ name, options: { collapsible, collapsed } }]` + `fieldset: "name"` on the
+   field). Same accordion, and it avoids burying the items inside a wrapper object.
 3. **More than one paragraph ⇒ Portable Text.** Use the shared `richText` type, never a
    `text` field. Single-paragraph copy (a hero's supporting line, a card blurb) stays
    `string`/`text`. `richText` is deliberately narrow — no H1, so an editor cannot put a

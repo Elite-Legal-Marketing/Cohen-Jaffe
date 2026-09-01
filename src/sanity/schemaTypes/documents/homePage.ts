@@ -1,4 +1,4 @@
-import { defineField, defineType } from "sanity";
+import { defineArrayMember, defineField, defineType } from "sanity";
 import { HomeIcon } from "@sanity/icons/Home";
 
 /**
@@ -19,12 +19,37 @@ export const homePage = defineType({
   title: "Homepage",
   type: "document",
   icon: HomeIcon,
+  /**
+   * An ARRAY section cannot take `options.collapsible` — that lives on
+   * `ObjectOptions`, not `ArrayOptions`, and TypeScript rejects it. A fieldset
+   * gives the same accordion without burying the items an extra level deep in
+   * a wrapper object.
+   */
+  fieldsets: [
+    {
+      name: "statsBand",
+      title: "Stats band",
+      description: "The four claims under the hero.",
+      options: { collapsible: true, collapsed: true },
+    },
+  ],
   fields: [
     defineField({
       name: "hero",
       title: "Hero",
       type: "hero",
       options: { collapsible: true, collapsed: true },
+    }),
+    defineField({
+      name: "stats",
+      title: "Stats",
+      type: "array",
+      of: [defineArrayMember({ type: "stat" })],
+      fieldset: "statsBand",
+      validation: (rule) =>
+        rule
+          .max(4)
+          .warning("The band is a four-across grid; a fifth stat sits alone on a second row."),
     }),
   ],
   preview: {
