@@ -12,6 +12,16 @@ const { PUBLIC_SANITY_PROJECT_ID, PUBLIC_SANITY_DATASET } = loadEnv(
 
 // https://astro.build/config
 export default defineConfig({
+  // The firm's existing WordPress URLs are all slash-terminated: every one of the 2262
+  // unique og:url values in the site mirror ends in "/", and the live site 301s the
+  // unslashed form to the slashed one. Match what is already indexed.
+  //
+  // This must agree with `trailingSlash: true` in vercel.json, and with the canonical
+  // form used by the SEO layer later. Keep the *comparison* form used for nav
+  // active-state separate from the canonical form, or normalising for display silently
+  // changes what a link matches against — that removed `aria-current` from every nav
+  // item on a sibling site with no error anywhere.
+  trailingSlash: "always",
   integrations: [
     sanity({
       projectId: PUBLIC_SANITY_PROJECT_ID,
