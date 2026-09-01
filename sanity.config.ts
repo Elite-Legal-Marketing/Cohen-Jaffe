@@ -14,9 +14,29 @@ const viteEnv: Record<string, string | undefined> | undefined = import.meta.env;
 const nodeEnv: Record<string, string | undefined> | undefined =
   typeof process !== "undefined" ? process.env : undefined;
 
-const projectId =
-  viteEnv?.PUBLIC_SANITY_PROJECT_ID ?? nodeEnv?.PUBLIC_SANITY_PROJECT_ID;
-const dataset = viteEnv?.PUBLIC_SANITY_DATASET ?? nodeEnv?.PUBLIC_SANITY_DATASET;
+// Fail fast, and name the variable and the file. Letting `undefined` through
+// produces "Configuration must contain `projectId`" from @sanity/client, which
+// names no variable, no file and no fix — and because /admin is prerendered at
+// build time, it fails the whole build and 404s every route on the site.
+function required(
+  name: "PUBLIC_SANITY_PROJECT_ID" | "PUBLIC_SANITY_DATASET",
+): string {
+  const value = viteEnv?.[name] ?? nodeEnv?.[name];
+  if (!value) {
+    throw new Error(
+      `${name} is not set, so the Sanity Studio cannot be configured.\n` +
+        `Add it to .env at the repository root — the same file serves the browser ` +
+        `Studio and the Sanity CLI, per the note above.\n` +
+        `On a deploy, set it in Vercel's environment instead; .env is not committed.`,
+    );
+  }
+  return value;
+}
+
+const projectId = required("PUBLIC_SANITY_PROJECT_ID");
+// Required rather than left to Sanity's default: a Studio silently pointed at the
+// wrong dataset is worse than one that refuses to start.
+const dataset = required("PUBLIC_SANITY_DATASET");
 
 export default defineConfig({
   // Studio title — the name beside the emblem, in the browser tab, and in the

@@ -22,10 +22,16 @@ Migrating off WordPress.
 ## Commands
 
 ```bash
-npm run dev      # site + Studio on http://localhost:4321  (Studio at /admin)
-npm run build    # production build — THE gate; must be green before pushing
-npm run preview  # serve the built dist/
+npm run dev          # site + Studio on http://localhost:4321  (Studio at /admin/ — slash required)
+npm run build        # production build — a gate; must be green before pushing
+npm run check:types  # astro check; the OTHER gate — astro build does NOT typecheck
+npm run typegen      # regenerate sanity.types.ts after any schema change
+npm run preview      # serve the built dist/
 ```
+
+Both gates must pass. They catch different things, and neither catches the Studio actually
+rendering — for that, load `/admin/` in a browser. See "URLs: trailing slash" for why
+that slash matters locally.
 
 ## Where things live
 
@@ -33,9 +39,14 @@ npm run preview  # serve the built dist/
 | --- | --- |
 | `astro.config.mjs` | Astro + Sanity + React integrations, `inlineStylesheets` |
 | `sanity.config.ts` | Studio config: title, brand icon, theme, schema, plugins |
+| `sanity.cli.ts` | Sanity CLI config — powers `typegen` and `npx sanity exec` |
+| `src/sanity/sanity.types.ts` | **Generated** by `npm run typegen` — never hand-edit |
+| `src/sanity/schema.json` | **Generated** schema snapshot — never hand-edit |
+| `vercel.json` | Framework pin (`astro`) + `trailingSlash` |
 | `src/sanity/schemaTypes/index.ts` | The schema array — **currently empty** |
 | `src/sanity/theme.ts` | Elite brand theme, locked to light |
 | `src/sanity/eliteTheme.js` | Generated Themer palette (do not hand-edit) |
+| `src/sanity/eliteTheme.d.ts` | Precise types for the above — why it's narrow is in the file |
 | `src/sanity/components/EliteMark.tsx` | ELITE emblem + login-card CSS |
 | `src/pages/` | Routes |
 | `.claude/launch.json` | Dev-server config for the preview tooling |
@@ -56,6 +67,29 @@ working directory):
   folders). This is the content and URL source for the migration: it's where existing
   copy, page inventory, and the live URL structure come from. Preserve those URLs, or
   plan redirects, when the new site goes up.
+
+## URLs: trailing slash — ALWAYS
+
+Settled 2026-09-01 from evidence, not preference: all 2262 unique `og:url` values in the
+WordPress mirror end in `/`, and the live site 301s the unslashed form to the slashed one.
+Match what is already indexed.
+
+Three layers must agree, and they are already set:
+- `astro.config.mjs` → `trailingSlash: "always"`
+- `vercel.json` → `"trailingSlash": true`
+- `canonicalize()` in the SEO layer, when `/new-seo-setup` adds it
+
+Keep the **comparison** form (nav active-state) separate from the **canonical** form. On a
+sibling site, normalising for display changed what links matched and silently removed
+`aria-current` from every nav item on every page, with no error anywhere.
+
+⚠️ **In dev, `localhost:4321/admin` now 404s — use `localhost:4321/admin/`.** Astro's dev
+server does not redirect the unslashed form; it just 404s. Production is fine because
+Vercel's `trailingSlash: true` issues a 301. This catches everyone once: a 404 on `/admin`
+locally is almost always the missing slash, not a broken Studio.
+
+Also applies to any form `action`: a POST to a path missing its slash earns a 308 that
+**re-sends the whole body**.
 
 ## Design tokens, breakpoints, layout grid
 
