@@ -186,6 +186,27 @@ that limit — re-measure before touching the breakpoint. `.nav` is `flex: none`
 if the bar ever stops fitting it should break visibly at the breakpoint rather than
 quietly overlap again.
 
+## Building sections: build one, then wire it
+
+Decided 2026-09-01, replacing the usual build-everything-then-integrate order. Each section
+is built, modelled in Sanity, seeded and verified before the next one starts, so modelling
+problems surface at section one rather than section twelve. It paid for itself immediately:
+the `@sanity/icons` export mismatch and the hero scrim's percentage stops both surfaced on
+the first section.
+
+- Content is authored **straight into the `production` dataset** (client's call), so the
+  "never publish test content" note above is relaxed for this phase — but only for real
+  migrated copy, never throwaway text.
+- The homepage is a **singleton** (`homePage`), one named field per section, with
+  collections that recur elsewhere (attorneys, practice areas, case results) becoming their
+  own document types that sections reference.
+- After ANY schema change: `npm run typegen`, then `npx sanity documents validate --yes`
+  to confirm existing content still satisfies the schema.
+- **The hero carries two photographs, not one crop.** `image` is the wide desktop shot;
+  `imageNarrow` is a squarer frame for phones, because the wide one loses its subjects at
+  that width. Below 900px the hero also **stacks** — picture above, copy below — so text is
+  never laid over anyone's face. A `<picture>` element does the swap.
+
 ## The Spanish section — deferred, not forgotten
 
 The artboard's **"En Español"** control has been removed from the build on request. The
@@ -403,6 +424,21 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   the drawer's own cream background while leaving its text crisp — it looked like a broken
   colour token, not a layering bug. The scrim has to be a **sibling** of the drawer. Same
   trap applies to any overlay drawn from inside the element it's meant to sit under.
+- **A `<picture>` wrapper needs the size too.** `height: 100%` on the `<img>` inside has
+  nothing to resolve against, because `<picture>` is auto-height — so a full-bleed
+  photograph stops short and leaves a bar of the section's own background along the bottom.
+  Size the `<picture>`, not just the `<img>`.
+- **A responsive override must come AFTER the rule it overrides.** Media queries carry no
+  extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
+  loses. A block moved during an edit is the usual cause; the symptom is a mobile value
+  that never applies while the layout parts of the same block clearly do.
+- **Never put a background on an element that is also `.container`.** It is inset by the
+  gutter, so the background stops short and whatever sits behind shows in two strips down
+  the sides. Put it on the full-width parent.
+- **`aspect-ratio` plus `max-height` shrinks the WIDTH.** Once the height clamps, the ratio
+  pulls the width in to match it, so a block meant to be full-bleed only fills part of the
+  viewport — the hero's picture filled the left half of a 900px screen. Size the height
+  directly (`height: min(100vw, 60vh)`) rather than combining the two.
 - **CSS transitions do not advance, and `requestAnimationFrame` never fires, while the
   browser pane is hidden.** Computed values of transitioned properties stay frozen at their
   start, so reading one mid-transition proves nothing. To check a transitioned property,

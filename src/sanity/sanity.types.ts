@@ -15,6 +15,70 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type CtaLink = {
+  _type: "ctaLink";
+  label: string;
+  href: string;
+};
+
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type Hero = {
+  _type: "hero";
+  eyebrow?: string;
+  heading: string;
+  headingAccent?: string;
+  body?: string;
+  primaryCta?: CtaLink;
+  secondaryCta?: CtaLink;
+  image: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt: string;
+    _type: "image";
+  };
+  imageNarrow?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+};
+
+export type HomePage = {
+  _id: string;
+  _type: "homePage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  hero?: Hero;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
 export type SanityImagePaletteSwatch = {
   _type: "sanity.imagePaletteSwatch";
   background?: string;
@@ -51,22 +115,6 @@ export type SanityImageMetadata = {
   thumbHash?: string;
   hasAlpha?: boolean;
   isOpaque?: boolean;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
 };
 
 export type SanityFileAsset = {
@@ -135,14 +183,67 @@ export type Slug = {
 };
 
 export type AllSanitySchemaTypes =
+  | CtaLink
+  | SanityImageAssetReference
+  | Hero
+  | HomePage
+  | SanityImageCrop
+  | SanityImageHotspot
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
   | SanityImageMetadata
-  | SanityImageHotspot
-  | SanityImageCrop
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
   | Geopoint
   | Slug;
+
+// Source: src/lib/queries.ts
+// Variable: HOME_PAGE_QUERY
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      primaryCta{ label, href },      secondaryCta{ label, href },      image{ ..., alt },      imageNarrow{ ..., alt }    }  }
+export type HOME_PAGE_QUERY_RESULT =
+  | {
+      hero: null;
+    }
+  | {
+      hero: {
+        eyebrow: string | null;
+        heading: string;
+        headingAccent: string | null;
+        body: string | null;
+        primaryCta: {
+          label: string;
+          href: string;
+        } | null;
+        secondaryCta: {
+          label: string;
+          href: string;
+        } | null;
+        image: {
+          asset?: SanityImageAssetReference;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          alt: string;
+          _type: "image";
+        };
+        imageNarrow: {
+          asset?: SanityImageAssetReference;
+          media?: unknown;
+          hotspot?: SanityImageHotspot;
+          crop?: SanityImageCrop;
+          alt: string | null;
+          _type: "image";
+        } | null;
+      } | null;
+    }
+  | null;
+
+// Query TypeMap
+import "@sanity/client";
+declare module "@sanity/client" {
+  interface SanityQueries {
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      primaryCta{ label, href },\n      secondaryCta{ label, href },\n      image{ ..., alt },\n      imageNarrow{ ..., alt }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+  }
+}

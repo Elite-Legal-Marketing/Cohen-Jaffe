@@ -1,0 +1,232 @@
+---
+/**
+ * Homepage hero.
+ *
+ * Design: the HERO band of `Cohen & Jaffe Homepage v1.dc.html`. Full-bleed
+ * photograph, a hard diagonal scrim so the copy stays legible over it, and the
+ * text column pinned left.
+ *
+ * Content comes from the `homePage` singleton in Sanity.
+ */
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+import { srcSet, urlFor } from "../lib/image";
+
+type Hero = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["hero"]>;
+
+interface Props {
+  hero: Hero;
+}
+
+const { hero } = Astro.props;
+
+// The photograph is the LCP element, so it is a real <img> rather than a CSS
+// background: a background image is invisible to the preload scanner and
+// cannot be prioritised.
+const WIDE_WIDTHS = [1024, 1280, 1660, 2200];
+const NARROW_WIDTHS = [420, 640, 828, 1080];
+
+// Two different photographs, not two crops of one. The wide shot loses its
+// subjects at phone widths, so a squarer frame takes over — see the schema.
+const narrow = hero.imageNarrow?.asset ? hero.imageNarrow : hero.image;
+const narrowAlt = hero.imageNarrow?.alt || hero.image.alt;
+const src = urlFor(narrow).width(828).url();
+---
+
+<section class="hero on-dark">
+  <div class="hero__media">
+    <picture>
+      <source media="(min-width: 901px)" srcset={srcSet(hero.image, WIDE_WIDTHS)} sizes="100vw" />
+      <img
+        class="hero__image"
+        src={src}
+        srcset={srcSet(narrow, NARROW_WIDTHS)}
+        sizes="100vw"
+        alt={narrowAlt}
+        loading="eager"
+        fetchpriority="high"
+        decoding="async"
+      />
+    </picture>
+    <div class="hero__scrim" aria-hidden="true"></div>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__copy">
+      {hero.eyebrow && <p class="eyebrow eyebrow--rule hero__eyebrow">{hero.eyebrow}</p>}
+
+      <h1 class="hero__heading">
+        {hero.heading}
+        {hero.headingAccent && (
+          <>
+            <br />
+            <span class="hero__heading-accent">{hero.headingAccent}</span>
+          </>
+        )}
+      </h1>
+
+      {hero.body && <p class="hero__body">{hero.body}</p>}
+
+      {
+        (hero.primaryCta || hero.secondaryCta) && (
+          <div class="hero__actions">
+            {hero.primaryCta?.href && (
+              <a href={hero.primaryCta.href} class="btn btn--gold btn--xwide">
+                {hero.primaryCta.label}
+              </a>
+            )}
+            {hero.secondaryCta?.href && (
+              <a href={hero.secondaryCta.href} class="btn btn--cream btn--wide">
+                <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path d="M5 3.2l11 6.8-11 6.8z" />
+                </svg>
+                {hero.secondaryCta.label}
+              </a>
+            )}
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero {
+    position: relative;
+    width: 100%;
+    /* The artboard is a fixed 820px at 1660px wide. Held as a ratio between so
+       the photograph keeps its proportions, with a floor that stops the copy
+       from overflowing on a phone. */
+    min-height: clamp(520px, 49vw, 820px);
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    background: var(--ink);
+  }
+
+  /* Desktop: the picture fills the section and the copy sits on top of it. */
+  .hero__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* The <picture> wrapper needs the size too. Without it the element is
+     auto-height, so `height: 100%` on the <img> inside has nothing to resolve
+     against and the photograph stops short — leaving a bar of the section's own
+     background along the bottom. */
+  .hero__media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Anchored right so the subjects stay in frame as the left side is cropped
+       away under the scrim. */
+    object-position: right top;
+  }
+
+  .hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: var(--scrim-hero);
+  }
+
+  .hero__inner {
+    position: relative;
+    padding-block: var(--space-section);
+  }
+
+  .hero__copy {
+    width: 660px;
+    max-width: 100%;
+  }
+
+  /* The artboard sets the hero kicker in cream, not the gold the `.on-dark`
+     rule gives it — the gold rule beside it already carries the accent. */
+  .hero .hero__eyebrow {
+    color: var(--on-dark);
+  }
+
+  .hero__heading {
+    font-size: var(--fs-hero);
+    line-height: var(--lh-display);
+    letter-spacing: var(--ls-display);
+    color: var(--on-dark);
+    text-wrap: balance;
+  }
+
+  .hero__heading-accent {
+    color: var(--gold);
+  }
+
+  .hero__body {
+    max-width: 640px;
+    margin-block-start: var(--space-xs);
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    color: rgba(248, 244, 236, 0.92);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-18);
+    margin-block-start: var(--space-md);
+  }
+
+  @media (max-width: 560px) {
+    /* Side by side these two buttons are wider than a phone. */
+    .hero__actions .btn {
+      width: 100%;
+    }
+  }
+
+  /* ---- Narrow ------------------------------------------------------------
+     Below 900px the copy no longer fits beside the subjects, and overlaying it
+     put text across their faces. So the hero stacks: picture on top, copy
+     beneath. Nothing is ever laid over a face.
+
+     This block MUST stay after the base rules it overrides — it matches the
+     same selectors at the same specificity, so source order is what decides. */
+  @media (max-width: 900px) {
+    .hero {
+      display: block;
+      min-height: 0;
+    }
+
+    .hero__media {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      /* NOT `aspect-ratio` with `max-height`: once the height clamps the ratio
+         pulls the WIDTH in to match, and the picture only fills part of the
+         viewport. Sizing the height directly keeps it full-bleed.
+         Deliberately shorter than the source's near-square frame — cropping at
+         the shins is fine, and it lifts the copy up the screen. */
+      height: min(78vw, 48vh);
+    }
+
+    .hero__image {
+      /* The narrow shot is centred on the three of them; the desktop rule's
+         right anchor would shave whoever is on the left. */
+      object-position: center top;
+    }
+
+    .hero__scrim {
+      /* Only a fade at the foot of the picture, blending it into the copy
+         below — it no longer has any text to hold up. */
+      background: var(--scrim-hero-foot);
+    }
+
+    .hero__inner {
+      /* No background here. This element is also `.container`, so it is inset
+         by the gutter — a background on it leaves the photograph showing in
+         two strips down the sides. `.hero` is already ink, full width. */
+      padding-block: var(--space-md) var(--space-lg);
+    }
+  }
+
+</style>

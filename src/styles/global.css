@@ -104,7 +104,29 @@
     linear-gradient(180deg, #2c3620 0%, #1f2617 100%);
   /* Image scrims. */
   --scrim-bottom: linear-gradient(180deg, rgba(20, 22, 14, 0.22) 0%, rgba(20, 22, 14, 0.1) 45%, rgba(20, 22, 14, 0.6) 100%);
-  --scrim-hero: linear-gradient(100deg, rgba(18, 20, 13, 0.93) 0%, rgba(18, 20, 13, 0.88) 26%, rgba(18, 20, 13, 0.72) 38%, rgba(18, 20, 13, 0.34) 50%, rgba(18, 20, 13, 0.1) 62%, rgba(18, 20, 13, 0) 78%);
+  /* Hero scrim. Stops are in PIXELS, not the artboard's percentages: what this
+     has to cover is the 660px text column, which is a fixed width — expressed
+     as a percentage the opaque end scales with the viewport and swallows the
+     whole photograph on anything narrower than the 1660px board. */
+  --scrim-hero: linear-gradient(
+    100deg,
+    rgba(18, 20, 13, 0.94) 0,
+    rgba(18, 20, 13, 0.9) 400px,
+    rgba(18, 20, 13, 0.66) 620px,
+    rgba(18, 20, 13, 0.28) 840px,
+    rgba(18, 20, 13, 0) 1060px
+  );
+  /* Under ~900px the hero stacks — picture above, copy below — so nothing is
+     laid over the subjects' faces. This only softens the join between the two. */
+  --scrim-hero-foot: linear-gradient(
+    180deg,
+    rgba(36, 35, 30, 0) 52%,
+    rgba(36, 35, 30, 0.18) 66%,
+    rgba(36, 35, 30, 0.46) 78%,
+    rgba(36, 35, 30, 0.74) 87%,
+    rgba(36, 35, 30, 0.92) 94%,
+    rgba(36, 35, 30, 1) 99%
+  );
 
   /* --- Typefaces -------------------------------------------------------- */
 
@@ -616,12 +638,13 @@ details > summary::-webkit-details-marker {
   color: var(--gold);
 }
 
-/* `.eyebrow--rule` adds the 52x2 gold dash the artboards set to its left. */
+/* `.eyebrow--rule` adds the short gold dash the artboards set to the kicker's
+   left — half the artboard's 52px, which reads as a tick rather than a rule. */
 .eyebrow--rule {
   display: flex;
-  /* Not `center`: on a wrapped eyebrow that floats the rule between the two
-     lines, attached to neither. Align to the top and drop the rule to the
-     optical middle of the FIRST line instead. */
+  /* Not `center`: on a wrapped eyebrow that floats the dash between the two
+     lines, attached to neither. Align to the top and drop it to the optical
+     middle of the FIRST line instead. */
   align-items: flex-start;
   gap: var(--space-16);
 }
@@ -629,10 +652,13 @@ details > summary::-webkit-details-marker {
 .eyebrow--rule::before {
   content: "";
   flex: none;
-  width: 52px;
+  width: 26px;
   height: 2px;
   background: var(--gold);
-  margin-block-start: calc(var(--fs-eyebrow) * var(--lh-label) / 2);
+  /* Half a line box drops it to the first line's centre; the -1px is an optical
+     correction — the dash reads a touch low against uppercase, which has no
+     descenders to balance it. */
+  margin-block-start: calc(var(--fs-eyebrow) * var(--lh-label) / 2 - 1px);
 }
 
 .label {
@@ -1106,7 +1132,7 @@ body.drawer-open {
   }
 
   .eyebrow--rule::before {
-    width: 32px;
+    width: 16px;
   }
 }
 

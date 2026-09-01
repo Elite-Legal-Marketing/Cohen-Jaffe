@@ -5,113 +5,95 @@ Last updated: 2026-09-01
 
 ## Where things stand
 
-The design system and the site shell are **built, merged to `master`, and live in
-production**. What is still missing is *pages*: there is one placeholder home page whose
-only job is to give the nav and footer somewhere to live.
+The design system and shell are merged to `master` and live. On top of that, **the homepage
+hero is built and wired to Sanity end to end** — schema, Studio structure, typed query,
+component, and real content authored into the production dataset. It is the first section
+of fifteen on the homepage.
 
-The next session builds real pages from the artboards.
+- `origin/master` is at `3047266` (PR #3). Work since then sits on **`design_system`**,
+  which was already merged once — so these newer commits need a second PR or a fresh branch
+  off `master`.
+- ⚠️ **Local `master` is behind.** `git checkout master && git pull` before branching.
+- Gates after every change: `npm run build` green, `npm run check:types` **0 errors**, and
+  every internal link in the built page slash-terminated.
 
-- `origin/master` is at **`3047266`** (merge of PR #3 from `design_system`).
-  `design_system` is fully merged — 0 commits ahead — so it can be deleted or reused.
-- ⚠️ **Local `master` is behind 6.** Start with `git checkout master && git pull`, or you
-  will branch off a stale base.
-- Verified in production after the merge: `/` 200, `/admin/` 200, and the new nav, the
-  drill-down drawer and the call icon are all present in the deployed HTML.
+## The workflow changed: build one section, then wire it
 
-## What's in the build
+Decided this session, replacing build-everything-then-integrate. Each section is built,
+modelled, seeded and verified before the next begins. It paid for itself on section one —
+three defects surfaced that would otherwise have landed together much later. Recorded in
+`AGENTS.md` → "Building sections: build one, then wire it".
 
-**Design system** — `src/styles/global.css`. Tokens extracted from the approved `.dc.html`
-artboards by frequency, named for their artboard value so `--fs-42` really is the design's
-42px. Type is fluid 375px → 1660px; above 16px clamps, 16px and below is fixed. All motion
-is `0.5s cubic-bezier(0.17, 0.66, 0.34, 0.98)`, overriding the artboards' `.15s ease`.
-Gradients are banned on buttons. Content gutter ramps 20px → 100px.
+Content is authored **straight into the `production` dataset** (client's call), so
+`AGENTS.md`'s "never publish test content" note is relaxed for this phase — real migrated
+copy only, never throwaway text.
 
-**Shell** — `Layout.astro` (head + nav + `<main id="main">` + footer), `Nav.astro` (desktop
-bar, one dropdown style, two levels deep), `MobileNav.astro` (fixed right-side drill-down
-drawer, ported from the sibling Cogdell Law site), `Footer.astro` (four columns on the
-forest gradient).
+After ANY schema change: `npm run typegen`, then `npx sanity documents validate --yes`.
+Currently **1 document, 0 errors, 0 warnings**.
 
-**IA** — `src/data/navigation.ts`: nav tree, footer columns and office details, parsed from
-the live WordPress nav in the `Sitesucker/` mirror with every href checked against that
-page's own `og:url`. **This file is the seam Sanity takes over later** — swap the constants
-for a GROQ query returning the same shapes and no component changes.
+## What is wired
 
-## Decisions worth not re-litigating
+`hero` + `ctaLink` objects → `homePage` singleton → `src/sanity/structure.ts` (which is what
+actually enforces the singleton, by pinning the document id and hiding the type from the
+generic lists) → `defineQuery` in `src/lib/queries.ts` → `HOME_PAGE_QUERY_RESULT` →
+`Hero.astro`.
 
-- **Breakpoints are ours, not the designs'.** The artboards are fixed `min-width:1660px`
-  boards with no `@media` rules and no mobile counterparts. `sm 480 · md 768 · lg 1024 ·
-  xl 1280 · 2xl 1660`, documented in `:root` and repeated as literals in the media queries.
-- **The header bar has its own gutter (`--gutter-header`) and its own breakpoint (1280px),
-  and this is forced, not preferred.** The artboard's bar fills 1660px edge to edge with
-  *zero* gutter, so it cannot also carry the content column's 100px gutter — it was
-  silently compressing the nav until it slid under the phone number. Seven properties ramp
-  together from 1280px to 1920px. **Changing any one moves the fit limit — re-measure.**
-- **The mobile drawer is a Cogdell port**, in Cohen & Jaffe's brand: drill-down panels, not
-  accordions; dark forest surface via the existing `.on-dark` utility; full-bleed below
-  480px. Three defects in the Cogdell original were fixed rather than copied — panels
-  resetting mid-close, no resize guard, no focus containment.
-- **Top-level nav order is the client's** and matches neither the live site nor the
-  artboard: About, Practice Areas, Areas We Serve, Case Results, Resources, Contact.
-- **Drawer panels carry no "overview" rows.** The row that opens a panel is itself a link,
-  so the section page is one tap away in the level above. `footerLink` is desktop-only.
-- **Fonts still load from the Google CDN.** `/page-speed` decides at launch whether to
-  self-host.
-- **No React.** Desktop dropdowns are CSS `:hover`/`:focus-within`; the only script on the
-  site is the drawer's open/close.
+The hero carries **two photographs, not two crops**: `image` is the wide desktop shot,
+`imageNarrow` a squarer frame for phones, because the wide one loses its subjects at that
+width. Below 900px the hero **stacks** — picture above, copy below — so text is never laid
+over anyone's face. A `<picture>` element does the swap.
 
 ## Open questions / waiting on the user
 
-1. **The Spanish section is deferred.** "En Español" is out of the build. `/es/` exists on
-   the live site but is **not** a mirror: 17 pages, a fully translated menu whose links all
-   point back at *English* pages, none of those 17 pages in it, and machine-translated
-   place names ("Bahía de Ostras" for Oyster Bay, "Yo Resbalo" for Islip, "Playa Larga" for
-   Long Beach). Needs a client decision before rebuilding — porting that menu as-is carries
-   the mistranslations over. Background is kept as a comment in `navigation.ts`.
-2. **Mobile is partly unreviewed.** The drawer follows an approved pattern with
-   client-chosen colours, but the collapse points and the footer reflow are still
-   reasonable defaults, not approved designs.
-3. **Two live-nav links point at pages absent from the mirror** —
-   `/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`. Both
-   are written as absolute paths in the live nav, exactly how SiteSucker leaves a link it
-   never downloaded. Confirm they still resolve before launch.
+1. **`/admin/` has not been seen rendering since the schema landed.** The dev server on
+   4321 is throwing `504 (Outdated Optimize Dep)` because the new imports reshuffled Vite's
+   dep graph. The fix is a dev-server restart, and that server is the user's. `npm run
+   build` prerenders `/admin` fine and the Sanity CLI loads the workspace and schema
+   cleanly, but per `AGENTS.md` neither gate proves the Studio *renders*. **Restart the dev
+   server and load `/admin/`** — "Homepage" should be pinned at the top of the desk.
+2. **The hero's video card is deliberately not built** (440×264, bottom-right in the
+   artboard). It needs its own fields and a player decision — modal vs link-out — so it
+   belongs in its own increment. "Watch Our Video" currently points at `/video-center/`.
+3. **The Spanish section is deferred.** `/es/` exists on the live site but is **not** a
+   mirror: 17 pages, a fully translated menu whose links all point at *English* pages, and
+   machine-translated place names ("Bahía de Ostras" for Oyster Bay, "Yo Resbalo" for
+   Islip). Needs a client decision. Background is a comment in `navigation.ts`.
+4. **Two live-nav links point at pages absent from the mirror** —
+   `/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`.
+   Verify before launch.
 
 A new Sanity CORS origin **will** be needed for the eventual custom domain — with
 credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
-1. Build the homepage from `Cohen & Jaffe Homepage v1.dc.html`, then interior pages.
-2. Add content types to `src/sanity/schemaTypes/index.ts` (still empty), then
-   `npm run typegen`.
+1. Section 2 of the homepage: **Stats**. Then Case Results, Fee Explainer, Practice Areas —
+   the artboard's order is in `Cohen & Jaffe Homepage v1.dc.html`.
+2. Collections that recur across pages (attorneys, practice areas, case results,
+   testimonials, FAQs) become their own document types that sections reference, rather than
+   copies nested in `homePage`.
 3. **Set `site` in `astro.config.mjs`.** `Layout.astro` already emits a canonical link, but
-   only when `Astro.site` is configured — it currently is not, so no canonical is written.
+   only when `Astro.site` is configured — it currently is not, so none is written.
 
 ## Things that would surprise someone
 
-- **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.** Astro's dev server does
-  not redirect the unslashed form. **Production is confirmed fine: `/admin` returns a
-  308 to `/admin/`** (verified against the live deploy — a 308, not the 301 this file
-  previously predicted). That long-standing open item is now closed.
-- **A dev server is usually already running on port 4321** and it is the user's, from their
-  IDE. Use it; don't start a second.
-- **The mobile drawer must stay a sibling of `<header>`.** Moving it inside traps the fixed
-  positioning in the header's stacking context.
-- **The closed drawer is deliberately not `visibility: hidden`** — it is translated
-  off-screen and `inert`, with its shadow faded to transparent. A hidden element cannot
-  take focus, so hiding it left focus outside the dialog on open. Reverting this
-  reintroduces that bug silently.
-- **`--gutter-header` being smaller than `--gutter` is deliberate.** So is
-  `.nav { flex: none }` — it makes a future overflow break visibly at the breakpoint
-  instead of silently overlapping the phone number.
-- **CSS transitions do not advance, and `requestAnimationFrame` never fires, while the
-  browser pane is hidden.** Reading a transitioned property mid-flight proves nothing; set
-  `transition: none`, toggle the class, and read the target value instead.
-- **`:focus` and `:focus-within` misreport when the browser window isn't focused** —
-  `document.hasFocus()` is false and focus styles don't paint. Click into the page first.
-- **A `scrollWidth` reading on the nav list over-reports by ~80px** — the dropdown panels
-  are absolutely positioned inside the `<li>`s and count toward it.
+- **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.** Production is confirmed
+  fine: `/admin` returns a **308** to `/admin/` (verified against the live deploy — a 308,
+  not the 301 this file once predicted).
+- **A dev server is usually already running on port 4321** and it is the user's. Use it;
+  don't start a second. `astro preview --port <other>` is the way to check a production
+  build, but note **only 4321 and the Vercel URL are registered Sanity CORS origins**, so
+  the Studio will not authenticate on any other port.
+- **The mobile drawer must stay a sibling of `<header>`**, and the closed drawer is
+  deliberately not `visibility: hidden` — a hidden element cannot take focus.
+- **`--gutter-header` is smaller than `--gutter` on purpose**, and `.nav { flex: none }`
+  makes a future overflow break visibly instead of silently overlapping.
+- **In a hidden browser pane, CSS transitions do not advance, `requestAnimationFrame` never
+  fires, and `img.decode()` never resolves.** Reading a transitioned property or awaiting
+  decode there proves nothing — and a screenshot taken mid-load looks like a missing image.
+  Set `transition: none` and read target values; read `complete`/`naturalWidth` for images.
+- **`naturalWidth` on a `srcset` image is density-adjusted** — an 828px file chosen for a
+  375px slot reports 375. That is correct, not a broken image.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
-- The Studio login card leans on a **scoped CSS hook into Sanity's internal DOM** (in
-  `EliteMark.tsx`). Cosmetic, degrades gracefully, worth a glance after a Sanity upgrade.
 - `/new-seo-setup`, `/studio-polish ux` and `/page-speed` remain **deliberately deferred**
-  to near-launch — they audit real pages and content.
+  to near-launch.
