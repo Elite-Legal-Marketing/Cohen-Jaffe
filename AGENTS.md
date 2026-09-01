@@ -249,6 +249,58 @@ sits on its floor. Floors are `16 + (design − 16) × 0.42`, so everything comp
 - Semantic aliases sit on top: `--fs-hero` (66), `--fs-page-title` (56), `--fs-section`
   (42), `--fs-card-title` (26), `--fs-lead` (19), `--fs-body` (16).
 
+**Line-height and tracking both fall as size rises** — that is the single rule the ramps
+follow, and reading the tokens top to bottom the values only ever decrease. The artboards'
+own body leading broke it: 16/28, 15/26 and 19/32 were nearly flat across the whole body
+range and *inverted* at the small end (15px sat tighter than 16px). Replaced with a graded
+ramp — `1.02` at display sizes through `1.6` body to `1.7` at 13-15px. Tracking is
+`--ls-display` (-0.02em) at 48px+, `--ls-tight` (-0.01em) at 30-42px, and zero below.
+
+⚠️ **`--lh-flat: 1` is only for text that CANNOT wrap.** Anything that might — eyebrows,
+labels, pills, buttons — uses **`--lh-label` (1.35)**, or its two lines collide. Uppercase
+tracked micro-type wants *more* leading than its size suggests, because caps are
+full-height with no x-height or descender relief. The footer's office pill is the case that
+proved it.
+
+**Measure** — `--measure` caps `.prose` at ~68 characters (45-75 is the readable band).
+It is **not** in `ch` on purpose: `ch` is the width of the font's "0", and Instrument Sans
+sets a wide zero (~0.67em) against an average lowercase advance of ~0.52em, so `68ch`
+measured out at 82 characters. The token is calibrated in `rem` instead; re-measure if the
+body face changes.
+
+**Margins are part of the component, because the reset zeroes them.** Two elements own
+their trailing gap so no consumer has to remember it:
+- `h1`-`h6` carry `margin-block-end: 0.5em`. Headings run at line-heights near 1, which
+  leaves almost no room under the baseline — without this an h1 sits ~3px off whatever
+  follows. Sections that control their own spacing can zero it.
+- `.eyebrow` carries `margin-block-end: 1.2em` (18px), the artboards' most common kicker
+  gap. It always introduces the heading below it.
+
+**Body text carries no default margin, and that is deliberate** — decided 2026-09-01 after
+weighing the alternative. Only `h1`-`h6` and `.eyebrow` own a trailing gap, because a
+heading's relationship to the next element is *fixed* (it introduces it) while a
+paragraph's is *contextual* (the next sibling might be another paragraph, a card grid, or
+the end of the section). Margins on `p`/`ul`/`li` would double against `gap` in every
+column-flex component — the nav, footer and drawer alone hold 27 such elements — so the
+tax would be a removal line in nearly every component, and a missed removal is a silent
+extra 24px rather than an obvious one.
+
+Rhythm comes from **`.prose`** (authored long-form) or **`.stack`** / `--flow` (designed
+sections) instead.
+
+➜ **When the Portable Text renderer is built, have it always emit `.prose` on its
+wrapper.** That makes editor-authored copy correct structurally, so nobody has to remember
+a class — which is the goal a global default would have been reaching for, without the
+removal tax.
+
+**Long-form rhythm** — `.prose` spacing is in `em`, so it scales with each element's own
+size. A heading takes **more space above than below** (~3:1) so it binds to the section it
+introduces rather than floating between two blocks. Measured: 59/49/43px above vs
+20/15/15px below, against a 21px paragraph gap. Note the owl selector (`.prose > * + *`)
+needs the companion rule that zeroes the top margin after a heading — and that rule must
+list **h1 through h6**, not h2 onward, or the first paragraph of a prose block is the one
+place the gap silently doubles.
+
 **Typefaces** — Newsreader (all headings, 400; variable `opsz` 6..72, so the range must be
 requested from Google Fonts, not a single value), Instrument Sans (body + form fields),
 Roboto Condensed (uppercase eyebrows/labels/meta), Oswald (phone numbers, CTA buttons, stat
