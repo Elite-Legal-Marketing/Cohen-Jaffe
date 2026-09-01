@@ -17,6 +17,7 @@ export const HOME_PAGE_QUERY = defineQuery(`
       headingAccent,
       body,
       buttons[]{ _key, label, href }
-    }
+    },
+    stats[]{ _key, figure, label, body }
   }
 `);

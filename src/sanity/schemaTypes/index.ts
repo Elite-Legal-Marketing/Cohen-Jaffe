@@ -4,6 +4,7 @@ import { homePage } from "./documents/homePage";
 import { ctaLink } from "./objects/ctaLink";
 import { hero } from "./objects/hero";
 import { richText } from "./objects/richText";
+import { stat } from "./objects/stat";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Documents
@@ -12,4 +13,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   hero,
   ctaLink,
   richText,
+  stat,
 ];

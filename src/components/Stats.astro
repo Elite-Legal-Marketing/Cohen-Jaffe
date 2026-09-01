@@ -1,0 +1,161 @@
+---
+/**
+ * Homepage stats band.
+ *
+ * Design: the STATS band of `Cohen & Jaffe Homepage v1.dc.html`. A compact
+ * forest-gradient strip of four claims, divided by hairlines.
+ *
+ * Content comes from the `stats` array on the `homePage` singleton.
+ */
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Stat = NonNullable<NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["stats"]>[number]>;
+
+interface Props {
+  stats: Stat[];
+}
+
+const { stats } = Astro.props;
+---
+
+<section class="stats on-dark" aria-label="Why clients choose Cohen &amp; Jaffe">
+  <div class="container">
+    <ul class="stats__grid" role="list">
+      {
+        stats.map((stat) => (
+          <li class="stat">
+            <p class="stat__figure">{stat.figure}</p>
+            <p class="stat__label">{stat.label}</p>
+            <p class="stat__body">{stat.body}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .stats {
+    /* The artboard's own linear layer is exactly `--gradient-forest`, so only
+       the gold bloom is composed on top of it here. */
+    background:
+      radial-gradient(
+        900px 460px at 16% -12%,
+        rgba(217, 185, 120, 0.17) 0%,
+        rgba(217, 185, 120, 0) 62%
+      ),
+      var(--gradient-forest);
+    /* A deliberately compact band — the artboard sets 50px, far tighter than a
+       full `--space-section`. */
+    padding-block: var(--space-md);
+  }
+
+  .stats__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    /* No gap: the 40px sits inside each cell so the hairline lands at the
+       cell edge, exactly as the artboard draws it. */
+    gap: 0;
+    /* `stretch`, not the artboard's `start`: the cells carry the dividers, so
+       sizing each to its own content leaves the hairlines ragged. Stretching
+       makes every cell the height of the tallest in its row, and the dividers
+       run the full band. */
+    align-items: stretch;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .stat {
+    padding-inline: var(--space-40);
+    border-inline-start: 1px solid var(--on-dark-rule);
+  }
+
+  /* First of each row: no divider, and flush to the container edge. */
+  .stat:nth-child(4n + 1) {
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+
+  .stat__figure {
+    font-family: var(--font-heading);
+    font-size: var(--fs-page-title);
+    /* Safe at `--lh-flat` only because the figure never wraps — see below. */
+    line-height: var(--lh-flat);
+    color: var(--on-dark);
+    /* "100 Years+" must stay on one line; the type ramps down far enough that
+       it still fits a 375px screen. */
+    white-space: nowrap;
+  }
+
+  .stat__label {
+    margin-block: var(--space-18) var(--space-8);
+    font-family: var(--font-label);
+    font-size: var(--fs-eyebrow);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--gold);
+  }
+
+  .stat__body {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+  }
+
+  /* ---- Responsive --------------------------------------------------------
+     Not from the designs — the artboard is a fixed four-across board. These
+     blocks MUST stay after the base rules they override; equal specificity
+     means source order decides. */
+
+  /* Four across stops fitting once each cell drops under ~250px. */
+  @media (max-width: 1024px) {
+    .stats__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: var(--space-lg);
+      /* Two rows now, so equalise them too — otherwise the dividers are the
+         same length within a row but not between rows. */
+      grid-auto-rows: 1fr;
+    }
+
+    .stat {
+      padding-inline: var(--space-32);
+    }
+
+    /* The divider follows the new row length: reset every cell, then clear the
+       first of each PAIR. Leaving the 4n+1 rule alone would draw a hairline
+       down the left of the third card. */
+    .stat:nth-child(n) {
+      padding-inline-start: var(--space-32);
+      border-inline-start: 1px solid var(--on-dark-rule);
+    }
+
+    .stat:nth-child(2n + 1) {
+      padding-inline-start: 0;
+      border-inline-start: none;
+    }
+  }
+
+  /* One across: the hairline turns horizontal. */
+  @media (max-width: 600px) {
+    .stats__grid {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-md);
+      /* Stacked, with horizontal rules and no vertical dividers to line up —
+         equal heights here would only add dead space under the short ones. */
+      grid-auto-rows: auto;
+    }
+
+    .stat:nth-child(n) {
+      padding-inline: 0;
+      border-inline-start: none;
+    }
+
+    .stat + .stat {
+      padding-block-start: var(--space-md);
+      border-block-start: 1px solid var(--on-dark-rule);
+    }
+  }
+</style>

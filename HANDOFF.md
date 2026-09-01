@@ -5,24 +5,26 @@ Last updated: 2026-09-01
 
 ## Where things stand
 
-The design system and shell are merged to `master` and live. On top of that, **the homepage
-hero is built and wired to Sanity end to end** — schema, Studio structure, typed query,
-component, and real content authored into the production dataset. It is the first section
-of fifteen on the homepage.
+The design system, shell and homepage hero are merged to `master` and live. On top of that,
+**the stats band is built and wired to Sanity** — the second of fifteen homepage sections.
+Both sections run end to end: schema, Studio structure, typed query, component, and real
+content in the production dataset.
 
-- `origin/master` is at `3047266` (PR #3). Work since then sits on **`design_system`**,
-  which was already merged once — so these newer commits need a second PR or a fresh branch
-  off `master`.
-- ⚠️ **Local `master` is behind.** `git checkout master && git pull` before branching.
+- `origin/master` is at `2992212` (PR #5). The stats work sits on **`hp_stats`**, branched
+  cleanly off that — one branch per section from here.
 - Gates after every change: `npm run build` green, `npm run check:types` **0 errors**, and
   every internal link in the built page slash-terminated.
 
-## The workflow changed: build one section, then wire it
+## The workflow: build it, approve it, then wire it
 
-Decided this session, replacing build-everything-then-integrate. Each section is built,
-modelled, seeded and verified before the next begins. It paid for itself on section one —
-three defects surfaced that would otherwise have landed together much later. Recorded in
-`AGENTS.md` → "Building sections: build one, then wire it".
+Replaces build-everything-then-integrate, and refined after the hero: build the section
+with its content hardcoded, get the design signed off, **then** model it in Sanity —
+modelling a section that is still moving means reshaping the schema and re-seeding for
+every visual change. Write the hardcoded content as one constant shaped the way the query
+will project it, so wiring is a swap to a prop rather than a rewrite.
+
+Each section is still finished before the next begins, so modelling problems surface at
+section one rather than section twelve. Recorded in `AGENTS.md` → "Building sections".
 
 Content is authored **straight into the `production` dataset** (client's call), so
 `AGENTS.md`'s "never publish test content" note is relaxed for this phase — real migrated
@@ -76,8 +78,8 @@ credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
-1. Section 2 of the homepage: **Stats**. Then Case Results, Fee Explainer, Practice Areas —
-   the artboard's order is in `Cohen & Jaffe Homepage v1.dc.html`.
+1. Section 3 of the homepage: **Case Results**. Then Fee Explainer, Practice Areas, New
+   York Deadlines — the artboard's order is in `Cohen & Jaffe Homepage v1.dc.html`.
 2. Collections that recur across pages (attorneys, practice areas, case results,
    testimonials, FAQs) become their own document types that sections reference, rather than
    copies nested in `homePage`.
