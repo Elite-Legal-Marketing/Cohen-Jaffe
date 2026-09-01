@@ -1,18 +1,16 @@
 ---
+import { sanityClient } from "sanity:client";
 import Layout from "../layouts/Layout.astro";
+import Hero from "../components/Hero.astro";
+import { HOME_PAGE_QUERY } from "../lib/queries";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
 ---
 
 <Layout
   title="Cohen & Jaffe"
   description="Long Island personal injury lawyers. For more than 100 years combined, we have fought for injury victims and their families. Free consultation, and you pay nothing unless we win."
 >
-  <section class="section">
-    <div class="container">
-      <p class="eyebrow eyebrow--rule">Long Island Personal Injury Lawyers</p>
-      <h1>Hurt on Long Island?</h1>
-      <p class="lead">
-        The homepage is next — this page exists so the nav and footer have somewhere to live.
-      </p>
-    </div>
-  </section>
+  {home?.hero && <Hero hero={home.hero} />}
 </Layout>

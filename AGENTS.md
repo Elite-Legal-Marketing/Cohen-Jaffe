@@ -186,6 +186,60 @@ that limit — re-measure before touching the breakpoint. `.nav` is `flex: none`
 if the bar ever stops fitting it should break visibly at the breakpoint rather than
 quietly overlap again.
 
+## Building sections: build one, then wire it
+
+Decided 2026-09-01, replacing the usual build-everything-then-integrate order. Each section
+is built, modelled in Sanity, seeded and verified before the next one starts, so modelling
+problems surface at section one rather than section twelve. It paid for itself immediately:
+the `@sanity/icons` export mismatch and the hero scrim's percentage stops both surfaced on
+the first section.
+
+- Content is authored **straight into the `production` dataset** (client's call), so the
+  "never publish test content" note above is relaxed for this phase — but only for real
+  migrated copy, never throwaway text.
+- The homepage is a **singleton** (`homePage`), one named field per section, with
+  collections that recur elsewhere (attorneys, practice areas, case results) becoming their
+  own document types that sections reference.
+- After ANY schema change: `npm run typegen`, then `npx sanity documents validate --yes`
+  to confirm existing content still satisfies the schema.
+- **The hero carries two photographs, not one crop.** `image` is the wide desktop shot;
+  `imageNarrow` is a squarer frame for phones, because the wide one loses its subjects at
+  that width. Below 900px the hero also **stacks** — picture above, copy below — so text is
+  never laid over anyone's face. A `<picture>` element does the swap.
+
+## Sanity conventions — apply these without asking
+
+Settled 2026-09-01. These are the house rules for every schema and every section from here
+on; they exist so setup can move fast without a decision each time.
+
+1. **Fixed pages live under a "Pages" folder** in the desk, not at the root beside
+   collections. `src/sanity/structure.ts`. Collections and site settings come after a
+   divider.
+2. **Every section is a collapsible field, collapsed by default** —
+   `options: { collapsible: true, collapsed: true }` on the section object. The homepage
+   alone has fifteen sections; an always-expanded form is unusable.
+3. **More than one paragraph ⇒ Portable Text.** Use the shared `richText` type, never a
+   `text` field. Single-paragraph copy (a hero's supporting line, a card blurb) stays
+   `string`/`text`. `richText` is deliberately narrow — no H1, so an editor cannot put a
+   second `<h1>` on a page.
+4. **Buttons are an array of `ctaLink`, not named `primaryCta`/`secondaryCta` fields.**
+   It reads better in the Studio and the cap is per-section
+   (`rule.max(2).warning(...)` on the hero). Order carries the styling: first is the
+   gold button, second the light one — so the component reads the index, not a field name.
+5. **Images: in Sanity or in code?** In Sanity **only if someone interacts with the
+   image** — a card, an attorney portrait, anything an editor swaps as part of the content.
+   **Large decorative art lives in the repo** (`src/assets/`), rendered through
+   `astro:assets`. It fingerprints, converts to WebP and generates the srcset at build
+   time: the hero photographs went from 2.87 MB PNGs to ~102 KB, with no CDN round trip and
+   nothing for an editor to break.
+
+Two mechanical notes that follow from these:
+- Project **`_key`** on every array in a GROQ query. It is the render key and the handle
+  Visual Editing uses for click-to-edit.
+- **Never put a `//` comment inside a `defineQuery` template.** Typegen stops finding the
+  query entirely and silently regenerates with `0 queries`, leaving stale result types.
+  Put the comment above the export.
+
 ## The Spanish section — deferred, not forgotten
 
 The artboard's **"En Español"** control has been removed from the build on request. The
@@ -248,6 +302,58 @@ sits on its floor. Floors are `16 + (design − 16) × 0.42`, so everything comp
   legibility floor, and clamping them would only shrink them.
 - Semantic aliases sit on top: `--fs-hero` (66), `--fs-page-title` (56), `--fs-section`
   (42), `--fs-card-title` (26), `--fs-lead` (19), `--fs-body` (16).
+
+**Line-height and tracking both fall as size rises** — that is the single rule the ramps
+follow, and reading the tokens top to bottom the values only ever decrease. The artboards'
+own body leading broke it: 16/28, 15/26 and 19/32 were nearly flat across the whole body
+range and *inverted* at the small end (15px sat tighter than 16px). Replaced with a graded
+ramp — `1.02` at display sizes through `1.6` body to `1.7` at 13-15px. Tracking is
+`--ls-display` (-0.02em) at 48px+, `--ls-tight` (-0.01em) at 30-42px, and zero below.
+
+⚠️ **`--lh-flat: 1` is only for text that CANNOT wrap.** Anything that might — eyebrows,
+labels, pills, buttons — uses **`--lh-label` (1.35)**, or its two lines collide. Uppercase
+tracked micro-type wants *more* leading than its size suggests, because caps are
+full-height with no x-height or descender relief. The footer's office pill is the case that
+proved it.
+
+**Measure** — `--measure` caps `.prose` at ~68 characters (45-75 is the readable band).
+It is **not** in `ch` on purpose: `ch` is the width of the font's "0", and Instrument Sans
+sets a wide zero (~0.67em) against an average lowercase advance of ~0.52em, so `68ch`
+measured out at 82 characters. The token is calibrated in `rem` instead; re-measure if the
+body face changes.
+
+**Margins are part of the component, because the reset zeroes them.** Two elements own
+their trailing gap so no consumer has to remember it:
+- `h1`-`h6` carry `margin-block-end: 0.5em`. Headings run at line-heights near 1, which
+  leaves almost no room under the baseline — without this an h1 sits ~3px off whatever
+  follows. Sections that control their own spacing can zero it.
+- `.eyebrow` carries `margin-block-end: 1.2em` (18px), the artboards' most common kicker
+  gap. It always introduces the heading below it.
+
+**Body text carries no default margin, and that is deliberate** — decided 2026-09-01 after
+weighing the alternative. Only `h1`-`h6` and `.eyebrow` own a trailing gap, because a
+heading's relationship to the next element is *fixed* (it introduces it) while a
+paragraph's is *contextual* (the next sibling might be another paragraph, a card grid, or
+the end of the section). Margins on `p`/`ul`/`li` would double against `gap` in every
+column-flex component — the nav, footer and drawer alone hold 27 such elements — so the
+tax would be a removal line in nearly every component, and a missed removal is a silent
+extra 24px rather than an obvious one.
+
+Rhythm comes from **`.prose`** (authored long-form) or **`.stack`** / `--flow` (designed
+sections) instead.
+
+➜ **When the Portable Text renderer is built, have it always emit `.prose` on its
+wrapper.** That makes editor-authored copy correct structurally, so nobody has to remember
+a class — which is the goal a global default would have been reaching for, without the
+removal tax.
+
+**Long-form rhythm** — `.prose` spacing is in `em`, so it scales with each element's own
+size. A heading takes **more space above than below** (~3:1) so it binds to the section it
+introduces rather than floating between two blocks. Measured: 59/49/43px above vs
+20/15/15px below, against a 21px paragraph gap. Note the owl selector (`.prose > * + *`)
+needs the companion rule that zeroes the top margin after a heading — and that rule must
+list **h1 through h6**, not h2 onward, or the first paragraph of a prose block is the one
+place the gap silently doubles.
 
 **Typefaces** — Newsreader (all headings, 400; variable `opsz` 6..72, so the range must be
 requested from Google Fonts, not a single value), Instrument Sans (body + form fields),
@@ -351,6 +457,21 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   the drawer's own cream background while leaving its text crisp — it looked like a broken
   colour token, not a layering bug. The scrim has to be a **sibling** of the drawer. Same
   trap applies to any overlay drawn from inside the element it's meant to sit under.
+- **A `<picture>` wrapper needs the size too.** `height: 100%` on the `<img>` inside has
+  nothing to resolve against, because `<picture>` is auto-height — so a full-bleed
+  photograph stops short and leaves a bar of the section's own background along the bottom.
+  Size the `<picture>`, not just the `<img>`.
+- **A responsive override must come AFTER the rule it overrides.** Media queries carry no
+  extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
+  loses. A block moved during an edit is the usual cause; the symptom is a mobile value
+  that never applies while the layout parts of the same block clearly do.
+- **Never put a background on an element that is also `.container`.** It is inset by the
+  gutter, so the background stops short and whatever sits behind shows in two strips down
+  the sides. Put it on the full-width parent.
+- **`aspect-ratio` plus `max-height` shrinks the WIDTH.** Once the height clamps, the ratio
+  pulls the width in to match it, so a block meant to be full-bleed only fills part of the
+  viewport — the hero's picture filled the left half of a 900px screen. Size the height
+  directly (`height: min(100vw, 60vh)`) rather than combining the two.
 - **CSS transitions do not advance, and `requestAnimationFrame` never fires, while the
   browser pane is hidden.** Computed values of transitioned properties stay frozen at their
   start, so reading one mid-transition proves nothing. To check a transitioned property,

@@ -104,7 +104,29 @@
     linear-gradient(180deg, #2c3620 0%, #1f2617 100%);
   /* Image scrims. */
   --scrim-bottom: linear-gradient(180deg, rgba(20, 22, 14, 0.22) 0%, rgba(20, 22, 14, 0.1) 45%, rgba(20, 22, 14, 0.6) 100%);
-  --scrim-hero: linear-gradient(100deg, rgba(18, 20, 13, 0.93) 0%, rgba(18, 20, 13, 0.88) 26%, rgba(18, 20, 13, 0.72) 38%, rgba(18, 20, 13, 0.34) 50%, rgba(18, 20, 13, 0.1) 62%, rgba(18, 20, 13, 0) 78%);
+  /* Hero scrim. Stops are in PIXELS, not the artboard's percentages: what this
+     has to cover is the 660px text column, which is a fixed width — expressed
+     as a percentage the opaque end scales with the viewport and swallows the
+     whole photograph on anything narrower than the 1660px board. */
+  --scrim-hero: linear-gradient(
+    100deg,
+    rgba(18, 20, 13, 0.94) 0,
+    rgba(18, 20, 13, 0.9) 400px,
+    rgba(18, 20, 13, 0.66) 620px,
+    rgba(18, 20, 13, 0.28) 840px,
+    rgba(18, 20, 13, 0) 1060px
+  );
+  /* Under ~900px the hero stacks — picture above, copy below — so nothing is
+     laid over the subjects' faces. This only softens the join between the two. */
+  --scrim-hero-foot: linear-gradient(
+    180deg,
+    rgba(36, 35, 30, 0) 52%,
+    rgba(36, 35, 30, 0.18) 66%,
+    rgba(36, 35, 30, 0.46) 78%,
+    rgba(36, 35, 30, 0.74) 87%,
+    rgba(36, 35, 30, 0.92) 94%,
+    rgba(36, 35, 30, 1) 99%
+  );
 
   /* --- Typefaces -------------------------------------------------------- */
 
@@ -176,24 +198,43 @@
 
   /* --- Line heights ----------------------------------------------------- */
 
-  /* Headings tighten as they grow; the artboards run 1.0 at 56px+ up to ~1.26
-     at 23px. Body copy is a fixed px leading in the designs, expressed here as
-     the equivalent ratio so it survives the clamp ramp. */
-  --lh-display: 1.04;   /* 56-66px */
+  /* One rule governs this ramp: line-height falls as size rises. Big type
+     already has enough optical space between lines; small type needs more.
+     Read top to bottom, these values only ever decrease.
+
+     The artboards' own body leading (16/28 = 1.75, 15/26 = 1.73, 19/32 = 1.68)
+     broke that rule — it was nearly flat across the whole body range, and
+     *inverted* at the small end, where 15px sat tighter than 16px. It was also
+     simply airy for running text. This ramp replaces it. */
+  /* `1` is only ever safe for text that CANNOT wrap — a stat figure, a one-word
+     badge. Anything that might wrap needs --lh-label, or its two lines collide.
+     The office pill in the footer proved this the hard way. */
+  --lh-flat: 1;         /* single line, guaranteed */
+  /* Uppercase micro-type: eyebrows, labels, pills, buttons. Wants MORE leading
+     than its size suggests — tracked caps are full-height with no x-height or
+     descender relief, so wrapped lines read as one solid block at tighter
+     values. */
+  --lh-label: 1.35;
+  --lh-display: 1.02;   /* 56-88px */
   --lh-tight: 1.06;     /* 48-52px */
-  --lh-heading: 1.08;   /* 42px */
-  --lh-subhead: 1.1;    /* 32px */
-  --lh-card: 1.2;       /* 24-26px */
-  --lh-snug: 1.26;      /* 23px */
-  --lh-body: 1.75;      /* 16/28 — the single most common pairing */
-  --lh-body-lg: 1.71;   /* 17/29 */
-  --lh-lead: 1.68;      /* 19/32 */
-  --lh-small: 1.73;     /* 15/26 */
-  --lh-flat: 1;         /* pills, badges, stat figures */
+  --lh-heading: 1.1;    /* 38-42px */
+  --lh-subhead: 1.15;   /* 30-36px */
+  --lh-card: 1.25;      /* 24-28px */
+  --lh-snug: 1.3;       /* 21-23px */
+  --lh-lead: 1.5;       /* 19px */
+  --lh-body-lg: 1.6;    /* 17-18px */
+  --lh-body: 1.6;       /* 16px — the default */
+  --lh-small: 1.7;      /* 13-15px */
 
   /* --- Letter spacing --------------------------------------------------- */
-  --ls-display: -0.015em; /* large Newsreader only */
-  --ls-normal: 0;
+
+  /* Tracking is the mirror of line-height: it tightens as size rises. Newsreader
+     set large needs negative tracking to stop the counters opening up; at
+     reading sizes it needs none. Previously only h1 was tracked, which left the
+     42px and 32px headings visibly looser than the 56px one above them. */
+  --ls-display: -0.02em;  /* 48px and up */
+  --ls-tight: -0.01em;    /* 30-42px */
+  --ls-normal: 0;         /* 29px and down, and all body copy */
   --ls-button: 0.06em;
   --ls-nav: 0.07em;
   --ls-wide: 0.1em;
@@ -246,7 +287,16 @@
   /* --- Layout ----------------------------------------------------------- */
   --container: 1660px;         /* the artboard width */
   --container-narrow: 1040px;  /* article / long-form measure */
-  --container-prose: 790px;    /* single column of running text */
+  --container-prose: 790px;    /* layout column for a single text block */
+  /* The readable measure — applied to `.prose`, so running text stays in the
+     45-75 character band even when its container is wider.
+
+     Deliberately NOT expressed in `ch`. That unit is the width of the font's
+     "0", and Instrument Sans sets a wide zero (~0.67em) against an average
+     lowercase advance of ~0.52em — so `68ch` measured out at 82 characters.
+     This is calibrated instead: 37.5rem = 600px ≈ 68 characters at the 17px
+     prose size. Re-measure if the body face ever changes. */
+  --measure: 37.5rem;
   /* Ramps from 768px, not 375px like everything else: phones want the content
      edge-to-edge, and the growth belongs on desktop. 20px through tablet,
      100px once the viewport reaches the artboard width. */
@@ -398,6 +448,12 @@ h6 {
   font-weight: var(--fw-regular); /* Newsreader 400 carries every heading */
   color: var(--color-heading);
   text-wrap: balance;
+  /* Headings run at line-heights near 1, which leaves almost no room under the
+     baseline — with the reset's `margin: 0` an h1 sits ~3px off whatever
+     follows it. This is the floor, in `em` so it scales with the heading.
+     `.prose` overrides it with a fuller rhythm; sections that control their own
+     spacing can zero it. */
+  margin-block-end: 0.5em;
 }
 
 h1 {
@@ -409,11 +465,13 @@ h1 {
 h2 {
   font-size: var(--fs-section);
   line-height: var(--lh-heading);
+  letter-spacing: var(--ls-tight);
 }
 
 h3 {
   font-size: var(--fs-subsection);
   line-height: var(--lh-subhead);
+  letter-spacing: var(--ls-tight);
 }
 
 h4 {
@@ -428,7 +486,7 @@ h5 {
 
 h6 {
   font-size: var(--fs-21);
-  line-height: var(--lh-card);
+  line-height: var(--lh-snug);
 }
 
 p {
@@ -565,7 +623,12 @@ details > summary::-webkit-details-marker {
   letter-spacing: var(--ls-eyebrow-wide);
   text-transform: uppercase;
   color: var(--gold-ink);
-  line-height: var(--lh-flat);
+  line-height: var(--lh-label);
+  /* A kicker always introduces the heading under it, so it owns that gap rather
+     than making every consumer remember one — the reset zeroes all margins, so
+     without this it sits flush against the heading. `em` keeps the gap tied to
+     the eyebrow's own size; 1.2em lands on 18px, the artboards' most common. */
+  margin-block-end: 1.2em;
 }
 
 .on-dark .eyebrow,
@@ -575,19 +638,27 @@ details > summary::-webkit-details-marker {
   color: var(--gold);
 }
 
-/* `.eyebrow--rule` adds the 52x2 gold dash the artboards set to its left. */
+/* `.eyebrow--rule` adds the short gold dash the artboards set to the kicker's
+   left — half the artboard's 52px, which reads as a tick rather than a rule. */
 .eyebrow--rule {
   display: flex;
-  align-items: center;
+  /* Not `center`: on a wrapped eyebrow that floats the dash between the two
+     lines, attached to neither. Align to the top and drop it to the optical
+     middle of the FIRST line instead. */
+  align-items: flex-start;
   gap: var(--space-16);
 }
 
 .eyebrow--rule::before {
   content: "";
   flex: none;
-  width: 52px;
+  width: 26px;
   height: 2px;
   background: var(--gold);
+  /* Half a line box drops it to the first line's centre; the -1px is an optical
+     correction — the dash reads a touch low against uppercase, which has no
+     descenders to balance it. */
+  margin-block-start: calc(var(--fs-eyebrow) * var(--lh-label) / 2 - 1px);
 }
 
 .label {
@@ -597,7 +668,7 @@ details > summary::-webkit-details-marker {
   letter-spacing: var(--ls-eyebrow);
   text-transform: uppercase;
   color: var(--faint);
-  line-height: var(--lh-flat);
+  line-height: var(--lh-label);
 }
 
 .lead {
@@ -619,14 +690,51 @@ details > summary::-webkit-details-marker {
 }
 
 /* Long-form body copy: rhythm for anything coming out of Portable Text. */
-.prose > * + * {
-  margin-block-start: var(--space-24);
+/* Long-form rhythm.
+   Everything here is `em`, so spacing scales with the element's own size — a
+   42px h2 earns a bigger gap than a 26px h4 without a second rule.
+
+   A heading takes MORE space above than below, so it binds to the section it
+   introduces instead of floating between two blocks. The previous rules had
+   this backwards: a flat 24px separated everything, and headings then got LESS
+   (`--space-xs`), which tied each heading to the paragraph it followed. */
+.prose {
+  /* Cap the measure. 45-75 characters is the readable band; the 790px column
+     alone ran past 90 at this size. */
+  max-width: var(--measure);
 }
 
-.prose h2,
-.prose h3,
-.prose h4 {
-  margin-block-start: var(--space-xs);
+.prose > * + * {
+  margin-block-start: 1.25em;
+}
+
+.prose > h2 {
+  margin-block-start: 1.5em;
+  margin-block-end: 0.5em;
+}
+
+.prose > h3 {
+  margin-block-start: 1.6em;
+  margin-block-end: 0.5em;
+}
+
+.prose > h4,
+.prose > h5,
+.prose > h6 {
+  margin-block-start: 1.7em;
+  margin-block-end: 0.6em;
+}
+
+/* The owl rule above would otherwise re-add a top margin to whatever follows a
+   heading, doubling the gap the heading just set. h1 belongs in this list too:
+   it takes its bottom margin from the base heading rule, so leaving it out made
+   the first paragraph of a prose block the one place the gap doubled. */
+.prose > :is(h1, h2, h3, h4, h5, h6) + * {
+  margin-block-start: 0;
+}
+
+.prose > :first-child {
+  margin-block-start: 0;
 }
 
 .prose p,
@@ -649,7 +757,7 @@ details > summary::-webkit-details-marker {
 }
 
 .prose li + li {
-  margin-block-start: var(--space-12);
+  margin-block-start: 0.5em;
 }
 
 .prose blockquote {
@@ -679,7 +787,7 @@ details > summary::-webkit-details-marker {
   letter-spacing: var(--ls-button);
   text-transform: uppercase;
   text-align: center;
-  line-height: var(--lh-flat);
+  line-height: var(--lh-label);
   white-space: nowrap;
   cursor: pointer;
   transition: background var(--duration) var(--ease),
@@ -861,7 +969,7 @@ button:focus-visible .arrow--back {
   font-weight: var(--fw-bold);
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
-  line-height: var(--lh-flat);
+  line-height: var(--lh-label);
 }
 
 .rule {
@@ -1024,7 +1132,7 @@ body.drawer-open {
   }
 
   .eyebrow--rule::before {
-    width: 32px;
+    width: 16px;
   }
 }
 
