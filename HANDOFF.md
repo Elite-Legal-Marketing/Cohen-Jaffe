@@ -5,106 +5,165 @@ Last updated: 2026-09-01
 
 ## Where things stand
 
-Scaffolded, deployed, and now fully tooled — with **no site built yet**. The plumbing
-works, the Studio is branded and reachable, both quality gates pass, and the two gaps that
-existed this morning are closed. The site itself is still one blank home page, by design.
+The scaffold now has a **design system and a working shell**. `global.css` carries every
+token, `Layout.astro` wraps nav + footer, and the whole IA from the live WordPress site is
+in the tree as typed data. What is still missing is *pages* — there is one placeholder
+home page whose only job is to give the chrome somewhere to live.
 
-The next session builds the actual site. Everything it needs is in place.
+The next session builds real pages from the artboards.
 
-- **Branch: `design_system`** — created off `master`, **no upstream yet**, and now carrying
-  uncommitted work (below). `AGENTS.md` says "work on `master` unless asked otherwise";
+- **Branch: `design_system`.** The design system and shell are **committed but NOT pushed**
+  — `origin/design_system` is still at `f0d3c54` and `origin/master` at `09bcdfe`, so none
+  of this is on any remote yet. `AGENTS.md` says "work on `master` unless asked otherwise";
   that is overtaken — `design_system` is current.
-- `origin/master` is at `09bcdfe`. Everything since is **uncommitted on this branch**.
-- Verified after every change: `npm run build` green, `npm run check:types` **0 errors**,
-  `npm run typegen` clean, production `/` and `/admin` both 200, both CORS origins live.
+- Verified after every change: `npm run build` green, `npm run check:types` **0 errors**.
 
-## Uncommitted on `design_system`
+## What landed on `design_system`
 
-Two pieces of work, both finished and verified:
+All finished and verified, committed locally, **not pushed**:
 
-**1. Trailing slash decided and wired.** Settled from evidence: all **2262** unique
-`og:url` values in the WordPress mirror end in `/`, and `www.cohenjaffe.com` 301s the
-unslashed form to the slashed one. So: `astro.config.mjs` → `trailingSlash: "always"`,
-`vercel.json` → `"trailingSlash": true`. Recorded in `AGENTS.md` with the reasoning.
+`src/styles/global.css`, `src/layouts/Layout.astro`,
+`src/components/{Nav,MobileNav,Footer}.astro`, `src/data/navigation.ts`, `src/lib/urls.ts`,
+`src/assets/logo-{dark,white}.png`, a rewritten `src/pages/index.astro`, and the `AGENTS.md`
+sections that document them.
 
-**2. The missing tooling added:** `sanity.cli.ts`, `npm run typegen`, `npm run check:types`
-(+ `@astrojs/check`, `typescript`, `@types/node`), and the generated
-`src/sanity/{schema.json,sanity.types.ts}`.
+**1. The design system.** Tokens extracted from the artboards by frequency, not by eye, so
+`--fs-42` really is the 42px the designs use. Type is fluid 375px → 1660px; verified at
+both ends. Sizes **above** 16px clamp; 16px and below are fixed. All motion is
+`0.5s cubic-bezier(0.17, 0.66, 0.34, 0.98)`, which **overrides** the artboards' `.15s ease`.
+Content gutter ramps 20px → **100px**. **Gradients are banned on buttons** — they cannot
+cross-fade to a flat hover colour, so the fill snaps and the curve is wasted.
 
-Getting `check:types` to actually pass took three real fixes, all worth keeping:
-- `@types/node` + `/// <reference types="node" />` in `src/env.d.ts` — the two config files
-  use `process`.
-- `sanity.config.ts` now uses a `required()` guard that **throws naming the variable and
-  the file**, instead of passing `undefined` through to `@sanity/client`'s
-  `Configuration must contain \`projectId\``, which names nothing and fails the whole build.
-- `src/sanity/eliteTheme.d.ts` replaced with the precise declaration from Dormer Harpring.
-  This is the important one: it fixes the two `theme.ts` type errors **at the declaration**,
-  so `theme.ts` stays byte-identical across all four Elite sites. Do not "fix" `theme.ts`
-  itself — that would fork the shared brand layer.
+**2. The shell.** `Layout.astro` (head + nav + `<main id="main">` + footer), a desktop bar
+with one dropdown style, a **fixed drill-down mobile drawer** (`MobileNav.astro`), and the
+four-column footer. 69 unique internal links in the built page, **every one
+slash-terminated**. Verified at 1280 / 1279 / 768 / 375 — no overlap, no clipping, no page
+overflow at any of them.
+
+**3. The IA.** `src/data/navigation.ts` holds 54 nav links + footer columns + office
+details, parsed from the live nav in the `Sitesucker/` mirror with every href checked
+against that page's own `og:url`.
 
 ## Decisions made, and why
 
-- **`@sanity/ui` pinned to `^4`** — load-bearing, do not remove. `sanity@6.11` imports
-  `@sanity/ui/toast`; `@sanity/astro → @sanity/visual-editing` pulls `@sanity/ui@3`, which
-  npm hoists; Vite's dev-only `optimizeDeps` then resolves against v3 and `/admin` renders
-  blank **while `npm run build` stays green**. Full diagnosis in `AGENTS.md` → Gotchas.
-- **`vercel.json` pins `framework: "astro"`** — the Vercel project was created before this
-  code existed, so it saved preset "Other", under which the output directory resolves to
-  `public/` and Vercel would serve the favicons instead of `dist/`.
-- **`typegen.enabled` is deliberately omitted** from `sanity.cli.ts`. It only fires on
-  `sanity dev` / `sanity build`, which an *embedded* Studio never runs — setting it true
-  would be a claim that doesn't hold. `npm run typegen` is the real path.
-- **Generated artifacts live in `src/sanity/`**, not the repo root, and typegen's `path`
-  globs exclude `*.d.ts`, `eliteTheme.js` and its own output — without those exclusions
-  typegen prints a parse error on every run.
-- **No Vercel adapter** — the static build is correct for this site.
+- **Breakpoints are ours, not the designs'.** The artboards are fixed `min-width:1660px`
+  boards with no `@media` rules and no mobile counterparts. Established
+  `sm 480 · md 768 · lg 1024 · xl 1280 · 2xl 1660`; documented in `:root` as a comment and
+  repeated as literals in the media queries, because custom properties don't work in
+  `@media`. Since type and spacing already ramp via `clamp()`, the queries handle structure
+  only.
+- **The header bar has its own gutter and its own breakpoint, and this is forced, not
+  preferred.** The artboard's bar fills 1660px edge to edge with *zero* gutter, so it
+  cannot also carry the content column's 100px gutter — it was silently compressing the nav
+  until it slid under the phone number (a bug that predated the gutter change and was
+  masked by flex shrinking). **Seven things now ramp together from 1280px to 1920px** —
+  header gutter, outer gap, nav gap, nav label size, logo height, phone size, CTA width.
+  At 1280px they are at their minimums and the bar clears with ~58px either side; at
+  1920px all are back to artboard values and the bar aligns with content. Below 1280px it
+  becomes the drawer. **Changing any one ramp moves that limit — re-measure first.**
+- **Top-level order is the client's** (About, Practice Areas, Areas We Serve, Case Results,
+  Resources, Contact) and matches neither the live site nor the artboard.
+- **Dropdown children hover with a gold wash, not an underline.** Rows carry their own
+  padding and radius; `--space-4` between them guarantees two fills never touch.
+- **"En Español" is removed from the build.** Deferred on request along with the Spanish
+  section. When it returns it belongs in the 24/7 utility cluster, not the nav row — that
+  costs ~120px the bar does not have. Background kept as a comment in `navigation.ts`.
+- **Dropdown cards are lifted 20px into the bar** (`top: calc(100% - 20px)`). Nav links are
+  centred in a 104px bar, so its lower half left ~39px of dead space above each card and
+  the card read as detached; now 19px, measured. That gap is *outside* the card — trimming
+  card padding does nothing to it, which is what made a first attempt at this a no-op.
+- **The mobile drawer is a port of the sibling Cogdell Law site's**, in Cohen & Jaffe's
+  brand: a fixed right-side drawer whose levels are drill-down panels sliding over each
+  other, not accordions. Dark forest surface (client's choice) using the existing `.on-dark`
+  utility. Full-bleed below 480px, 380px above. Lives in its own `MobileNav.astro`, which
+  took ~300 lines back out of `Nav.astro`.
+  Three defects in the Cogdell original were fixed rather than copied: panels resetting
+  mid-close, no resize guard, and no focus containment. Details in `AGENTS.md`.
+- **Drawer panels have no "overview" rows.** The row that opens a panel is itself a link,
+  so the section page is one tap away in the level above. `footerLink` ("All Practice
+  Areas") is now desktop-only — the drawer ignores it. Verified nothing is orphaned.
+- **A tap-to-call icon sits beside the hamburger below 1280px.** The contact cluster is
+  hidden there, and the phone is the firm's primary conversion path.
+- **One dropdown style, two levels deep.** An anchored card under its trigger; a row with
+  children opens a flyout to its right. Only Practice Areas (Personal Injury, Mass
+  Torts, Defective Medical Devices) and About (Attorneys) use the second level; every other
+  row is a plain link. About has no footer link — the bar's own "About" already goes to
+  `/about/` — and the drawer falls back to an "About overview" link because its top row is a
+  toggling `<summary>`, not a link. Category rows with no page of their own render as
+  `<button>` so they stay keyboard-reachable. A full-width mega variant existed briefly and
+  was removed on request.
+- **Arrows animate site-wide.** `<span class="arrow" aria-hidden="true">→</span>` slides
+  0.25em on hover and keyboard focus. A convention for page content, not just the nav.
+- **Top-level nav follows the artboard, dropdown contents follow live.** The artboard leads
+  with Practice Areas and calls it that; live leads with About and calls it "Personal
+  Injury". The artboard never draws an open menu, so all dropdown content is live's.
+- **Fonts still load from the Google CDN**, matching the artboards. `/page-speed` decides
+  at launch whether to self-host.
+- **No React.** The dropdowns are CSS `:hover` / `:focus-within`, the mobile sub-menus are
+  native `<details>`. The only script in the site is the drawer's open/close.
 
 ## Open questions / waiting on the user
 
-**None.** Both Sanity CORS origins are configured with credentials and verified by
-preflight; env vars are set for all three environments; trailing slash is decided.
+1. **The Spanish section is deferred.** "En Español" is out of the build. When it comes
+   back, `/es/` is **not** a mirror of the English site: 17 pages with a fully translated
+   menu whose links all point back at *English* pages, none of those 17 pages in it, and
+   machine-translated place names ("Bahía de Ostras" for Oyster Bay, "Yo Resbalo" for
+   Islip, "Playa Larga" for Long Beach). Needs a client decision before rebuilding —
+   porting that menu as-is would carry the mistranslations over.
+2. **Mobile layout is partly unreviewed.** The drawer itself now follows an approved
+   pattern (Cogdell) with client-chosen colours, but the collapse points and the footer
+   reflow are still reasonable defaults rather than approved designs.
+   Also note the drawer always opens at the root panel — it does not auto-drill to the
+   section you are currently on. Cogdell behaves the same way; seeding the stack from
+   `pathname` would change that if wanted.
+3. **Two live-nav links point at pages absent from the mirror** —
+   `/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`. Both
+   are written as absolute paths in the live nav, exactly how SiteSucker leaves a link it
+   never downloaded. Confirm they still resolve before launch.
+4. **0.5s on nav dropdowns may be too slow.** The house curve is applied everywhere as
+   instructed; on a hover menu it is noticeably languid. Easy to except if you want it.
 
-A new CORS origin **will** be needed for the eventual custom domain — with credentials, or
-that origin's `/admin` hangs on a spinner.
+A new Sanity CORS origin **will** be needed for the eventual custom domain — with
+credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
-1. Build the first page from the designs, and define the design tokens / breakpoints at the
-   same time — `AGENTS.md` has a placeholder section waiting for them.
-2. Build `src/layouts/Layout.astro` when that first page needs it.
-3. Add content types to `src/sanity/schemaTypes/index.ts` (empty today), then run
-   `npm run typegen`.
-
-Designs are `.dc.html` artboards in `~/Downloads/Cohen & Jaffe/Claude Files/` (including
-shared `CJNav`, `CJFooter`, `CJContactForm` and a `Pages Index`); the old WordPress site is
-mirrored in `.../Sitesucker/`. See `AGENTS.md` → "Where designs and content come from".
+1. Build the homepage from `Cohen & Jaffe Homepage v1.dc.html`, then interior pages.
+2. Add content types to `src/sanity/schemaTypes/index.ts` (still empty), then
+   `npm run typegen`. `src/data/navigation.ts` is the seam the nav/footer swap through.
+3. Set `Astro.site` in `astro.config.mjs` — `Layout.astro` already emits a canonical link,
+   but only when `site` is configured. It currently isn't, so no canonical is being written.
 
 ## Things that would surprise someone
 
-- **`localhost:4321/admin` now 404s — use `localhost:4321/admin/`.** Consequence of
-  `trailingSlash: "always"`: Astro's dev server does not redirect the unslashed form, it
-  404s. This looks exactly like a broken Studio and isn't.
+- **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.** Astro's dev server doesn't
+  redirect the unslashed form. Production is fine (Vercel 301s it).
 
-  ⚠️ **The Vercel-side redirect is configured but NOT yet verified.** `vercel.json` sets
-  `"trailingSlash": true`, which should make Vercel 301 the unslashed form — but that is
-  reasoning, not evidence. The `design_system` preview deploy sits behind Vercel
-  Deployment Protection (every request 302s to `vercel.com/sso-api`), and `master` doesn't
-  carry the setting yet, so neither environment could confirm it. **Check
-  `curl -sI https://cohen-jaffe.vercel.app/admin` returns a 301 to `/admin/` once this
-  branch merges to `master`.** If it doesn't, the unslashed form 404s in production too.
+  ⚠️ **That Vercel redirect is configured but still NOT verified.** The `design_system`
+  preview sits behind Deployment Protection and `master` doesn't carry the setting.
+  **Check `curl -sI https://cohen-jaffe.vercel.app/admin` returns a 301 once this branch
+  merges.**
 - **A dev server is already running on port 4321** and it is the user's, from their IDE.
   Use it; don't start a second.
-- **The global slash commands were rewritten this session** (`~/.claude/commands/`, outside
-  this repo, not version-controlled). `/new-site` now automates both CORS origins via
-  `npx sanity cors add`, checks the Vercel framework preset, ships `sanity.cli.ts` +
-  `typegen` + `check:types`, and asks the trailing-slash question at init — plus the
-  `/admin/` dev-404 warning discovered here. `/new-seo-setup`, `/studio-polish` and
-  `/page-speed` also changed. Originals are backed up in the session scratchpad.
+- **The closed drawer is deliberately not `visibility: hidden`.** It is translated
+  off-screen and `inert`, with its shadow faded to transparent. Hiding it breaks focus:
+  a hidden element cannot be focused, so opening the drawer left focus outside the dialog.
+  "Tidying" this back to `visibility` reintroduces that bug silently.
+- **The drawer must stay a sibling of `<header>`.** Moving it inside traps the fixed
+  positioning in the header's stacking context.
+- **`--gutter-header` being smaller than `--gutter` looks like an oversight. It is not.**
+  See "Decisions" above — the bar cannot carry the content gutter until 1920px. Likewise
+  `.nav { flex: none }` is deliberate: it makes a future overflow break visibly at the
+  breakpoint instead of silently overlapping the phone number.
+- **The dropdown panel's scroll cap is conditional and must stay that way.** `overflow` on
+  a panel that has flyouts clips them; only flat panels get `--scroll`.
+- **A `scrollWidth` reading on the nav list over-reports by ~80px.** The dropdown panels
+  are absolutely positioned inside the `<li>`s and count toward it. Measure link rectangles
+  against the contact cluster to check for real overlap, not `scrollWidth`.
+- The Astro **dev toolbar** throws `504 (Outdated Optimize Dep)` in the console. It is the
+  toolbar only — every page resource is 200. `rm -rf node_modules/.vite .astro` clears it.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
-- After any dependency change, `rm -rf node_modules/.vite .astro` and restart the dev
-  server, or you'll chase a stale `504 (Outdated Optimize Dep)` that looks like a real bug.
 - The Studio login card leans on a **scoped CSS hook into Sanity's internal DOM** (in
-  `EliteMark.tsx`). Cosmetic, degrades gracefully, worth a glance after a major Sanity
-  upgrade.
+  `EliteMark.tsx`). Cosmetic, degrades gracefully, worth a glance after a Sanity upgrade.
 - `/new-seo-setup`, `/studio-polish ux` and `/page-speed` remain **deliberately deferred**
   to near-launch — they audit real pages and content.

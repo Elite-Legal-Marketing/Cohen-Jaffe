@@ -1,0 +1,313 @@
+---
+/**
+ * Site footer.
+ *
+ * Design: `CJFooter.dc.html`, identical to the footer on the homepage artboard.
+ * Four columns on the forest gradient with a gold bloom top-left, a hairline
+ * rule, then the attorney-advertising strip.
+ *
+ * Column two carries BOTH offices — badge, address, phone, hours, an embedded
+ * map and a directions link — which is why it is the tall one.
+ */
+import { Image } from "astro:assets";
+import logoWhite from "../assets/logo-white.png";
+import {
+  FIRM,
+  FOOTER_PRACTICE_AREAS,
+  FOOTER_USEFUL_LINKS,
+  FOOTER_LEGAL_LINKS,
+} from "../data/navigation";
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer on-dark">
+  <div class="container site-footer__inner">
+    <div class="site-footer__columns">
+      <!-- 1 — brand, blurb, the two numbers -->
+      <div class="site-footer__brand">
+        <a href="/" aria-label={`${FIRM.name} — home`}>
+          <Image src={logoWhite} alt={FIRM.name} width={178} height={38} densities={[1, 2]} loading="lazy" />
+        </a>
+        <p class="site-footer__blurb">
+          Long Island personal injury attorneys who care about putting your life back together
+          after an accident.
+        </p>
+
+        <span class="site-footer__label">Call us today</span>
+        <a href={FIRM.phone.href} class="site-footer__phone">{FIRM.phone.display}</a>
+
+        <span class="site-footer__label">Text us 24/7</span>
+        <a href={FIRM.sms.href} class="site-footer__phone">{FIRM.sms.display}</a>
+      </div>
+
+      <!-- 2 — both offices -->
+      <div class="site-footer__offices">
+        {
+          FIRM.offices.map((office) => (
+            <div class="office">
+              <span class="pill">{office.badge}</span>
+              <p class="site-footer__address">
+                {office.street}
+                <br />
+                {office.cityStateZip}
+              </p>
+              <a href={office.phone.href} class="site-footer__phone">
+                {office.phone.display}
+              </a>
+              <p class="site-footer__hours">{office.hours}</p>
+              <div class="office__map">
+                <iframe
+                  src={office.map}
+                  title={`Map of the ${office.name} office`}
+                  loading="lazy"
+                  referrerpolicy="no-referrer-when-downgrade"
+                />
+                <span class="pill office__map-badge">{office.name}</span>
+              </div>
+              <a
+                href={office.directions}
+                class="link-arrow"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Get directions <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </div>
+          ))
+        }
+      </div>
+
+      <!-- 3 — practice areas -->
+      <nav class="site-footer__col" aria-labelledby="footer-practice-areas">
+        <span class="site-footer__label" id="footer-practice-areas">Practice areas</span>
+        <ul class="site-footer__links" role="list">
+          {
+            FOOTER_PRACTICE_AREAS.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <!-- 4 — useful links -->
+      <nav class="site-footer__col" aria-labelledby="footer-useful-links">
+        <span class="site-footer__label" id="footer-useful-links">Useful links</span>
+        <ul class="site-footer__links" role="list">
+          {
+            FOOTER_USEFUL_LINKS.map((link) => (
+              <li>
+                <a href={link.href}>{link.label}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+    </div>
+
+    <div class="site-footer__legal">
+      <p class="site-footer__disclaimer">
+        <strong>Attorney Advertising</strong> — The information provided on this website does
+        not, and is not intended to, constitute legal advice. Prior results do not guarantee a
+        similar outcome. © {year} {FIRM.name}
+      </p>
+      <ul class="site-footer__legal-links" role="list">
+        {
+          FOOTER_LEGAL_LINKS.map((link) => (
+            <li>
+              <a href={link.href}>{link.label}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    background: var(--gradient-footer);
+  }
+
+  .site-footer__inner {
+    padding-block: var(--space-xl) var(--space-40);
+  }
+
+  /* The artboard sets four 355px columns spread across 1660px. `auto-fit` with
+     a 260px floor keeps that at full width and reflows it without a
+     breakpoint for every step down. */
+  .site-footer__columns {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: var(--space-xl);
+    padding-block-end: var(--space-56);
+    border-block-end: 1px solid var(--on-dark-rule);
+  }
+
+  .site-footer__brand :global(img) {
+    height: 38px;
+    width: auto;
+    margin-block-end: var(--space-22);
+  }
+
+  .site-footer__blurb {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--on-dark-62);
+    margin-block-end: var(--space-24);
+  }
+
+  .site-footer__label {
+    display: block;
+    font-family: var(--font-label);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow-wide);
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-block-end: var(--space-10);
+  }
+
+  .site-footer__col .site-footer__label {
+    margin-block-end: var(--space-20);
+  }
+
+  .site-footer__phone {
+    display: block;
+    font-family: var(--font-display);
+    font-size: var(--fs-22);
+    font-weight: var(--fw-semibold);
+    line-height: 1.3;
+    color: var(--on-dark);
+    text-underline-offset: 4px;
+    transition: color var(--duration) var(--ease);
+  }
+
+  .site-footer__phone:hover {
+    color: var(--gold);
+    text-decoration: underline;
+  }
+
+  .site-footer__brand .site-footer__phone {
+    margin-block-end: var(--space-24);
+  }
+
+  /* ---- Offices ----------------------------------------------------------- */
+
+  .office + .office {
+    margin-block-start: var(--space-30);
+  }
+
+  .site-footer__address {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--on-dark-62);
+    margin-block: var(--space-16) var(--space-6);
+  }
+
+  .site-footer__hours {
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: var(--on-dark-50);
+    margin: var(--space-4) 0 var(--space-10);
+  }
+
+  .office__map {
+    position: relative;
+    width: 100%;
+    height: 130px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1px solid var(--on-dark-border);
+    margin-block-end: var(--space-12);
+  }
+
+  .office__map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+    filter: grayscale(0.35) brightness(0.92);
+  }
+
+  .office__map-badge {
+    position: absolute;
+    left: var(--space-10);
+    top: var(--space-10);
+    white-space: nowrap;
+    font-size: var(--fs-12);
+    letter-spacing: var(--ls-wide);
+    padding: var(--space-6) var(--space-14);
+  }
+
+  /* ---- Link columns ------------------------------------------------------ */
+
+  .site-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .site-footer__links a {
+    font-size: var(--fs-16);
+    line-height: var(--lh-small);
+    color: var(--on-dark-62);
+    transition: color var(--duration) var(--ease);
+  }
+
+  .site-footer__links a:hover {
+    color: var(--gold);
+  }
+
+  /* ---- Legal strip ------------------------------------------------------- */
+
+  .site-footer__legal {
+    padding-block-start: var(--space-36);
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    flex-wrap: wrap;
+  }
+
+  .site-footer__disclaimer {
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: rgba(248, 244, 236, 0.42);
+    max-width: 1100px;
+  }
+
+  .site-footer__disclaimer strong {
+    font-weight: var(--fw-semibold);
+    color: rgba(248, 244, 236, 0.6);
+  }
+
+  .site-footer__legal-links {
+    display: flex;
+    gap: var(--space-24);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    white-space: nowrap;
+    flex-wrap: wrap;
+  }
+
+  .site-footer__legal-links a {
+    color: rgba(248, 244, 236, 0.42);
+    transition: color var(--duration) var(--ease);
+  }
+
+  .site-footer__legal-links a:hover {
+    color: var(--gold);
+  }
+</style>
