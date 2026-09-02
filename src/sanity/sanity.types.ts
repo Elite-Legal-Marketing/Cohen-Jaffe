@@ -47,6 +47,26 @@ export type CtaLink = {
   href: string;
 };
 
+export type FeaturedCaseResultReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "featuredCaseResult";
+};
+
+export type CaseResultsSection = {
+  _type: "caseResultsSection";
+  heading: string;
+  lead: string;
+  link?: CtaLink;
+  results?: Array<
+    {
+      _key: string;
+    } & FeaturedCaseResultReference
+  >;
+  disclaimer: string;
+};
+
 export type Hero = {
   _type: "hero";
   eyebrow?: string;
@@ -58,6 +78,84 @@ export type Hero = {
       _key: string;
     } & CtaLink
   >;
+};
+
+export type CaseResult = {
+  _id: string;
+  _type: "caseResult";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  recovered: string;
+  category:
+    | "Auto Accident"
+    | "Motorcycle Accident"
+    | "Truck Accident"
+    | "Pedestrian Accident"
+    | "Slip & Fall"
+    | "Premises Liability"
+    | "Construction Accident"
+    | "Medical Malpractice"
+    | "Traumatic Brain Injury"
+    | "Personal Injury";
+  summary: string;
+};
+
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type FeaturedCaseResult = {
+  _id: string;
+  _type: "featuredCaseResult";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  recovered: string;
+  insurerOffered: string;
+  category:
+    | "Auto Accident"
+    | "Motorcycle Accident"
+    | "Truck Accident"
+    | "Pedestrian Accident"
+    | "Slip & Fall"
+    | "Premises Liability"
+    | "Construction Accident"
+    | "Medical Malpractice"
+    | "Traumatic Brain Injury"
+    | "Personal Injury";
+  county: string;
+  summary: string;
+  clientName: string;
+  quote: string;
+  image: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  wistiaId?: string;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
 };
 
 export type HomePage = {
@@ -72,6 +170,7 @@ export type HomePage = {
       _key: string;
     } & Stat
   >;
+  caseResults?: CaseResultsSection;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -110,22 +209,6 @@ export type SanityImageMetadata = {
   thumbHash?: string;
   hasAlpha?: boolean;
   isOpaque?: boolean;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
 };
 
 export type SanityFileAsset = {
@@ -197,14 +280,19 @@ export type AllSanitySchemaTypes =
   | Stat
   | RichText
   | CtaLink
+  | FeaturedCaseResultReference
+  | CaseResultsSection
   | Hero
+  | CaseResult
+  | SanityImageAssetReference
+  | FeaturedCaseResult
+  | SanityImageCrop
+  | SanityImageHotspot
   | HomePage
   | SanityImagePaletteSwatch
   | SanityImagePalette
   | SanityImageDimensions
   | SanityImageMetadata
-  | SanityImageHotspot
-  | SanityImageCrop
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
@@ -213,11 +301,12 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
       stats: null;
+      caseResults: null;
     }
   | {
       hero: {
@@ -237,6 +326,43 @@ export type HOME_PAGE_QUERY_RESULT =
         label: string;
         body: string;
       }> | null;
+      caseResults: {
+        heading: string;
+        lead: string;
+        link: {
+          label: string;
+          href: string;
+        } | null;
+        disclaimer: string;
+        results: Array<{
+          _id: string;
+          recovered: string;
+          insurerOffered: string;
+          category:
+            | "Auto Accident"
+            | "Construction Accident"
+            | "Medical Malpractice"
+            | "Motorcycle Accident"
+            | "Pedestrian Accident"
+            | "Personal Injury"
+            | "Premises Liability"
+            | "Slip & Fall"
+            | "Traumatic Brain Injury"
+            | "Truck Accident";
+          county: string;
+          clientName: string;
+          quote: string;
+          wistiaId: string | null;
+          image: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt: string | null;
+            _type: "image";
+          };
+        }> | null;
+      } | null;
     }
   | null;
 
@@ -244,6 +370,6 @@ export type HOME_PAGE_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
   }
 }

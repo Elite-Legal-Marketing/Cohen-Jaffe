@@ -18,6 +18,23 @@ export const HOME_PAGE_QUERY = defineQuery(`
       body,
       buttons[]{ _key, label, href }
     },
-    stats[]{ _key, figure, label, body }
+    stats[]{ _key, figure, label, body },
+    caseResults{
+      heading,
+      lead,
+      link{ label, href },
+      disclaimer,
+      results[]->{
+        _id,
+        recovered,
+        insurerOffered,
+        category,
+        county,
+        clientName,
+        quote,
+        wistiaId,
+        image{ ..., alt }
+      }
+    }
   }
 `);

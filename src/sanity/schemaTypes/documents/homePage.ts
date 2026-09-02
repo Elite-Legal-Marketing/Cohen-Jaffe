@@ -51,6 +51,12 @@ export const homePage = defineType({
           .max(4)
           .warning("The band is a four-across grid; a fifth stat sits alone on a second row."),
     }),
+    defineField({
+      name: "caseResults",
+      title: "Case results",
+      type: "caseResultsSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

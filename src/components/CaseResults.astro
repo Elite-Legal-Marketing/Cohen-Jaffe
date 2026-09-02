@@ -8,200 +8,125 @@
  * whole point of the section, so the two figures are deliberately unequal in
  * weight: the offer is condensed micro-type, the recovery is display serif.
  *
- * Content is hardcoded here for design approval, shaped the way the GROQ
- * projection will hand it over, so wiring it to Sanity is a swap from this
- * constant to a prop rather than a rewrite. See AGENTS.md → "Building
- * sections: build it, approve it, then wire it".
+ * Content comes from the `caseResults` field on the `homePage` singleton, which
+ * holds the band's own copy plus REFERENCES to documents in the Case Results
+ * collection. See `caseResult.ts` for why those are their own type.
  *
- * ⚠️ THE CONTENT BELOW IS THE ARTBOARD'S, AND THREE OF ITS FIELDS DO NOT EXIST
- * IN THE MIGRATED SITE. The live site publishes 60 case results carrying a
- * recovery figure, a case type and a narrative — but no client name, no quote,
- * no photograph, and no "insurer offered" figure (only 9 of the 60 mention an
- * offer at all, none as a number). Those four fields are new content the firm
- * has to supply before this section can be seeded with anything real.
+ * Every field the card draws is REQUIRED in the schema except the Wistia id,
+ * so this renders them unconditionally. The two guards that remain are not
+ * degradation:
+ *   - the photograph, because `urlFor` throws on a missing asset and that
+ *     failure takes the whole BUILD down rather than one card. `required()` is
+ *     enforced by the Studio's publish flow, not by the dataset, so a document
+ *     written through the API can still arrive without one.
+ *   - the play button, because the Wistia id is genuinely optional.
  */
-import { getImage } from "astro:assets";
-import clientOne from "../assets/result-client-1.png";
-import clientTwo from "../assets/result-client-2.png";
-import clientThree from "../assets/result-client-3.png";
-import clientFour from "../assets/result-client-4.png";
+import { urlFor, srcSet } from "../lib/image";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
-/**
- * The client photographs are content an editor swaps per result, so at wiring
- * time they move to Sanity (AGENTS.md → "Images: in Sanity or in code?"). They
- * sit in `src/assets/` only for this hardcoded phase, which is also why the
- * card reads `image`/`imageAlt`/`imageFocus` as three fields — that is the
- * shape the query will project, whichever side the asset ends up on.
- */
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["caseResults"]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
+const results = section.results ?? [];
+
+/** The widths a card's 16:9 media is actually rendered at, across the ramp. */
 const CARD_WIDTHS = [400, 600, 800];
-
-const results = [
-  {
-    _key: "danny-r",
-    clientName: "Danny R.",
-    quote: "They told me it was my fault.",
-    offered: "$250,000",
-    recovered: "$2,800,000",
-    caseType: "Auto Accident",
-    county: "Nassau County",
-    image: clientOne,
-    imageAlt: "",
-    imageFocus: "50% 22%",
-    // Test wiring, first card only. Wistia's oEmbed resolves this to
-    // "Experienced Personal Injury Lawyers in Long Island & Queens, NY" (2:47) —
-    // the video the live site runs on /free-consultation/. Every other card
-    // stays null until the client-story videos exist, and a card without an id
-    // renders no play badge rather than a button that does nothing.
-    videoId: "c6b0eghb5r",
-  },
-  {
-    _key: "carol-m",
-    clientName: "Carol M.",
-    quote: "I almost signed the first offer.",
-    offered: "$150,000",
-    recovered: "$1,500,000",
-    caseType: "Medical Malpractice",
-    county: "Suffolk County",
-    image: clientTwo,
-    imageAlt: "",
-    imageFocus: "50% 32%",
-    videoId: null,
-  },
-  {
-    _key: "andre-w",
-    clientName: "Andre W.",
-    quote: "I could not work for eight months.",
-    offered: "$85,000",
-    recovered: "$950,000",
-    caseType: "Slip & Fall",
-    county: "Nassau County",
-    image: clientThree,
-    imageAlt: "",
-    imageFocus: "50% 26%",
-    videoId: null,
-  },
-  {
-    _key: "marisol-t",
-    clientName: "Marisol T.",
-    quote: "I did not think I had a case.",
-    offered: "$50,000",
-    recovered: "$675,000",
-    caseType: "Construction Accident",
-    county: "Queens",
-    image: clientFour,
-    imageAlt: "",
-    imageFocus: "50% 28%",
-    videoId: null,
-  },
-];
-
-const caseResults = {
-  heading: "Real people. Real recoveries.",
-  lead: "Insurance companies made an offer. Here is what these cases were actually worth.",
-  linkLabel: "See all results",
-  linkHref: "/case-results/",
-  disclaimer:
-    "Prior results do not guarantee a similar outcome. Every case is evaluated on its individual facts and circumstances.",
-  results,
-};
-
-// Resolved up front: `getImage` is async and cannot be awaited inside the JSX
-// map below.
-const cards = await Promise.all(
-  caseResults.results.map(async (result) => ({
-    ...result,
-    resolved: await getImage({
-      src: result.image,
-      widths: CARD_WIDTHS,
-      format: "webp",
-    }),
-  })),
-);
 ---
 
 <section class="results" aria-labelledby="results-heading">
   <div class="container">
     <div class="results__head">
       <div class="results__head-row">
-        <h2 class="results__heading" id="results-heading">{caseResults.heading}</h2>
-        <a class="results__link" href={caseResults.linkHref}>
-          {caseResults.linkLabel}
-          <span class="arrow" aria-hidden="true">&rarr;</span>
-        </a>
+        <h2 class="results__heading" id="results-heading">{section.heading}</h2>
+        {
+          section.link?.href && (
+            <a class="results__link" href={section.link.href}>
+              {section.link.label}
+              <span class="arrow" aria-hidden="true">
+                &rarr;
+              </span>
+            </a>
+          )
+        }
       </div>
-      <p class="results__lead">{caseResults.lead}</p>
+      <p class="results__lead">{section.lead}</p>
     </div>
 
     <div class="results__viewport">
       <ul class="results__grid" role="list">
-      {
-        cards.map((card) => (
-          <li class="result">
-            <div class="result__media">
-              {card.videoId && (
-                <button
-                  type="button"
-                  class="result__play"
-                  data-video-id={card.videoId}
-                  aria-label={`Play video: ${card.clientName}, ${card.caseType}`}
-                >
-                  <span class="result__play-badge" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
-                      <path d="M7 5v14l10-7z" />
-                    </svg>
-                  </span>
-                </button>
+        {
+          results.map((result) => (
+            <li class="result">
+              {result.image?.asset && (
+                <div class="result__media">
+                  {result.wistiaId && (
+                    <button
+                      type="button"
+                      class="result__play"
+                      data-video-id={result.wistiaId}
+                      aria-label={`Play video: ${[result.clientName, result.category].filter(Boolean).join(", ")}`}
+                    >
+                      <span class="result__play-badge" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                          <path d="M7 5v14l10-7z" />
+                        </svg>
+                      </span>
+                    </button>
+                  )}
+                  <img
+                    class="result__image"
+                    src={urlFor(result.image).width(800).url()}
+                    srcset={srcSet(result.image, CARD_WIDTHS)}
+                    sizes="(max-width: 700px) 86vw, (max-width: 1280px) 50vw, 25vw"
+                    alt={result.image.alt ?? ""}
+                    width="800"
+                    height="450"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="result__scrim" aria-hidden="true" />
+                  <span class="result__client">{result.clientName}</span>
+                </div>
               )}
-              <img
-                class="result__image"
-                src={card.resolved.src}
-                srcset={card.resolved.srcSet.attribute}
-                sizes="(max-width: 620px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                alt={card.imageAlt}
-                width={card.resolved.attributes.width}
-                height={card.resolved.attributes.height}
-                loading="lazy"
-                decoding="async"
-                style={`object-position: ${card.imageFocus};`}
-              />
-              <span class="result__scrim" aria-hidden="true" />
-              <span class="result__client">{card.clientName}</span>
-            </div>
 
-            <div class="result__body">
-              <p class="result__quote">&ldquo;{card.quote}&rdquo;</p>
+              <div class="result__body">
+                <p class="result__quote">&ldquo;{result.quote}&rdquo;</p>
 
-              <div class="result__offered">
-                <span class="result__offered-label">Insurer offered</span>
-                <span class="result__offered-figure">{card.offered}</span>
+                <div class="result__offered">
+                  <span class="result__offered-label">Insurer offered</span>
+                  <span class="result__offered-figure">{result.insurerOffered}</span>
+                </div>
+
+                <div class="result__recovered">
+                  <span class="result__recovered-label">Recovered</span>
+                  <span class="result__recovered-figure">{result.recovered}</span>
+                </div>
+
+                <p class="result__meta">
+                  {[result.category, result.county].filter(Boolean).join(" \u00b7 ")}
+                </p>
               </div>
-
-              <div class="result__recovered">
-                <span class="result__recovered-label">Recovered</span>
-                <span class="result__recovered-figure">{card.recovered}</span>
-              </div>
-
-              <p class="result__meta">
-                {card.caseType} &middot; {card.county}
-              </p>
-            </div>
-          </li>
+            </li>
           ))
         }
       </ul>
     </div>
 
-
-    <p class="results__disclaimer">{caseResults.disclaimer}</p>
+    <p class="results__disclaimer">{section.disclaimer}</p>
 
     <div class="results__dots">
       {
-        cards.map((card, i) => (
+        results.map((result, i) => (
           <button
             type="button"
             class="results__dot"
             data-index={i}
-            aria-label={`Show result ${i + 1} of ${cards.length}: ${card.clientName}`}
+            aria-label={`Show result ${i + 1} of ${results.length}: ${result.recovered}`}
           />
         ))
       }
