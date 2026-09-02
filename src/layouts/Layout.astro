@@ -9,6 +9,7 @@
 import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
+import VideoLightbox from "../components/VideoLightbox.astro";
 import { FIRM } from "../data/navigation";
 
 interface Props {
@@ -16,9 +17,16 @@ interface Props {
   description?: string;
   /** Opt a page out of the shared chrome (thank-you pages, landing pages). */
   bare?: boolean;
+  /**
+   * Set on any page carrying a `[data-video-id]` trigger. It does two things:
+   * warms up Wistia's DNS in the <head>, and renders the <VideoLightbox>.
+   * WITHOUT IT THE LIGHTBOX IS ABSENT and every video trigger on the page is
+   * inert. Named after the same prop on the sibling Cogdell Law site.
+   */
+  videoEmbed?: boolean;
 }
 
-const { title, description, bare = false } = Astro.props;
+const { title, description, bare = false, videoEmbed = false } = Astro.props;
 
 // The full <title>, without doubling the firm name on the homepage.
 const pageTitle = title.includes(FIRM.shortName) ? title : `${title} | ${FIRM.shortName}`;
@@ -55,6 +63,20 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
       href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300;0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Oswald:wght@400;500;600;700&family=Roboto+Condensed:wght@400;600;700&family=Mrs+Saint+Delafield&display=swap"
     />
 
+    {
+      videoEmbed && (
+        <>
+          {/* DNS only — the player itself is not fetched until a video is
+              clicked, so preconnecting would open sockets most visitors never
+              use. */}
+          <link rel="dns-prefetch" href="https://fast.wistia.net" />
+          <link rel="dns-prefetch" href="https://embed-ssl.wistia.com" />
+          <link rel="dns-prefetch" href="https://fast.wistia.com" />
+          <link rel="dns-prefetch" href="https://distillery.wistia.com" />
+        </>
+      )
+    }
+
     <slot name="head" />
   </head>
 
@@ -66,5 +88,7 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
     </main>
 
     {!bare && <Footer />}
+
+    {videoEmbed && <VideoLightbox />}
   </body>
 </html>

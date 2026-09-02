@@ -1,0 +1,176 @@
+---
+/**
+ * Global video lightbox.
+ *
+ * Any element on the page carrying `data-video-id="<wistia hashed id>"` opens
+ * this dialog and loads that Wistia video. The iframe is injected on open and
+ * cleared on close, so nothing loads until someone actually clicks a video and
+ * playback stops the moment the dialog closes.
+ *
+ * Ported from the sibling Cogdell Law site so the two stay consistent — the
+ * trigger contract (`data-video-id`, optional `data-video-poster`) is the same.
+ *
+ * Rendered once by `Layout.astro` when a page passes `videoEmbed`.
+ *
+ * NOTE: unlike the mobile drawer — which must be a SIBLING of <header> because
+ * a `position: fixed` box is trapped by an ancestor's stacking context — this
+ * dialog can live anywhere in the DOM. `showModal()` promotes it to the top
+ * layer, which escapes stacking contexts entirely. The two rules look
+ * contradictory; they are not.
+ */
+---
+
+<dialog class="vlb" aria-label="Video player">
+  <button type="button" class="vlb__close" aria-label="Close video">
+    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M18 6 6 18M6 6l12 12"></path>
+    </svg>
+  </button>
+  <div class="vlb__frame"></div>
+</dialog>
+
+<style>
+  .vlb {
+    width: min(1040px, 92vw);
+    max-width: 92vw;
+    /* Restores the UA-default centring that global.css's reset (`* { margin: 0 }`)
+       wipes out — without it the dialog pins to the top-left. */
+    margin: auto;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    /* The close button sits ABOVE the frame, outside the dialog's own box. */
+    overflow: visible;
+    color: var(--cream);
+  }
+
+  .vlb::backdrop {
+    background-color: rgba(20, 19, 16, 0.92);
+  }
+
+  .vlb__frame {
+    position: relative;
+    /* 16/9 is the house frame. A wider master (the test video is 2.35:1)
+       letterboxes inside it, which is Wistia's own behaviour and correct — the
+       alternative is the dialog changing shape per video. */
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    background-color: #000;
+    background-size: cover;
+    background-position: center;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .vlb__frame :global(iframe) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .vlb__close {
+    position: absolute;
+    /* Above the iframe, which covers the frame and comes later in the DOM. */
+    z-index: 2;
+    top: calc(-1 * (44px + var(--space-12)));
+    right: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    color: var(--ink);
+    background-color: var(--gold);
+    border: 0;
+    border-radius: var(--radius-full);
+    cursor: pointer;
+    transition: background-color var(--transition), transform var(--transition);
+  }
+
+  .vlb__close:hover {
+    background-color: var(--gold-light);
+    transform: scale(1.06);
+  }
+
+  .vlb__close:focus-visible {
+    outline: 2px solid var(--cream);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vlb__close {
+      transition: background-color var(--transition);
+    }
+
+    .vlb__close:hover {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>(".vlb");
+  const frame = dialog?.querySelector<HTMLDivElement>(".vlb__frame");
+  const closeBtn = dialog?.querySelector<HTMLButtonElement>(".vlb__close");
+
+  const embedUrl = (id: string) =>
+    `https://fast.wistia.net/embed/iframe/${id}?autoPlay=true&playsinline=true`;
+
+  function open(id: string, poster?: string | null) {
+    if (!dialog || !frame) return;
+    // Paint the poster immediately so there is a real frame rather than black
+    // while the Wistia player boots and buffers; the iframe covers it once it
+    // renders.
+    frame.style.backgroundImage = poster ? `url("${poster}")` : "";
+    const iframe = document.createElement("iframe");
+    iframe.src = embedUrl(id);
+    // `allow` covers fullscreen; setting the legacy `allowfullscreen`
+    // attribute as well makes the browser warn that one shadows the other.
+    iframe.allow = "autoplay; fullscreen";
+    iframe.title = "Video player";
+    frame.replaceChildren(iframe);
+    dialog.showModal();
+  }
+
+  /**
+   * Clearing the iframe is what actually stops playback — hiding the dialog
+   * alone leaves the Wistia player running with audio.
+   */
+  function teardown() {
+    if (!frame) return;
+    frame.replaceChildren();
+    frame.style.backgroundImage = "";
+  }
+
+  function close() {
+    if (!dialog?.open) return;
+    // Torn down synchronously here rather than left to the `close` listener
+    // below. `close` is queued as a task, so on a throttled or backgrounded
+    // page it can be delayed well past the dialog visually disappearing —
+    // which is exactly long enough to hear the audio keep playing.
+    teardown();
+    dialog.close();
+  }
+
+  // Delegated, so triggers rendered anywhere on the page work without wiring.
+  document.addEventListener("click", (event) => {
+    const trigger = (event.target as HTMLElement | null)?.closest<HTMLElement>("[data-video-id]");
+    if (!trigger) return;
+    const id = trigger.getAttribute("data-video-id");
+    if (!id) return;
+    event.preventDefault();
+    open(id, trigger.getAttribute("data-video-poster"));
+  });
+
+  closeBtn?.addEventListener("click", close);
+
+  // A click on the backdrop lands on the dialog itself, not its contents.
+  dialog?.addEventListener("click", (event) => {
+    if (event.target === dialog) close();
+  });
+
+  // Still needed for the paths we do not control — native ESC, and the form
+  // `method="dialog"` close. Idempotent against the synchronous teardown above.
+  dialog?.addEventListener("close", teardown);
+</script>
