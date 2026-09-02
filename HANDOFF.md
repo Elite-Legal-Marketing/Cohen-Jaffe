@@ -7,8 +7,9 @@ Last updated: 2026-09-02
 
 Three of the homepage's fifteen sections are done end to end — **hero**, **stats band**
 and **case results** — each with schema, Studio structure, a typed query, a component and
-real content in the `production` dataset. `origin/master` is at `29e804f` (PR #8); the
-case results **modelling** is committed on top of that and not yet pushed.
+real content in the `production` dataset. `origin/master` is at `fa77acf` (PR #9) and
+carries all of it. Current branch is **`attorneys_collection`**, level with master and
+empty — the next piece of work has not started.
 
 Case results is the first section to use **separate collections**, under a **Collections**
 folder in the desk. There are two types, deliberately:
@@ -184,8 +185,18 @@ credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
+The branch name says an **attorneys collection** is next: its own document type, the way
+case results now works. The six attorneys are in the live site's nav and in
+`CJ - Attorneys.dc.html` / `CJ - Attorney Bio.dc.html`; the homepage's own attorneys
+section ("The three people who will actually work your case") shows three of them, so
+expect the same featured-versus-full-list question that case results raised — resolve it
+before modelling, not after.
+
+Also outstanding:
+
 1. Build **`/case-results/`** — the 60 migrated ledger entries have no page yet, and the
-   homepage's "See all results" link already points at it.
+   homepage's "See all results" link already points at it. A wildcard redirect currently
+   sends every old case-result URL there.
 2. Section 4: **Fee Explainer** — "No fee unless we win — here is what that actually means."
    Then Practice Areas ("What happened?"), then New York Deadlines ("The clock started the
    day of your accident"). Order is in `Cohen & Jaffe Homepage v1.dc.html`.
