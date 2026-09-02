@@ -437,6 +437,19 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   `"@sanity/ui": "^4"` dependency, and after any dependency change that reshuffles the
   tree, `rm -rf node_modules/.vite .astro` and restart. Verify with
   `npm ls @sanity/ui` — the top-level entry must be v4.
+- **A Sanity document id must NEVER contain a dot.** Sanity treats a dotted `_id`
+  as non-public: the document is readable with a token and invisible without one.
+  Seeding case results as `caseResult.danny-r` produced a genuinely nasty failure —
+  the Studio, `sanity documents query` and `sanity documents validate` all showed
+  four healthy documents, while the site's unauthenticated client dereferenced
+  every reference to `null` and `npm run build` died on `Cannot read properties of
+  null`. Nothing in the error points at the id. Use hyphens (`case-result-danny-r`).
+  Diagnose it by hitting the public API without a token:
+  `curl "https://<projectId>.api.sanity.io/v2024-01-01/data/query/<dataset>?query=*[_type=='x']{_id}"`
+  — an empty result there against a populated CLI result is the tell.
+- **Re-uploading the same image file does not orphan an asset.** Sanity dedupes by
+  content hash, so `client.assets.upload` returns the existing asset id. Seed
+  scripts can be re-run without littering the media library.
 - **`.env` is gitignored**, so a Vercel build with missing env vars fails while
   prerendering `/admin` with `Error: Configuration must contain 'projectId'` — and because
   that fails the whole build, **every route 404s**, not just `/admin`. Env-var changes

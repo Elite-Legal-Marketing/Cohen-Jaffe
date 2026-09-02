@@ -1,6 +1,9 @@
 import type { StructureResolver } from "sanity/structure";
+import { CaseIcon } from "@sanity/icons/Case";
 import { DocumentsIcon } from "@sanity/icons/Documents";
+import { FolderIcon } from "@sanity/icons/Folder";
 import { HomeIcon } from "@sanity/icons/Home";
+import { StarIcon } from "@sanity/icons/Star";
 
 /**
  * Studio desk structure.
@@ -19,6 +22,12 @@ import { HomeIcon } from "@sanity/icons/Home";
  * Keep SINGLETONS in sync when adding one, or step 2 silently stops working.
  */
 const SINGLETONS = ["homePage"] as const;
+
+/**
+ * Collections given their own list item above. They must be excluded from the
+ * generic fallback too, or the Studio shows each of them twice.
+ */
+const LISTED = ["featuredCaseResult", "caseResult"] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
 const singleton = (
@@ -47,8 +56,37 @@ export const structure: StructureResolver = (S) =>
 
       S.divider(),
 
-      // Everything that is not a singleton, listed normally.
+      // Collections, in a folder of their own so the root stays two items deep.
+      // Listed explicitly, so the titles, icons and ORDER are ours — the generic
+      // fallback sorts alphabetically, which would put the ledger above the
+      // featured stories for no reason anyone could explain.
+      S.listItem()
+        .title("Collections")
+        .icon(FolderIcon)
+        .child(
+          S.list()
+            .title("Collections")
+            .items([
+              S.listItem()
+                .title("Case Results")
+                .icon(CaseIcon)
+                .child(
+                  S.list()
+                    .title("Case Results")
+                    .items([
+                      S.documentTypeListItem("featuredCaseResult")
+                        .title("Featured Case Results")
+                        .icon(StarIcon),
+                      S.documentTypeListItem("caseResult").title("Case Results").icon(CaseIcon),
+                    ]),
+                ),
+            ]),
+        ),
+
+      // Anything else: not a singleton, and not already listed above.
       ...S.documentTypeListItems().filter(
-        (item) => !SINGLETONS.includes(item.getId() as (typeof SINGLETONS)[number]),
+        (item) =>
+          !SINGLETONS.includes(item.getId() as (typeof SINGLETONS)[number]) &&
+          !LISTED.includes(item.getId() as (typeof LISTED)[number]),
       ),
     ]);

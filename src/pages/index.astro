@@ -17,5 +17,5 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
 >
   {home?.hero && <Hero hero={home.hero} />}
   {home?.stats && home.stats.length > 0 && <Stats stats={home.stats} />}
-  <CaseResults />
+  {home?.caseResults && <CaseResults section={home.caseResults} />}
 </Layout>
