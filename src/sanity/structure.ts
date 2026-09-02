@@ -4,6 +4,7 @@ import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
 import { HomeIcon } from "@sanity/icons/Home";
 import { StarIcon } from "@sanity/icons/Star";
+import { UsersIcon } from "@sanity/icons/Users";
 
 /**
  * Studio desk structure.
@@ -27,7 +28,7 @@ const SINGLETONS = ["homePage"] as const;
  * Collections given their own list item above. They must be excluded from the
  * generic fallback too, or the Studio shows each of them twice.
  */
-const LISTED = ["featuredCaseResult", "caseResult"] as const;
+const LISTED = ["featuredCaseResult", "caseResult", "attorney"] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
 const singleton = (
@@ -80,6 +81,12 @@ export const structure: StructureResolver = (S) =>
                       S.documentTypeListItem("caseResult").title("Case Results").icon(CaseIcon),
                     ]),
                 ),
+
+              // Flat: six documents, no sub-folder to open. Ordering in the
+              // list is the Studio's, not ours — who appears where on a page is
+              // the ordered reference array on that page's section, so there is
+              // nothing here to sort.
+              S.documentTypeListItem("attorney").title("Attorneys").icon(UsersIcon),
             ]),
         ),
 

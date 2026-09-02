@@ -43,7 +43,8 @@ that slash matters locally.
 | `src/sanity/sanity.types.ts` | **Generated** by `npm run typegen` — never hand-edit |
 | `src/sanity/schema.json` | **Generated** schema snapshot — never hand-edit |
 | `vercel.json` | Framework pin (`astro`) + `trailingSlash` |
-| `src/sanity/schemaTypes/index.ts` | The schema array — **currently empty** |
+| `src/sanity/schemaTypes/index.ts` | The schema array — register every new type here |
+| `src/sanity/structure.ts` | The desk: Pages / Collections / Site Settings, and the singletons |
 | `src/sanity/theme.ts` | Elite brand theme, locked to light |
 | `src/sanity/eliteTheme.js` | Generated Themer palette (do not hand-edit) |
 | `src/sanity/eliteTheme.d.ts` | Precise types for the above — why it's narrow is in the file |
@@ -243,6 +244,21 @@ on; they exist so setup can move fast without a decision each time.
    `astro:assets`. It fingerprints, converts to WebP and generates the srcset at build
    time: the hero photographs went from 2.87 MB PNGs to ~102 KB, with no CDN round trip and
    nothing for an editor to break.
+6. **`.required()` is only for a field EVERY document genuinely has.** A field the source
+   content supplies for some documents and not others is optional, and the component
+   renders nothing when it is empty. `featuredCaseResult` went the other way on the
+   client's instruction and the cost is now permanent: the 60 real ledger results can never
+   be promoted without someone inventing four fields each. `attorney` is the corrective —
+   six required fields out of nineteen, because bar admissions, honors and quotes are
+   simply absent from the live site for most of the six. An empty credentials card renders
+   as nothing; a guessed one is a false claim about a real person.
+7. **A collection gets ONE document type unless the two uses are different CONTENT.**
+   Case results needed two because a featured card carries a client interview, a portrait,
+   a quote and an insurer's offer that the ledger entry has never had. An attorney is the
+   same person on every page, so `attorney` is one type and each section picks who appears
+   with an ordered array of references — no `featured` flag, no second type, nothing to
+   drift. Ordering and grouping (partners vs associates) are properties of the *section*,
+   not of the person.
 
 Two mechanical notes that follow from these:
 - Project **`_key`** on every array in a GROQ query. It is the render key and the handle
