@@ -41,6 +41,12 @@ export type RichText = Array<{
   _key: string;
 }>;
 
+export type RepresentativeCase = {
+  _type: "representativeCase";
+  cite: string;
+  note?: string;
+};
+
 export type CtaLink = {
   _type: "ctaLink";
   label: string;
@@ -80,6 +86,72 @@ export type Hero = {
   >;
 };
 
+export type SanityImageAssetReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
+};
+
+export type Attorney = {
+  _id: string;
+  _type: "attorney";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  slug: Slug;
+  role: string;
+  portrait: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  summary: string;
+  quote?: string;
+  headline?: string;
+  biography: RichText;
+  pullQuote?: string;
+  barAdmissions?: Array<string>;
+  education?: Array<string>;
+  languages?: Array<string>;
+  honors?: Array<string>;
+  affiliations?: Array<string>;
+  representativeCases?: Array<
+    {
+      _key: string;
+    } & RepresentativeCase
+  >;
+  location?: string;
+  phone?: string;
+  fax?: string;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
 export type CaseResult = {
   _id: string;
   _type: "caseResult";
@@ -99,13 +171,6 @@ export type CaseResult = {
     | "Traumatic Brain Injury"
     | "Personal Injury";
   summary: string;
-};
-
-export type SanityImageAssetReference = {
-  _ref: string;
-  _type: "reference";
-  _weak?: boolean;
-  [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
 export type FeaturedCaseResult = {
@@ -140,22 +205,6 @@ export type FeaturedCaseResult = {
     _type: "image";
   };
   wistiaId?: string;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
 };
 
 export type HomePage = {
@@ -270,24 +319,21 @@ export type Geopoint = {
   alt?: number;
 };
 
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
-};
-
 export type AllSanitySchemaTypes =
   | Stat
   | RichText
+  | RepresentativeCase
   | CtaLink
   | FeaturedCaseResultReference
   | CaseResultsSection
   | Hero
-  | CaseResult
   | SanityImageAssetReference
-  | FeaturedCaseResult
+  | Attorney
   | SanityImageCrop
   | SanityImageHotspot
+  | Slug
+  | CaseResult
+  | FeaturedCaseResult
   | HomePage
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -296,8 +342,7 @@ export type AllSanitySchemaTypes =
   | SanityFileAsset
   | SanityAssetSourceData
   | SanityImageAsset
-  | Geopoint
-  | Slug;
+  | Geopoint;
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
