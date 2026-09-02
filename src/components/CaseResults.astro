@@ -1,0 +1,857 @@
+---
+/**
+ * Homepage case results band.
+ *
+ * Design: the CASE RESULTS band of `Cohen & Jaffe Homepage v1.dc.html`. Four
+ * cards on the sand surface, each pairing what the insurer offered — struck
+ * through — against what the case actually recovered. That contrast is the
+ * whole point of the section, so the two figures are deliberately unequal in
+ * weight: the offer is condensed micro-type, the recovery is display serif.
+ *
+ * Content is hardcoded here for design approval, shaped the way the GROQ
+ * projection will hand it over, so wiring it to Sanity is a swap from this
+ * constant to a prop rather than a rewrite. See AGENTS.md → "Building
+ * sections: build it, approve it, then wire it".
+ *
+ * ⚠️ THE CONTENT BELOW IS THE ARTBOARD'S, AND THREE OF ITS FIELDS DO NOT EXIST
+ * IN THE MIGRATED SITE. The live site publishes 60 case results carrying a
+ * recovery figure, a case type and a narrative — but no client name, no quote,
+ * no photograph, and no "insurer offered" figure (only 9 of the 60 mention an
+ * offer at all, none as a number). Those four fields are new content the firm
+ * has to supply before this section can be seeded with anything real.
+ */
+import { getImage } from "astro:assets";
+import clientOne from "../assets/result-client-1.png";
+import clientTwo from "../assets/result-client-2.png";
+import clientThree from "../assets/result-client-3.png";
+import clientFour from "../assets/result-client-4.png";
+
+/**
+ * The client photographs are content an editor swaps per result, so at wiring
+ * time they move to Sanity (AGENTS.md → "Images: in Sanity or in code?"). They
+ * sit in `src/assets/` only for this hardcoded phase, which is also why the
+ * card reads `image`/`imageAlt`/`imageFocus` as three fields — that is the
+ * shape the query will project, whichever side the asset ends up on.
+ */
+const CARD_WIDTHS = [400, 600, 800];
+
+const results = [
+  {
+    _key: "danny-r",
+    clientName: "Danny R.",
+    quote: "They told me it was my fault.",
+    offered: "$250,000",
+    recovered: "$2,800,000",
+    caseType: "Auto Accident",
+    county: "Nassau County",
+    image: clientOne,
+    imageAlt: "",
+    imageFocus: "50% 22%",
+    // Test wiring, first card only. Wistia's oEmbed resolves this to
+    // "Experienced Personal Injury Lawyers in Long Island & Queens, NY" (2:47) —
+    // the video the live site runs on /free-consultation/. Every other card
+    // stays null until the client-story videos exist, and a card without an id
+    // renders no play badge rather than a button that does nothing.
+    videoId: "c6b0eghb5r",
+  },
+  {
+    _key: "carol-m",
+    clientName: "Carol M.",
+    quote: "I almost signed the first offer.",
+    offered: "$150,000",
+    recovered: "$1,500,000",
+    caseType: "Medical Malpractice",
+    county: "Suffolk County",
+    image: clientTwo,
+    imageAlt: "",
+    imageFocus: "50% 32%",
+    videoId: null,
+  },
+  {
+    _key: "andre-w",
+    clientName: "Andre W.",
+    quote: "I could not work for eight months.",
+    offered: "$85,000",
+    recovered: "$950,000",
+    caseType: "Slip & Fall",
+    county: "Nassau County",
+    image: clientThree,
+    imageAlt: "",
+    imageFocus: "50% 26%",
+    videoId: null,
+  },
+  {
+    _key: "marisol-t",
+    clientName: "Marisol T.",
+    quote: "I did not think I had a case.",
+    offered: "$50,000",
+    recovered: "$675,000",
+    caseType: "Construction Accident",
+    county: "Queens",
+    image: clientFour,
+    imageAlt: "",
+    imageFocus: "50% 28%",
+    videoId: null,
+  },
+];
+
+const caseResults = {
+  heading: "Real people. Real recoveries.",
+  lead: "Insurance companies made an offer. Here is what these cases were actually worth.",
+  linkLabel: "See all results",
+  linkHref: "/case-results/",
+  disclaimer:
+    "Prior results do not guarantee a similar outcome. Every case is evaluated on its individual facts and circumstances.",
+  results,
+};
+
+// Resolved up front: `getImage` is async and cannot be awaited inside the JSX
+// map below.
+const cards = await Promise.all(
+  caseResults.results.map(async (result) => ({
+    ...result,
+    resolved: await getImage({
+      src: result.image,
+      widths: CARD_WIDTHS,
+      format: "webp",
+    }),
+  })),
+);
+---
+
+<section class="results" aria-labelledby="results-heading">
+  <div class="container">
+    <div class="results__head">
+      <div class="results__head-row">
+        <h2 class="results__heading" id="results-heading">{caseResults.heading}</h2>
+        <a class="results__link" href={caseResults.linkHref}>
+          {caseResults.linkLabel}
+          <span class="arrow" aria-hidden="true">&rarr;</span>
+        </a>
+      </div>
+      <p class="results__lead">{caseResults.lead}</p>
+    </div>
+
+    <div class="results__viewport">
+      <ul class="results__grid" role="list">
+      {
+        cards.map((card) => (
+          <li class="result">
+            <div class="result__media">
+              {card.videoId && (
+                <button
+                  type="button"
+                  class="result__play"
+                  data-video-id={card.videoId}
+                  aria-label={`Play video: ${card.clientName}, ${card.caseType}`}
+                >
+                  <span class="result__play-badge" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                      <path d="M7 5v14l10-7z" />
+                    </svg>
+                  </span>
+                </button>
+              )}
+              <img
+                class="result__image"
+                src={card.resolved.src}
+                srcset={card.resolved.srcSet.attribute}
+                sizes="(max-width: 620px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                alt={card.imageAlt}
+                width={card.resolved.attributes.width}
+                height={card.resolved.attributes.height}
+                loading="lazy"
+                decoding="async"
+                style={`object-position: ${card.imageFocus};`}
+              />
+              <span class="result__scrim" aria-hidden="true" />
+              <span class="result__client">{card.clientName}</span>
+            </div>
+
+            <div class="result__body">
+              <p class="result__quote">&ldquo;{card.quote}&rdquo;</p>
+
+              <div class="result__offered">
+                <span class="result__offered-label">Insurer offered</span>
+                <span class="result__offered-figure">{card.offered}</span>
+              </div>
+
+              <div class="result__recovered">
+                <span class="result__recovered-label">Recovered</span>
+                <span class="result__recovered-figure">{card.recovered}</span>
+              </div>
+
+              <p class="result__meta">
+                {card.caseType} &middot; {card.county}
+              </p>
+            </div>
+          </li>
+          ))
+        }
+      </ul>
+    </div>
+
+
+    <p class="results__disclaimer">{caseResults.disclaimer}</p>
+
+    <div class="results__dots">
+      {
+        cards.map((card, i) => (
+          <button
+            type="button"
+            class="results__dot"
+            data-index={i}
+            aria-label={`Show result ${i + 1} of ${cards.length}: ${card.clientName}`}
+          />
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  .results {
+    background-color: var(--sand);
+    border-block-end: 1px solid var(--border);
+    padding-block: var(--space-section);
+  }
+
+  /* --- Header ------------------------------------------------------------ */
+
+  .results__head {
+    margin-block-end: var(--space-44);
+  }
+
+  .results__head-row {
+    display: flex;
+    /* Baseline, not centre: the 42px heading and the 16px link are wildly
+       different sizes, and the artboard sits them on a shared baseline. */
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-60);
+  }
+
+  .results__heading {
+    font-family: var(--font-heading);
+    font-size: var(--fs-section);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-heading);
+    color: var(--color-heading);
+    /* The head block owns the gap to the grid; the h1-h6 default would add a
+       second one under the heading. */
+    margin-block-end: 0;
+  }
+
+  .results__link {
+    font-family: var(--font-label);
+    font-size: var(--fs-16);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--green);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: color var(--transition);
+  }
+
+  .results__link:hover,
+  .results__link:focus-visible {
+    color: var(--gold-ink);
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+
+  .results__lead {
+    margin-block-start: var(--space-16);
+    font-size: var(--fs-17);
+    line-height: var(--lh-body-lg);
+    color: var(--muted);
+  }
+
+  /* --- Grid -------------------------------------------------------------- */
+
+  .results__viewport {
+    position: relative;
+  }
+
+  /* Hidden until the script marks itself ready: without JS the dots cannot
+     scroll anything, while the scroller itself still works by swipe. */
+  .results__dots {
+    display: none;
+  }
+
+  .results__grid {
+    display: grid;
+    /* Capped at 400px so the row stops growing before the cards get wider than
+       their 16/9 media reads well at. */
+    grid-template-columns: repeat(4, minmax(0, 400px));
+    justify-content: space-between;
+    gap: var(--space-20);
+    margin: 0 0 var(--space-40);
+    padding: 0;
+    list-style: none;
+  }
+
+  .result {
+    display: flex;
+    flex-direction: column;
+    /* The card is a query container so the recovered figure can be sized from
+       the CARD's width rather than the viewport's — see
+       `.result__recovered-figure`. `inline-size` contains the inline axis only,
+       so the card still grows to its content's height and the row still
+       equalises. */
+    container-type: inline-size;
+    background-color: var(--white);
+    border: 1px solid var(--border);
+    /* The gold underline is the card's only ornament — it is what ties the
+       card back to the band's accent without adding a second border colour. */
+    border-block-end: 3px solid var(--gold);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* --- Card media -------------------------------------------------------- */
+
+  .result__media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    /* `flex: none` so the media keeps its ratio when the body stretches to
+       equalise card heights. */
+    flex: none;
+    overflow: hidden;
+  }
+
+  .result__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* object-position is per-card and set inline — each photograph frames its
+       subject differently. */
+  }
+
+  .result__scrim {
+    position: absolute;
+    inset: 0;
+    /* Bottom-to-top ramp carrying the client name. The artboard's single stop
+       (transparent at 55% to 0.34 at the base) was not enough contrast against
+       a bright frame — Carol M.'s lamp-lit room washed the label out. Three
+       stops instead: it starts higher but stays lighter for longer, so the
+       extra density lands under the name rather than greying the whole lower
+       half of the photograph. Subjects' faces sit above 40% in every frame. */
+    background: linear-gradient(
+      to top,
+      rgba(20, 19, 16, 0.72) 0%,
+      rgba(20, 19, 16, 0.42) 18%,
+      rgba(20, 19, 16, 0.12) 40%,
+      rgba(20, 19, 16, 0) 62%
+    );
+  }
+
+  /* The whole frame is the hit area, not just the badge — the badge alone is a
+     54px target inside a 305px-wide photograph that plainly reads as clickable.
+     Transparent, so the scrim and the client name below it still show through.
+     It needs an explicit z-index because it comes FIRST in the DOM and would
+     otherwise paint under the image. */
+  .result__play {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .result__play-badge {
+    position: absolute;
+    inset-inline-end: var(--space-18);
+    inset-block-end: var(--space-18);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+
+    color: var(--forest-700);
+    background-color: var(--cream);
+    border-radius: var(--radius-full);
+    transition: background-color var(--transition), transform var(--transition);
+  }
+
+  /* The triangle is drawn bbox-centred in its viewBox (see the path in the
+     markup), so flex centring puts its bounding box dead centre — which LOOKS
+     left-heavy, because a right-pointing triangle's visual mass is its tall
+     left edge while its area tapers away to the right. One nudge right of
+     geometric centre fixes it. This replaces a `padding-inline-start` on the
+     badge, which shifted the icon by half the padding and stacked with the
+     path's own off-centre bounding box — two offsets fighting, which is why it
+     never looked right. */
+  .result__play-badge svg {
+    transform: translateX(1px);
+  }
+
+  .result__play:hover .result__play-badge {
+    background-color: var(--white);
+    transform: scale(1.06);
+  }
+
+  .result__play:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: -4px;
+  }
+
+  .result__client {
+    position: absolute;
+    inset-inline-start: var(--space-20);
+    inset-block-end: var(--space-24);
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--cream);
+  }
+
+  /* --- Card body --------------------------------------------------------- */
+
+  .result__body {
+    display: flex;
+    flex-direction: column;
+    /* Stretches so `margin-block-start: auto` on the meta line pins it to the
+       bottom of every card regardless of quote length. */
+    flex: 1;
+    padding: var(--space-28) var(--space-30) var(--space-30);
+  }
+
+  .result__quote {
+    font-family: var(--font-heading);
+    /* A step under `--fs-card-title` (26). At 26 the quote crowded the figure
+       below it on a 305px card and pushed several cards to three lines. */
+    font-size: var(--fs-23);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+    /* Two lines' worth, so a one-line quote does not pull its card's figures
+       up out of line with its neighbours'. */
+    min-height: 66px;
+  }
+
+  .result__offered,
+  .result__recovered {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-16);
+    /* The safety valve. Both figures are `nowrap` (a currency amount must never
+       break mid-number), so without this an unusually long one overflows its
+       card instead of reflowing. The figures are authored in Sanity, so their
+       length is not ours to bound: an eight-figure recovery is ~9px too wide
+       for a 274px card at the 1280px floor. Wrapping drops the figure under its
+       label instead, which is plain rather than pretty — and it only ever fires
+       for amounts none of the current results reach. */
+    flex-wrap: wrap;
+  }
+
+  .result__offered {
+    padding-block: var(--space-22) var(--space-16);
+    /* Dashed, not solid: this rule separates a superseded number from the real
+       one, and the dash reads as provisional where a solid rule would read as
+       structural. */
+    border-block-end: 1px dashed rgba(169, 126, 55, 0.45);
+  }
+
+  .result__offered-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  .result__offered-figure {
+    font-family: var(--font-label);
+    font-size: var(--fs-19);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-flat);
+    color: var(--faint);
+    text-decoration: line-through;
+    white-space: nowrap;
+  }
+
+  .result__recovered {
+    padding-block-start: var(--space-18);
+    margin-block-end: var(--space-22);
+    /* Tighter than the offered row's gap: this row carries the widest content
+       in the card, and the 4px bought here is part of what keeps four across
+       at 1280px. The two rows are not visually paired closely enough for the
+       difference to read. */
+    gap: var(--space-12);
+  }
+
+  .result__recovered-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    /* `--ls-button` (0.06em), not the `--ls-wide` used on the other micro-type
+       here: at 12px the difference is invisible but returns ~4px of the row,
+       which the figure needs on a 272px card. */
+    letter-spacing: var(--ls-button);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--gold-ink);
+    white-space: nowrap;
+  }
+
+  .result__recovered-figure {
+    font-family: var(--font-heading);
+    /* Sized from the CARD, not the viewport — `cqi` is 1% of the card's inline
+       size. This is the one thing that lets the grid stay four across at every
+       desktop width the artboard implies.
+
+       Why not `--fs-section` like the heading: card width shrinks faster than
+       the viewport does, because `.container` spends up to 100px a side on the
+       gutter that the artboard's 1660px zero-gutter board does not. A
+       viewport-based clamp therefore still reads 39px while its card has fallen
+       to 305px, and `$2,800,000` punches through the card edge.
+
+       10.4cqi lands on the artboard's 42px at its 400px card and falls with the
+       column from there. The 42px ceiling stops the figure overshooting when a
+       card goes wide; the 24px floor keeps it dominant on a phone. Measured
+       against the widest realistic figure, so an eight-figure recovery still
+       fits. */
+    font-size: clamp(22px, 9.4cqi, 38px);
+    /* 0.9 is below `--lh-flat` on purpose: the figure is lining numerals with
+       no descenders, and the artboard tucks it tight against the label's
+       baseline. It cannot wrap — `white-space: nowrap` guarantees it. */
+    line-height: 0.9;
+    color: var(--green);
+    white-space: nowrap;
+  }
+
+  .result__meta {
+    /* Pins to the bottom of the stretched body — see `.result__body`. */
+    margin-block-start: auto;
+    font-family: var(--font-label);
+    /* 13, not 14: at 14 the longer pairings ("Construction Accident · Queens")
+       wrapped to two lines on a narrow card while the shorter ones did not,
+       which left the card bottoms ragged across a row. */
+    font-size: var(--fs-13);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-wide);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--faint);
+  }
+
+  .results__disclaimer {
+    max-width: 900px;
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: var(--faint);
+  }
+
+  /* --- Responsive ---------------------------------------------------------
+     Not from the designs — the artboard is a fixed four-across board with no
+     media queries and no mobile counterpart. These blocks MUST stay after the
+     base rules they override; equal specificity means source order decides. */
+
+  /* The heading and the link stop fitting on one line well before the grid
+     does, so this is its own step. */
+  @media (max-width: 760px) {
+    .results__head-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-16);
+    }
+  }
+
+  /* Four across holds all the way down to 1280px, because the recovered figure
+     tracks its own card (see `.result__recovered-figure`) rather than the
+     viewport. Below the artboard's 1660px the cards are simply narrower than
+     400px and the figure comes down with them — the four-across composition is
+     preserved, which is what the design is actually about.
+
+     The card body also gives back 6px a side from 1500px, which is part of what
+     makes the figure fit at the 1280px floor. */
+  @media (max-width: 1500px) {
+    .result__body {
+      padding: var(--space-24) var(--space-24) var(--space-28);
+    }
+  }
+
+  /* --- Carousel: tablet and below -----------------------------------------
+     1280px is measured, and it lands on the design system's `xl` step — the
+     same place the nav swaps to the drawer. Below it a card would be under
+     ~270px and the recovered row overflows however the figure is sized, so the
+     grid becomes a swipeable scroller instead of stacking.
+
+     Scroll-snap does the whole job; the script only mirrors position into the
+     dots and handles dot clicks. That means the carousel still works with JS
+     off — it is a scroll container, not a slideshow — and every card stays in
+     the DOM and in the tab order rather than being hidden behind a transform. */
+  @media (max-width: 1280px) {
+    .results__grid {
+      display: flex;
+      gap: var(--space-20);
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      /* The cards carry a 3px gold underline and a focus ring; without a little
+         room the scroller clips both. */
+      padding-block-end: var(--space-8);
+      margin-block-end: var(--space-16);
+      /* The dots are the affordance — a scrollbar under them is noise. Touch
+         and keyboard scrolling are unaffected. */
+      scrollbar-width: none;
+    }
+
+    .results__grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .result {
+      /* Two per view, snapping one card at a time. */
+      flex: 0 0 calc((100% - var(--space-20)) / 2);
+      scroll-snap-align: start;
+    }
+
+    .results__dots.is-ready {
+      display: flex;
+      justify-content: center;
+      /* No gap: the spacing between dots is the tap target's own width, set on
+         `.results__dot`. Adding gap on top pushes them further apart than the
+         9px marks warrant. */
+      gap: 0;
+      margin-block-start: var(--space-20);
+    }
+  }
+
+  /* One per view, with a sliver of the next showing so it reads as swipeable
+     rather than as a single static card. */
+  @media (max-width: 700px) {
+    .result {
+      flex-basis: 86%;
+    }
+
+    /* Stacked one-up, each card is as tall as its own content — the reserved
+       two lines only ever existed to align figures across a row. */
+    .result__quote {
+      min-height: 0;
+    }
+  }
+
+  /* --- Dots ---------------------------------------------------------------- */
+
+  .results__dot {
+    /* 28x44 of tap target around a 9px dot — the dot itself is drawn by the
+       pseudo-element, so the hit area never shrinks with the visual.
+
+       Narrow rather than square because the button's width IS the gap between
+       marks: at 44 wide the dots sat 44px apart and read as four separate
+       controls rather than one indicator. 28x44 still clears WCAG 2.5.8's
+       24x24 minimum comfortably, and the full height is kept for the thumb. */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 44px;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  /* The script hides surplus dots with the `hidden` attribute. The UA's
+     `[hidden] { display: none }` loses to `.results__dot`'s own `display`
+     (author styles beat the UA sheet at equal specificity), so it has to be
+     restated here or every dot stays visible. */
+  .results__dot[hidden] {
+    display: none;
+  }
+
+  .results__dot::before {
+    content: "";
+    width: 9px;
+    height: 9px;
+    border-radius: var(--radius-full);
+    background-color: var(--faint);
+    opacity: 0.4;
+    transition: background-color var(--transition), opacity var(--transition), transform var(--transition);
+  }
+
+  .results__dot[aria-current="true"]::before {
+    background-color: var(--gold-ink);
+    opacity: 1;
+    transform: scale(1.3);
+  }
+
+  .results__dot:hover::before {
+    opacity: 1;
+  }
+
+  .results__dot:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: -8px;
+    border-radius: var(--radius-full);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    /* The script hides surplus dots with the `hidden` attribute. The UA's
+     `[hidden] { display: none }` loses to `.results__dot`'s own `display`
+     (author styles beat the UA sheet at equal specificity), so it has to be
+     restated here or every dot stays visible. */
+  .results__dot[hidden] {
+    display: none;
+  }
+
+  .results__dot::before {
+      transition: background-color var(--transition), opacity var(--transition);
+    }
+
+    .results__dot[aria-current="true"]::before {
+      transform: none;
+    }
+
+    /* The triangle is drawn bbox-centred in its viewBox (see the path in the
+     markup), so flex centring puts its bounding box dead centre — which LOOKS
+     left-heavy, because a right-pointing triangle's visual mass is its tall
+     left edge while its area tapers away to the right. One nudge right of
+     geometric centre fixes it. This replaces a `padding-inline-start` on the
+     badge, which shifted the icon by half the padding and stacked with the
+     path's own off-centre bounding box — two offsets fighting, which is why it
+     never looked right. */
+  .result__play-badge svg {
+    transform: translateX(1px);
+  }
+
+  .result__play:hover .result__play-badge {
+      transform: none;
+    }
+  }
+
+</style>
+
+<script>
+  /**
+   * Dots for the tablet/mobile carousel.
+   *
+   * The scroller itself is pure CSS scroll-snap — this only mirrors scroll
+   * position into the dots and scrolls on a dot click. If it never runs the
+   * carousel still swipes; the dots simply stay hidden (`.is-ready` is what
+   * reveals them), which is why they are not rendered visible by default.
+   *
+   * A dot is a PAGE, not a card. With two cards in view the scroller runs out
+   * of travel after the third — scrolling the fourth card to the start edge is
+   * impossible — so one dot per card leaves the last one permanently
+   * unreachable and permanently inactive. Pages are recomputed whenever the
+   * number of visible cards changes, so it is 2 dots on tablet and 4 on a
+   * phone, and every dot corresponds to somewhere you can actually get to.
+   */
+  const grid = document.querySelector<HTMLUListElement>(".results__grid");
+  const dotsWrap = document.querySelector<HTMLDivElement>(".results__dots");
+
+  if (grid && dotsWrap) {
+    const cards = [...grid.querySelectorAll<HTMLLIElement>(".result")];
+    const dots = [...dotsWrap.querySelectorAll<HTMLButtonElement>(".results__dot")];
+    // Matches the carousel breakpoint in the stylesheet above. Held in a
+    // variable: an unreferenced MediaQueryList can be garbage-collected along
+    // with its listener.
+    const carousel = window.matchMedia("(max-width: 1280px)");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let perView = 1;
+    let pages = cards.length;
+
+    const maxScroll = () => grid.scrollWidth - grid.clientWidth;
+
+    const measure = () => {
+      const card = cards[0];
+      if (!card) return;
+      // Round rather than floor: a card is a fractional width once the gap is
+      // divided out, and floor turns "two in view" into one.
+      const step = cards.length > 1 ? cards[1].offsetLeft - card.offsetLeft : card.offsetWidth;
+      perView = step > 0 ? Math.max(1, Math.round(grid.clientWidth / step)) : 1;
+      pages = Math.max(1, Math.ceil(cards.length / perView));
+      dots.forEach((dot, i) => {
+        const used = i < pages;
+        dot.hidden = !used;
+        if (used) dot.setAttribute("aria-label", `Show results ${i * perView + 1} to ${Math.min((i + 1) * perView, cards.length)} of ${cards.length}`);
+      });
+    };
+
+    const setActive = (index: number) => {
+      dots.forEach((dot, i) => {
+        if (i === index) dot.setAttribute("aria-current", "true");
+        else dot.removeAttribute("aria-current");
+      });
+    };
+
+    const currentPage = () => {
+      // At the end of the travel the last page is showing, whatever the
+      // arithmetic says — the scroller has clamped short of the last card's
+      // start edge.
+      if (grid.scrollLeft >= maxScroll() - 2) return pages - 1;
+      let nearest = 0;
+      let best = Infinity;
+      cards.forEach((card, i) => {
+        const delta = Math.abs(card.offsetLeft - grid.offsetLeft - grid.scrollLeft);
+        if (delta < best) {
+          best = delta;
+          nearest = i;
+        }
+      });
+      return Math.min(Math.floor(nearest / perView), pages - 1);
+    };
+
+    const sync = () => {
+      if (!carousel.matches) return;
+      setActive(currentPage());
+    };
+
+    let frame = 0;
+    grid.addEventListener(
+      "scroll",
+      () => {
+        // Scroll fires far faster than paint; coalesce to one read per frame.
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(sync);
+      },
+      { passive: true },
+    );
+
+    dots.forEach((dot, i) => {
+      dot.addEventListener("click", () => {
+        const card = cards[i * perView];
+        if (!card) return;
+        grid.scrollTo({
+          left: Math.min(card.offsetLeft - grid.offsetLeft, maxScroll()),
+          behavior: reduceMotion.matches ? "auto" : "smooth",
+        });
+      });
+    });
+
+    const apply = () => {
+      dotsWrap.classList.toggle("is-ready", carousel.matches);
+      if (!carousel.matches) {
+        setActive(-1);
+        return;
+      }
+      measure();
+      sync();
+    };
+
+    carousel.addEventListener("change", apply);
+    // perView changes with width WITHIN the carousel range too (two up on a
+    // tablet, one up on a phone), so width alone must re-measure.
+    window.addEventListener("resize", apply, { passive: true });
+    apply();
+  }
+</script>

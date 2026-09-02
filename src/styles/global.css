@@ -279,10 +279,16 @@
   --space-lg: clamp(36px, 1.7393rem + 2.179vw, 64px);
   --space-xl: clamp(44px, 2.0934rem + 2.8016vw, 80px);
 
-  /* Section rhythm. 130px is the artboard default; 90px is its own explicit
-     `compactSpacing` variant, not a guess. */
-  --space-section: clamp(64px, 2.7962rem + 5.1362vw, 130px);
-  --space-section-sm: clamp(52px, 2.5569rem + 2.9572vw, 90px);
+  /* Section rhythm. DEPARTURE: the artboard sets 130px (and 90px for its
+     explicit `compactSpacing` variant); both are pulled in on request —
+     130 -> 80 at the desktop end, with the mobile floors and the compact
+     variant scaled by the same 0.615 ratio so the whole ramp stays
+     proportional rather than only the top end moving. Still fluid 375 -> 1660.
+
+       standard  40px (375) -> 80px (1660)
+       compact   32px (375) -> 55px (1660) */
+  --space-section: clamp(40px, 1.7704rem + 3.1128vw, 80px);
+  --space-section-sm: clamp(32px, 1.5805rem + 1.7899vw, 55px);
 
   /* --- Layout ----------------------------------------------------------- */
   --container: 1660px;         /* the artboard width */
@@ -886,8 +892,27 @@ details > summary::-webkit-details-marker {
    on keyboard focus. Sized in `em` so it scales with the type it sits in, and
    `inline-block` because a bare inline span cannot be transformed. The global
    reduced-motion block already flattens it. */
+/* SITE-WIDE ARROW CONVENTION — every link or button ending in an arrow.
+   Two things are deliberate here and apply to any new one:
+
+   1. The arrow is nudged UP. An arrow glyph is drawn on the font's math axis,
+      which sits near the middle of the LOWERCASE x-height; set beside the
+      uppercase labels these links use, whose optical centre is half the cap
+      height, it reads low. `--arrow-shift` lifts it onto the text's centre.
+   2. It owns the gap to its label. Letter-spaced uppercase already leaves a
+      trailing sliver, so the markup's word space alone reads tight.
+
+   Both are in `em`, so an arrow set at 13px and one at 26px are nudged by
+   proportionally the same amount. -0.0625em is exactly 1px at 16px.
+
+   The offset lives in a custom property because the hover state animates X
+   only — writing the pair out longhand in four places is how one of them ends
+   up dropping the Y and jumping on hover. */
 .arrow {
+  --arrow-shift: -0.0625em;
   display: inline-block;
+  margin-inline-start: 0.18em;
+  transform: translateY(var(--arrow-shift));
   transition: transform var(--duration) var(--ease);
 }
 
@@ -895,19 +920,21 @@ a:hover .arrow,
 button:hover .arrow,
 a:focus-visible .arrow,
 button:focus-visible .arrow {
-  transform: translateX(0.25em);
+  transform: translate(0.25em, var(--arrow-shift));
 }
 
-/* For a back-arrow, so it moves the way it points. */
+/* For a back-arrow, so it moves the way it points. It leads its label rather
+   than trailing it, so the gap swaps sides. */
 .arrow--back {
-  transform: none;
+  margin-inline-start: 0;
+  margin-inline-end: 0.18em;
 }
 
 a:hover .arrow--back,
 button:hover .arrow--back,
 a:focus-visible .arrow--back,
 button:focus-visible .arrow--back {
-  transform: translateX(-0.25em);
+  transform: translate(-0.25em, var(--arrow-shift));
 }
 
 /* A text link that reads as an action — "Get directions →". */
