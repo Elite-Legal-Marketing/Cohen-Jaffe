@@ -53,39 +53,23 @@ export type NavItem = NavLink & {
 };
 
 /* -------------------------------------------------------------------------- */
-/* Firm contact details — one source, used by nav, footer and forms.           */
+/* Firm contact details — MOVED TO SANITY                                      */
 /* -------------------------------------------------------------------------- */
 
-export const FIRM = {
-  name: "Law Office of Cohen & Jaffe, LLP",
-  shortName: "Cohen & Jaffe",
-  phone: { display: "516-358-6900", href: "tel:5163586900" },
-  sms: { display: "516-400-4967", href: "sms:5164004967" },
-  offices: [
-    {
-      name: "New Hyde Park",
-      badge: "New Hyde Park · primary office",
-      street: "2001 Marcus Avenue, W295",
-      cityStateZip: "New Hyde Park, NY 11042",
-      phone: { display: "516-358-6900", href: "tel:5163586900" },
-      hours: "Phones answered 24/7 · Office Mon–Fri 9–5",
-      directions: "https://www.google.com/maps?cid=67117899491750775",
-      map: "https://www.openstreetmap.org/export/embed.html?bbox=-73.7013%2C40.7542%2C-73.6793%2C40.7662&layer=mapnik&marker=40.7602%2C-73.6903",
-      href: "/new-hyde-park-office/",
-    },
-    {
-      name: "Jackson Heights",
-      badge: "Jackson Heights · by appointment",
-      street: "82-11 37th Avenue, Suite LL14",
-      cityStateZip: "Jackson Heights, NY 11372",
-      phone: { display: "718-280-5337", href: "tel:7182805337" },
-      hours: "By appointment · Se habla español",
-      directions: "https://www.google.com/maps?cid=11814349000154700354",
-      map: "https://www.openstreetmap.org/export/embed.html?bbox=-73.8946%2C40.7429%2C-73.8726%2C40.7549&layer=mapnik&marker=40.7489%2C-73.8836",
-      href: "/jackson-heights-office/",
-    },
-  ],
-} as const;
+/*
+ * The firm's name, phone, text number, offices, description and legal
+ * disclaimer now live in **Site Settings → Firm Details** and are read through
+ * `getFirm()` in `src/lib/firm.ts`. They were a `FIRM` constant here; the
+ * header, the drawer, the footer and the fee explainer all drew from it, which
+ * meant a phone number change was a code change and a deploy.
+ *
+ * NAVIGATION STAYS HERE, and that is deliberate. The menus below are indexed
+ * information architecture, not settings: the structure was parsed out of the
+ * live WordPress nav and every href checked against that page's own `og:url`,
+ * so changing one is a redirect to write rather than a field to edit. Moving it
+ * into Sanity is its own project with its own redirect questions — see
+ * AGENTS.md → "Navigation".
+ */
 
 /*
  * NOTE — the artboard's "En Español" control was removed on request; the

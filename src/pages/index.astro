@@ -6,8 +6,6 @@ import Stats from "../components/Stats.astro";
 import CaseResults from "../components/CaseResults.astro";
 import About from "../components/About.astro";
 import Fees from "../components/Fees.astro";
-import { homeAbout } from "../data/homeAbout";
-import { homeFees } from "../data/homeFees";
 import { HOME_PAGE_QUERY } from "../lib/queries";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
@@ -22,7 +20,6 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.hero && <Hero hero={home.hero} />}
   {home?.stats && home.stats.length > 0 && <Stats stats={home.stats} />}
   {home?.caseResults && <CaseResults section={home.caseResults} />}
-  {/* Hardcoded until the design is signed off — see src/data/homeAbout.ts. */}
-  <About section={homeAbout} />
-  <Fees section={homeFees} />
+  {home?.about && <About section={home.about} />}
+  {home?.fees && <Fees section={home.fees} />}
 </Layout>

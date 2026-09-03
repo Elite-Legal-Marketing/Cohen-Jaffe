@@ -19,35 +19,20 @@
  *     to a screen reader for free, and keeps the hidden paragraph in the
  *     document for crawlers. The whole row toggles, not just the little circle.
  *
- *   - The icons are repo assets picked by key, not Sanity images. They are a
- *     fixed brand set (`assets/icon-*-olive.svg` in the design files — roughly
- *     forty concepts), so an editor is choosing FROM a library rather than
- *     supplying artwork: AGENTS.md rule 5 puts that in code. Add a row to
- *     `EXPECTATION_ICONS` to widen the choice.
  */
-import iconPressure from "../assets/icons/expect-pressure.svg";
-import iconAttorney from "../assets/icons/expect-attorney.svg";
-import iconDayToDay from "../assets/icons/expect-day-to-day.svg";
-import iconCalls from "../assets/icons/expect-calls.svg";
 import videoCover from "../assets/about-video-cover.jpg";
 import { getImage } from "astro:assets";
 import RichText from "./RichText.astro";
-import { ATTORNEY_PORTRAITS } from "../data/attorneyPortraits";
-import type { AboutSection } from "../data/homeAbout";
+import { urlFor } from "../lib/image";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["about"]>;
 
 interface Props {
-  section: AboutSection;
+  section: Section;
 }
 
 const { section } = Astro.props;
-
-/** The brand glyphs this section can draw, keyed by the value in the content. */
-const EXPECTATION_ICONS = {
-  pressure: iconPressure,
-  attorney: iconAttorney,
-  "day-to-day": iconDayToDay,
-  calls: iconCalls,
-} as const;
 
 /**
  * The card is 690px wide at the artboard width and never wider, so these three
@@ -70,10 +55,17 @@ const cover = await getImage({
 const quote = section.quote;
 const video = section.video;
 
-// 144 = the 72px circle at 2x. The source is a 720x1280 standing portrait, so
-// the square crop is CSS's job; this only caps what gets downloaded.
-const portrait = quote
-  ? await getImage({ src: ATTORNEY_PORTRAITS[quote.attorney.slug], width: 144, format: "webp" })
+/**
+ * The portrait comes from the referenced ATTORNEY document, not from this
+ * section — so it can never disagree with the listing page or the bio.
+ *
+ * 144 = the 72px circle at 2x. The source is a 720x1280 standing portrait, so
+ * the square crop is CSS's job; this only caps what gets downloaded. Guarded
+ * because `urlFor` throws on a missing asset, and that failure takes the whole
+ * BUILD down rather than one portrait.
+ */
+const portrait = quote?.attorney?.portrait?.asset
+  ? urlFor(quote.attorney.portrait).width(144).url()
   : null;
 ---
 
@@ -95,21 +87,11 @@ const portrait = quote
 
       <ul class="expect" role="list">
         {
-          section.expectations.map((item) => {
-            const icon = EXPECTATION_ICONS[item.icon];
+          (section.expectations ?? []).map((item) => {
             return (
               <li class="expect__item">
                 <details class="expect__disclosure">
                   <summary class="expect__summary">
-                    <img
-                      class="expect__icon"
-                      src={icon.src}
-                      alt=""
-                      width="40"
-                      height="40"
-                      loading="lazy"
-                      decoding="async"
-                    />
                     <span class="expect__title">{item.title}</span>
                     <span class="expect__blurb">{item.blurb}</span>
                     <span class="expect__toggle" aria-hidden="true">
@@ -138,19 +120,16 @@ const portrait = quote
               &ldquo;
             </span>
 
-            <blockquote class="quote__text">
-              {quote.text}
-              {quote.accent && <span class="quote__accent"> {quote.accent}</span>}
-            </blockquote>
+            <blockquote class="quote__text">{quote.text}</blockquote>
 
             <figcaption class="quote__by">
               {portrait && (
                 <span class="quote__portrait">
                   <img
-                    src={portrait.src}
-                    alt={quote.attorney.name}
-                    width={portrait.attributes.width}
-                    height={portrait.attributes.height}
+                    src={portrait}
+                    alt={quote.attorney?.name ?? ""}
+                    width="144"
+                    height="144"
                     loading="lazy"
                     decoding="async"
                   />
@@ -158,10 +137,10 @@ const portrait = quote
               )}
 
               <span class="quote__who">
-                <a class="quote__name" href={`/about/attorneys/${quote.attorney.slug}/`}>
-                  {quote.attorney.name}
+                <a class="quote__name" href={`/about/attorneys/${quote.attorney?.slug}/`}>
+                  {quote.attorney?.name}
                 </a>
-                <span class="quote__role">{quote.attorney.role}</span>
+                <span class="quote__role">{quote.attorney?.role}</span>
               </span>
             </figcaption>
           </figure>
@@ -253,10 +232,8 @@ const portrait = quote
   /* --- "What you can expect" ---------------------------------------------- */
 
   .expect {
-    /* The hidden paragraph's left inset has to line up with the title above it,
-       which means matching the icon column exactly. Held in custom properties
-       so the responsive step changes one number, not three. */
-    --expect-icon: 40px;
+    /* The gap between the text and the toggle, held in a custom property so the
+       responsive step changes one number rather than several. */
     --expect-gap: var(--space-18);
     margin: 0;
     padding: 0;
@@ -271,12 +248,12 @@ const portrait = quote
     border-block-end: 1px solid var(--border-strong);
   }
 
-  /* A grid rather than a flex row, so the blurb can leave the middle column and
-     run the full width on a phone — where the icon and the toggle between them
-     take 90px out of a 335px row and the blurb was wrapping every four words. */
+  /* A grid rather than a flex row, so the blurb can leave its column and run the
+     full width on a phone — where the toggle was taking 48px out of a 335px row
+     and the blurb wrapped every few words. */
   .expect__summary {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     column-gap: var(--expect-gap);
     align-items: start;
     padding-block: var(--space-24);
@@ -290,16 +267,8 @@ const portrait = quote
     outline-offset: 2px;
   }
 
-  .expect__icon {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    width: var(--expect-icon);
-    height: var(--expect-icon);
-    margin-block-start: 2px;
-  }
-
   .expect__title {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 1;
     font-family: var(--font-heading);
     font-size: var(--fs-24);
@@ -309,7 +278,7 @@ const portrait = quote
   }
 
   .expect__blurb {
-    grid-column: 2;
+    grid-column: 1;
     grid-row: 2;
     font-size: var(--fs-16);
     line-height: var(--lh-body);
@@ -317,7 +286,7 @@ const portrait = quote
   }
 
   .expect__toggle {
-    grid-column: 3;
+    grid-column: 2;
     grid-row: 1 / span 2;
     align-self: center;
     position: relative;
@@ -382,10 +351,9 @@ const portrait = quote
   }
 
   .expect__detail {
-    /* Aligned under the title, not under the icon. */
-    margin-inline-start: calc(var(--expect-icon) + var(--expect-gap));
-    /* No negative top margin pulling this up under the summary's padding any
-       more: inside a clipped, animating box that shaves the dashed rule off. */
+    /* Flush with the title above it — there is no icon column to clear. No
+       negative top margin pulling it up under the summary's padding either:
+       inside a clipped, animating box that shaves the dashed rule off. */
     padding-block: var(--space-14) var(--space-24);
     border-block-start: 1px dashed rgba(169, 126, 55, 0.4);
   }
@@ -434,12 +402,6 @@ const portrait = quote
     line-height: var(--lh-lead);
     font-style: italic;
     color: var(--ink);
-  }
-
-  /* The closing clause, lifted out of the italic into olive roman. */
-  .quote__accent {
-    color: var(--green);
-    font-style: normal;
   }
 
   /* The attorney's own name is the link to their bio — there is no separate
@@ -633,7 +595,6 @@ const portrait = quote
 
   @media (max-width: 768px) {
     .expect {
-      --expect-icon: 30px;
       --expect-gap: var(--space-14);
     }
 
@@ -647,9 +608,8 @@ const portrait = quote
   /* The attribution row runs out of width for a name, a role and a link on one
      line: the link drops under the portrait rather than squeezing the name. */
   @media (max-width: 500px) {
-    /* The blurb leaves the middle column and takes the whole row; the icon and
-       the toggle keep the top line to themselves. */
-    .expect__icon,
+    /* The blurb takes the whole row; the title and the toggle keep the top line
+       to themselves. */
     .expect__toggle {
       grid-row: 1;
     }
@@ -657,11 +617,6 @@ const portrait = quote
     .expect__blurb {
       grid-column: 1 / -1;
       margin-block-start: var(--space-10);
-    }
-
-    /* Nothing left to line up with, so the detail runs flush too. */
-    .expect__detail {
-      margin-inline-start: 0;
     }
 
     /* The rule and the gap above it are the desktop column's work — they

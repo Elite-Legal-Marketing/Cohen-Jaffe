@@ -12,12 +12,19 @@
 import { Image } from "astro:assets";
 import logoWhite from "../assets/logo-white.png";
 import {
-  FIRM,
   FOOTER_PRACTICE_AREAS,
   FOOTER_USEFUL_LINKS,
   FOOTER_LEGAL_LINKS,
 } from "../data/navigation";
+import { telHref, smsHref } from "../lib/phone";
+import type { FIRM_DETAILS_QUERY_RESULT } from "../sanity/sanity.types";
 
+/** Firm identity and contact details, from Site Settings → Firm Details. */
+interface Props {
+  firm: FIRM_DETAILS_QUERY_RESULT;
+}
+
+const { firm } = Astro.props;
 const year = new Date().getFullYear();
 ---
 
@@ -26,25 +33,38 @@ const year = new Date().getFullYear();
     <div class="site-footer__columns">
       <!-- 1 — brand, blurb, the two numbers -->
       <div class="site-footer__brand">
-        <a href="/" aria-label={`${FIRM.name} — home`}>
-          <Image src={logoWhite} alt={FIRM.name} width={178} height={38} densities={[1, 2]} loading="lazy" />
+        <a href="/" aria-label={`${firm?.name ?? ""} — home`}>
+          <Image src={logoWhite} alt={firm?.name ?? ""} width={178} height={38} densities={[1, 2]} loading="lazy" />
         </a>
-        <p class="site-footer__blurb">
-          Long Island personal injury attorneys who care about putting your life back together
-          after an accident.
-        </p>
+        {firm?.blurb && <p class="site-footer__blurb">{firm.blurb}</p>}
 
-        <span class="site-footer__label">Call us today</span>
-        <a href={FIRM.phone.href} class="site-footer__phone">{FIRM.phone.display}</a>
+        {
+          firm?.phone && (
+            <>
+              <span class="site-footer__label">Call us today</span>
+              <a href={telHref(firm.phone)} class="site-footer__phone">
+                {firm.phone}
+              </a>
+            </>
+          )
+        }
 
-        <span class="site-footer__label">Text us 24/7</span>
-        <a href={FIRM.sms.href} class="site-footer__phone">{FIRM.sms.display}</a>
+        {
+          firm?.sms && (
+            <>
+              <span class="site-footer__label">Text us 24/7</span>
+              <a href={smsHref(firm.sms)} class="site-footer__phone">
+                {firm.sms}
+              </a>
+            </>
+          )
+        }
       </div>
 
       <!-- 2 — both offices -->
       <div class="site-footer__offices">
         {
-          FIRM.offices.map((office) => (
+          (firm?.offices ?? []).map((office) => (
             <div class="office">
               <span class="pill">{office.badge}</span>
               <p class="site-footer__address">
@@ -52,9 +72,11 @@ const year = new Date().getFullYear();
                 <br />
                 {office.cityStateZip}
               </p>
-              <a href={office.phone.href} class="site-footer__phone">
-                {office.phone.display}
-              </a>
+              {office.phone && (
+                <a href={telHref(office.phone)} class="site-footer__phone">
+                  {office.phone}
+                </a>
+              )}
               <p class="site-footer__hours">{office.hours}</p>
               <div class="office__map">
                 <iframe
@@ -109,9 +131,10 @@ const year = new Date().getFullYear();
 
     <div class="site-footer__legal">
       <p class="site-footer__disclaimer">
-        <strong>Attorney Advertising</strong> — The information provided on this website does
-        not, and is not intended to, constitute legal advice. Prior results do not guarantee a
-        similar outcome. © {year} {FIRM.name}
+        {firm?.advertisingLabel && <strong>{firm.advertisingLabel}</strong>}
+        {firm?.advertisingLabel && firm?.legalDisclaimer && " \u2014 "}
+        {firm?.legalDisclaimer}
+        {firm?.name && ` \u00a9 ${year} ${firm.name}`}
       </p>
       <ul class="site-footer__legal-links" role="list">
         {

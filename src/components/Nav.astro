@@ -18,15 +18,25 @@
 import { Image } from "astro:assets";
 import logoDark from "../assets/logo-dark.png";
 import MobileNav from "./MobileNav.astro";
-import { PRIMARY_NAV, FIRM } from "../data/navigation";
+import { PRIMARY_NAV } from "../data/navigation";
+import { telHref } from "../lib/phone";
+import type { FIRM_DETAILS_QUERY_RESULT } from "../sanity/sanity.types";
+
+/** Firm identity and contact details, from Site Settings → Firm Details. */
+type Firm = FIRM_DETAILS_QUERY_RESULT;
+
 import { isWithin } from "../lib/urls";
 
 interface Props {
   /** The current pathname, for active state. Pass `Astro.url.pathname`. */
   pathname: string;
+  firm: Firm;
 }
 
-const { pathname } = Astro.props;
+const { pathname, firm } = Astro.props;
+
+const firmName = firm?.name ?? "";
+const phone = firm?.phone ?? null;
 
 // A panel with second-level flyouts must not clip them, so only flat panels get
 // the scroll cap. Areas We Serve is the one that actually needs it (19 rows).
@@ -38,8 +48,8 @@ const hasFlyouts = (item: (typeof PRIMARY_NAV)[number]) =>
   <a class="skip-link" href="#main">Skip to content</a>
 
   <div class="container site-header__inner">
-    <a href="/" class="site-header__logo" aria-label={`${FIRM.name} — home`}>
-      <Image src={logoDark} alt={FIRM.name} width={243} height={52} densities={[1, 2]} loading="eager" />
+    <a href="/" class="site-header__logo" aria-label={`${firmName} — home`}>
+      <Image src={logoDark} alt={firmName} width={243} height={52} densities={[1, 2]} loading="eager" />
     </a>
 
     <nav class="nav" aria-label="Primary">
@@ -126,12 +136,12 @@ const hasFlyouts = (item: (typeof PRIMARY_NAV)[number]) =>
     <div class="site-header__contact">
       <div class="site-header__reach">
         <span class="site-header__reach-label">Reach us 24/7</span>
-        <a href={FIRM.phone.href} class="site-header__phone">{FIRM.phone.display}</a>
+        {phone && <a href={telHref(phone)} class="site-header__phone">{phone}</a>}
       </div>
       <a href="/contact/" class="btn btn--gold btn--wide site-header__cta">Free Consultation</a>
     </div>
 
-    <a href={FIRM.phone.href} class="header-call" aria-label={`Call ${FIRM.phone.display}`}>
+    <a href={phone ? telHref(phone) : "/contact/"} class="header-call" aria-label={phone ? `Call ${phone}` : "Contact us"}>
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M6.5 4h3l1.5 4-2 1.4a10 10 0 0 0 5.6 5.6l1.4-2 4 1.5v3a1.6 1.6 0 0 1-1.8 1.6C11.9 18.3 5.7 12.1 4.9 5.8A1.6 1.6 0 0 1 6.5 4z"></path>
       </svg>
@@ -151,7 +161,7 @@ const hasFlyouts = (item: (typeof PRIMARY_NAV)[number]) =>
 
 </header>
 
-<MobileNav items={PRIMARY_NAV} pathname={pathname} />
+<MobileNav items={PRIMARY_NAV} pathname={pathname} firm={firm} />
 
 <style>
   /* ---- Bar --------------------------------------------------------------- */

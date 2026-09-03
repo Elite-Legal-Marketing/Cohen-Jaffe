@@ -15,6 +15,14 @@
 export declare const internalGroqTypeReferenceTo: unique symbol;
 
 // Source: src/sanity/schema.json
+export type VideoCard = {
+  _type: "videoCard";
+  eyebrow?: string;
+  title: string;
+  wistiaId?: string;
+  coverAlt: string;
+};
+
 export type Stat = {
   _type: "stat";
   figure: string;
@@ -47,10 +55,77 @@ export type RepresentativeCase = {
   note?: string;
 };
 
+export type Office = {
+  _type: "office";
+  name: string;
+  badge?: string;
+  street: string;
+  cityStateZip: string;
+  phone: string;
+  hours?: string;
+  directions?: string;
+  map?: string;
+  href?: string;
+};
+
+export type FeeColumn = {
+  _type: "feeColumn";
+  label: string;
+  body: string;
+};
+
+export type Expectation = {
+  _type: "expectation";
+  title: string;
+  blurb: string;
+  detail?: string;
+};
+
 export type CtaLink = {
   _type: "ctaLink";
   label: string;
   href: string;
+};
+
+export type AttorneyReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "attorney";
+};
+
+export type AttorneyQuote = {
+  _type: "attorneyQuote";
+  text: string;
+  attorney: AttorneyReference;
+};
+
+export type FeesSection = {
+  _type: "feesSection";
+  heading: string;
+  columns?: Array<
+    {
+      _key: string;
+    } & FeeColumn
+  >;
+  quote?: AttorneyQuote;
+  cta?: CtaLink;
+  disclaimer: string;
+};
+
+export type AboutSection = {
+  _type: "aboutSection";
+  eyebrow?: string;
+  heading: string;
+  body: RichText;
+  expectationsLabel?: string;
+  expectations?: Array<
+    {
+      _key: string;
+    } & Expectation
+  >;
+  quote?: AttorneyQuote;
+  video?: VideoCard;
 };
 
 export type FeaturedCaseResultReference = {
@@ -84,6 +159,26 @@ export type Hero = {
       _key: string;
     } & CtaLink
   >;
+};
+
+export type FirmDetails = {
+  _id: string;
+  _type: "firmDetails";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  shortName: string;
+  blurb?: string;
+  phone: string;
+  sms?: string;
+  offices?: Array<
+    {
+      _key: string;
+    } & Office
+  >;
+  advertisingLabel: string;
+  legalDisclaimer: string;
 };
 
 export type SanityImageAssetReference = {
@@ -220,6 +315,8 @@ export type HomePage = {
     } & Stat
   >;
   caseResults?: CaseResultsSection;
+  about?: AboutSection;
+  fees?: FeesSection;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -320,13 +417,22 @@ export type Geopoint = {
 };
 
 export type AllSanitySchemaTypes =
+  | VideoCard
   | Stat
   | RichText
   | RepresentativeCase
+  | Office
+  | FeeColumn
+  | Expectation
   | CtaLink
+  | AttorneyReference
+  | AttorneyQuote
+  | FeesSection
+  | AboutSection
   | FeaturedCaseResultReference
   | CaseResultsSection
   | Hero
+  | FirmDetails
   | SanityImageAssetReference
   | Attorney
   | SanityImageCrop
@@ -346,12 +452,14 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
       stats: null;
       caseResults: null;
+      about: null;
+      fees: null;
     }
   | {
       hero: {
@@ -408,6 +516,116 @@ export type HOME_PAGE_QUERY_RESULT =
           };
         }> | null;
       } | null;
+      about: {
+        eyebrow: string | null;
+        heading: string;
+        body: RichText;
+        expectationsLabel: string | null;
+        expectations: Array<{
+          _key: string;
+          title: string;
+          blurb: string;
+          detail: string | null;
+        }> | null;
+        quote: {
+          text: string;
+          attorney: {
+            name: string;
+            role: string;
+            slug: string;
+            portrait: {
+              asset?: SanityImageAssetReference;
+              media?: unknown;
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt?: string;
+              _type: "image";
+            };
+          };
+        } | null;
+        video: {
+          eyebrow: string | null;
+          title: string;
+          wistiaId: string | null;
+          coverAlt: string;
+        } | null;
+      } | null;
+      fees: {
+        heading: string;
+        columns: Array<{
+          _key: string;
+          label: string;
+          body: string;
+        }> | null;
+        quote: {
+          text: string;
+          attorney: {
+            name: string;
+            role: string;
+            slug: string;
+            portrait: {
+              asset?: SanityImageAssetReference;
+              media?: unknown;
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt?: string;
+              _type: "image";
+            };
+          };
+        } | null;
+        cta: {
+          label: string;
+          href: string;
+        } | null;
+        disclaimer: string;
+      } | null;
+    }
+  | null;
+
+// Source: src/lib/queries.ts
+// Variable: FIRM_DETAILS_QUERY
+// Query: *[_id == "firmDetails"][0]{    name,    shortName,    blurb,    phone,    sms,    offices[]{      _key,      name,      badge,      street,      cityStateZip,      phone,      hours,      directions,      map,      href    },    advertisingLabel,    legalDisclaimer  }
+export type FIRM_DETAILS_QUERY_RESULT =
+  | {
+      name: null;
+      shortName: null;
+      blurb: null;
+      phone: null;
+      sms: null;
+      offices: null;
+      advertisingLabel: null;
+      legalDisclaimer: null;
+    }
+  | {
+      name: string;
+      shortName: null;
+      blurb: null;
+      phone: string | null;
+      sms: null;
+      offices: null;
+      advertisingLabel: null;
+      legalDisclaimer: null;
+    }
+  | {
+      name: string;
+      shortName: string;
+      blurb: string | null;
+      phone: string;
+      sms: string | null;
+      offices: Array<{
+        _key: string;
+        name: string;
+        badge: string | null;
+        street: string;
+        cityStateZip: string;
+        phone: string;
+        hours: string | null;
+        directions: string | null;
+        map: string | null;
+        href: string | null;
+      }> | null;
+      advertisingLabel: string;
+      legalDisclaimer: string;
     }
   | null;
 
@@ -415,6 +633,7 @@ export type HOME_PAGE_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
   }
 }
