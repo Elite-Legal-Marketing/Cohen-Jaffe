@@ -35,6 +35,59 @@ export const HOME_PAGE_QUERY = defineQuery(`
         wistiaId,
         image{ ..., alt }
       }
+    },
+    about{
+      eyebrow,
+      heading,
+      body,
+      expectationsLabel,
+      expectations[]{ _key, title, blurb, detail },
+      quote{
+        text,
+        attorney->{ name, role, "slug": slug.current, portrait }
+      },
+      video{ eyebrow, title, wistiaId, coverAlt }
+    },
+    fees{
+      heading,
+      columns[]{ _key, label, body },
+      quote{
+        text,
+        attorney->{ name, role, "slug": slug.current, portrait }
+      },
+      cta{ label, href },
+      disclaimer
     }
+  }
+`);
+
+/**
+ * Site-wide firm identity and contact details — the Site Settings singleton.
+ *
+ * Fetched once in `Layout.astro` and passed to the nav and footer, rather than
+ * fetched per component: three components on one page would otherwise be three
+ * round trips for the same document at build time.
+ */
+export const FIRM_DETAILS_QUERY = defineQuery(`
+  *[_id == "firmDetails"][0]{
+    name,
+    shortName,
+    blurb,
+    phone,
+    sms,
+    offices[]{
+      _key,
+      name,
+      badge,
+      street,
+      cityStateZip,
+      phone,
+      hours,
+      directions,
+      map,
+      href
+    },
+    advertisingLabel,
+    legalDisclaimer
   }
 `);

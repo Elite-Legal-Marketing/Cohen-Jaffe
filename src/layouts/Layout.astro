@@ -10,7 +10,7 @@ import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import VideoLightbox from "../components/VideoLightbox.astro";
-import { FIRM } from "../data/navigation";
+import { getFirm } from "../lib/firm";
 
 interface Props {
   title: string;
@@ -28,8 +28,17 @@ interface Props {
 
 const { title, description, bare = false, videoEmbed = false } = Astro.props;
 
+/**
+ * Fetched HERE and passed down, not fetched in the nav, the drawer and the
+ * footer separately. `getFirm()` memoises the request for the whole build, so a
+ * page body that needs the same details — the fee explainer wants the phone
+ * number — shares this one round trip rather than adding another.
+ */
+const firm = await getFirm();
+
 // The full <title>, without doubling the firm name on the homepage.
-const pageTitle = title.includes(FIRM.shortName) ? title : `${title} | ${FIRM.shortName}`;
+const shortName = firm?.shortName ?? "Cohen & Jaffe";
+const pageTitle = title.includes(shortName) ? title : `${title} | ${shortName}`;
 
 // Canonical URLs are slash-terminated site-wide — `trailingSlash: "always"` in
 // astro.config.mjs already guarantees `pathname` carries it, so this is a
@@ -81,13 +90,13 @@ const canonical = Astro.site ? new URL(Astro.url.pathname, Astro.site).href : un
   </head>
 
   <body>
-    {!bare && <Nav pathname={Astro.url.pathname} />}
+    {!bare && <Nav pathname={Astro.url.pathname} firm={firm} />}
 
     <main id="main">
       <slot />
     </main>
 
-    {!bare && <Footer />}
+    {!bare && <Footer firm={firm} />}
 
     {videoEmbed && <VideoLightbox />}
   </body>

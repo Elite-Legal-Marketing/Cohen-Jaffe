@@ -14,20 +14,34 @@
  * The card is `.on-dark`, so everything nested inside takes the dark palette
  * from the semantic tokens without restating a colour per element.
  */
-import { getImage } from "astro:assets";
-import { ATTORNEY_PORTRAITS } from "../data/attorneyPortraits";
-import type { FeesSection } from "../data/homeFees";
+import { urlFor } from "../lib/image";
+import { getFirm } from "../lib/firm";
+import { telHref } from "../lib/phone";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["fees"]>;
 
 interface Props {
-  section: FeesSection;
+  section: Section;
 }
 
 const { section } = Astro.props;
 const quote = section.quote;
 
-// 152 = the 76px circle at 2x.
-const portrait = quote
-  ? await getImage({ src: ATTORNEY_PORTRAITS[quote.attorney.slug], width: 152, format: "webp" })
+/**
+ * The number is NOT a field on this section. It is firm-level and lives once,
+ * in Site Settings → Firm Details — a copy here would be a fourth place to
+ * change it and the first to go stale. `getFirm()` is memoised, so this shares
+ * the request the shell already made.
+ */
+const firm = await getFirm();
+const phone = firm?.phone ?? null;
+
+// 152 = the 76px circle at 2x. From the referenced attorney, so it cannot
+// disagree with the bio page. Guarded: `urlFor` throws on a missing asset, and
+// that takes the whole build down rather than one portrait.
+const portrait = quote?.attorney?.portrait?.asset
+  ? urlFor(quote.attorney.portrait).width(152).url()
   : null;
 ---
 
@@ -43,7 +57,7 @@ const portrait = quote
 
       <ul class="fees__cols" role="list">
         {
-          section.columns.map((col) => (
+          (section.columns ?? []).map((col) => (
             <li class="fee">
               <p class="eyebrow eyebrow--bare fee__label">{col.label}</p>
               <p class="fee__body">{col.body}</p>
@@ -59,10 +73,10 @@ const portrait = quote
               {portrait && (
                 <span class="pledge__portrait">
                   <img
-                    src={portrait.src}
-                    alt={quote.attorney.name}
-                    width={portrait.attributes.width}
-                    height={portrait.attributes.height}
+                    src={portrait}
+                    alt={quote.attorney?.name ?? ""}
+                    width="152"
+                    height="152"
                     loading="lazy"
                     decoding="async"
                   />
@@ -70,8 +84,8 @@ const portrait = quote
               )}
               <figcaption class="pledge__body">
                 <blockquote class="pledge__text">{quote.text}</blockquote>
-                <a class="pledge__by" href={`/about/attorneys/${quote.attorney.slug}/`}>
-                  {quote.attorney.name} &middot; {quote.attorney.role}
+                <a class="pledge__by" href={`/about/attorneys/${quote.attorney?.slug}/`}>
+                  {quote.attorney?.name} &middot; {quote.attorney?.role}
                 </a>
               </figcaption>
             </figure>
@@ -85,12 +99,9 @@ const portrait = quote
             </a>
           )}
           {
-            section.phone && (
+            phone && (
               <p class="fees__call">
-                {section.phone.label}{" "}
-                <a href={`tel:${section.phone.number.replace(/[^0-9+]/g, "")}`}>
-                  {section.phone.number}
-                </a>
+                or call <a href={telHref(phone)}>{phone}</a>
               </p>
             )
           }

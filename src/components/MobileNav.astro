@@ -17,15 +17,25 @@
  */
 import { Image } from "astro:assets";
 import logoWhite from "../assets/logo-white.png";
-import { FIRM, type NavItem } from "../data/navigation";
+import { type NavItem } from "../data/navigation";
+import { telHref } from "../lib/phone";
+import type { FIRM_DETAILS_QUERY_RESULT } from "../sanity/sanity.types";
+
+/** Firm identity and contact details, from Site Settings → Firm Details. */
+type Firm = FIRM_DETAILS_QUERY_RESULT;
+
 import { isWithin } from "../lib/urls";
 
 interface Props {
   items: NavItem[];
   pathname: string;
+  firm: Firm;
 }
 
-const { items, pathname } = Astro.props;
+const { items, pathname, firm } = Astro.props;
+
+const firmName = firm?.name ?? "";
+const phone = firm?.phone ?? null;
 
 /**
  * Flatten the nav tree into sibling panels, one per level.
@@ -151,9 +161,9 @@ items.forEach((item, i) => {
     </div>
 
     <div class="drawer__foot">
-      <Image src={logoWhite} alt={FIRM.name} width={148} height={32} densities={[1, 2]} loading="lazy" />
+      <Image src={logoWhite} alt={firmName} width={148} height={32} densities={[1, 2]} loading="lazy" />
       <span class="drawer__foot-label">Reach us 24/7</span>
-      <a href={FIRM.phone.href} class="drawer__phone">{FIRM.phone.display}</a>
+      {phone && <a href={telHref(phone)} class="drawer__phone">{phone}</a>}
       <a href="/contact/" class="btn btn--gold btn--block">Free Consultation</a>
     </div>
   </aside>

@@ -260,6 +260,19 @@ on; they exist so setup can move fast without a decision each time.
    drift. Ordering and grouping (partners vs associates) are properties of the *section*,
    not of the person.
 
+8. **A quote attributed to a person is a `reference` to that person, never typed-in text.**
+   The section owns the words; the attorney document owns the name, role and portrait. That
+   is what stops a homepage quote carrying a title the bio page has since corrected, and it
+   is why `attorneyQuote` exists as a shared object rather than three sets of loose fields.
+   The reverse also holds: the quote TEXT belongs to the section, not to the attorney — an
+   attorney's own `quote` field is the one line that represents them site-wide, and reusing
+   it per section prints the same sentence twice on one page.
+9. **Site-wide facts live in Site Settings, not on the section that happens to show one.**
+   The bar is "appears in more than one place": the phone number is in the header, the
+   drawer, the footer and the fee explainer, so it is a Firm Details field and every consumer
+   reads it through `getFirm()`. A field with one consumer belongs on that consumer.
+   Navigation is the deliberate exception — it is indexed IA, not settings.
+
 Two mechanical notes that follow from these:
 - Project **`_key`** on every array in a GROQ query. It is the render key and the handle
   Visual Editing uses for click-to-edit.
@@ -489,6 +502,10 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
 - **`buildLegacyTheme`, `studio.components.logo`, and `studio.components.navbar` are all
   dead ends** for branding in Studio 6. The workspace `icon` + modern `theme` is the path.
   `studio.components.layout` does not wrap the login screen.
+- **Phone numbers are stored in DISPLAY form only**; `telHref()` / `smsHref()` in
+  `src/lib/phone.ts` derive the link. Storing the pair is two things that can disagree, and
+  they did — an editor fixes the visible number and the link keeps dialling the old one,
+  with nothing to show for it until someone taps it on a phone.
 - Writing through the `CLAUDE.md` symlink is refused — **edit `AGENTS.md`**.
 
 - **A scrim can't be a negative-z-index pseudo-element on the thing it sits behind.**

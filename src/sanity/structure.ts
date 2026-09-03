@@ -1,5 +1,6 @@
 import type { StructureResolver } from "sanity/structure";
 import { CaseIcon } from "@sanity/icons/Case";
+import { CogIcon } from "@sanity/icons/Cog";
 import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
 import { HomeIcon } from "@sanity/icons/Home";
@@ -22,7 +23,7 @@ import { UsersIcon } from "@sanity/icons/Users";
  *
  * Keep SINGLETONS in sync when adding one, or step 2 silently stops working.
  */
-const SINGLETONS = ["homePage"] as const;
+const SINGLETONS = ["homePage", "firmDetails"] as const;
 
 /**
  * Collections given their own list item above. They must be excluded from the
@@ -88,6 +89,18 @@ export const structure: StructureResolver = (S) =>
               // nothing here to sort.
               S.documentTypeListItem("attorney").title("Attorneys").icon(UsersIcon),
             ]),
+        ),
+
+      // Site settings last, after the content an editor opens every day.
+      // A folder rather than a bare item because it is the one that grows:
+      // Global SEO Settings joins it at launch prep.
+      S.listItem()
+        .title("Site Settings")
+        .icon(CogIcon)
+        .child(
+          S.list()
+            .title("Site Settings")
+            .items([singleton(S, "firmDetails", "Firm Details", CogIcon)]),
         ),
 
       // Anything else: not a singleton, and not already listed above.

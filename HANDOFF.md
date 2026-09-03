@@ -5,21 +5,31 @@ Last updated: 2026-09-02
 
 ## Where things stand
 
-Five of the homepage's fifteen sections are now built — **hero**, **stats band**, **case
-results**, **"Our goals"** (the about band) and the **fee explainer**. The first three are
-finished end to end; the last two are **built and awaiting design sign-off, with their
-content still hardcoded**. There is also the **attorneys collection**, which no page
-consumes yet.
+Five of the homepage's fifteen sections are built and **all five are now finished end to
+end** — hero, stats band, case results, "Our goals" and the fee explainer. Nothing on the
+homepage reads from a hardcoded constant any more. There is also the **attorneys
+collection**, which the last two sections now reference.
 
-`origin/master` is at `c980d3e` (PR #10). Current branch is **`hp_about`**: the "Our goals"
-work is committed there as `84403c9`, and the fee explainer is uncommitted on top of it.
-Nothing is pushed.
+`origin/master` is at `14b1cf9` (PR #11, which merged the two sections). Current branch is
+**`hp_about_sanity`**, carrying the Sanity wiring, uncommitted.
+
+Gates: `npm run build` green, `npm run check:types` **0 errors**, `npx sanity documents
+validate --yes` clean at **72 documents, 0 errors, 0 warnings**. References verified through
+the PUBLIC API with no token, which is the only check that catches the dotted-id trap.
 
 Gates: `npm run build` green and `npm run check:types` **0 errors** — both verified after
 the last change. `npx sanity documents validate --yes` was last clean at 71 documents and
 is unaffected by this session, which added no schema.
 
-## The "Our goals" section — built, NOT yet modelled
+## The "Our goals" section — modelled and wired
+
+**The expectation rows carry no icons.** The artboard draws an olive line glyph beside each
+one and they were built that way, from a fixed brand set in the repo; both the `icon` field
+and the glyphs were removed on the client's call. A row is now a title, a summary and an
+optional detail, and the whole row is flush left. If icons come back, the field is a
+`string` with a `list` of keys plus a matching map in `About.astro` — a fixed brand set is a
+library to choose from, not artwork to upload, so it stays out of Sanity's image fields.
+
 
 The two-column band immediately after the case results, and the next section in the
 artboard's own order. It is `data-dc-tpl="148"` in the published canvas, line 219 of
@@ -27,20 +37,20 @@ artboard's own order. It is `data-dc-tpl="148"` in the published canvas, line 21
 them as a pre-order element counter at render time, so mapping one back to the source means
 counting elements.)
 
-This is AGENTS.md → "Building sections" being followed deliberately: **built with its copy
-hardcoded, signed off, and only then modelled in Sanity.** Nothing is in the dataset yet.
+Built hardcoded, signed off, then modelled — AGENTS.md → "Building sections", followed
+end to end. **The content is now in `production` and the hardcoded constants are deleted.**
 
 | File | What |
 | --- | --- |
 | `src/components/About.astro` | The section |
-| `src/data/homeAbout.ts` | **Temporary.** The copy, plus the provenance of every line |
+| `src/lib/queries.ts` | `HOME_PAGE_QUERY` — the `about` projection, attorney dereferenced |
 | `src/components/RichText.astro` | **New, and general.** Portable Text → HTML |
-| `src/assets/icons/expect-*.svg` | The four olive glyphs the rows draw |
 | `src/assets/about-video-cover.jpg` | The video card's cover |
 
-`homeAbout` is shaped exactly the way the GROQ projection will project `homePage.about`,
-so wiring it is a swap in `src/pages/index.astro` — `homeAbout` becomes `home.about` — and
-`src/data/homeAbout.ts` is deleted.
+Modelled as an `aboutSection` object on the `homePage` singleton, with `expectation` rows
+and a shared `attorneyQuote`. The provenance of every clause — which lines came from the
+live site verbatim, which were rewritten and why — is recorded below, and was the reason the
+copy was built hardcoded first.
 
 **`RichText.astro` is now the only way Portable Text should be rendered.** It always emits
 `.prose` on its wrapper, which is what AGENTS.md asks for: rhythm becomes structural
@@ -69,10 +79,6 @@ Three things in it are ours rather than the artboard's:
   glyph: Roboto Condensed's plus sits high and thin in the em box and never looked centred,
   and `content` cannot be transitioned, so a glyph swap can only snap. The vertical bar
   rotates flat onto the horizontal one.
-- **The icons are repo assets picked by key**, not Sanity images. They are a fixed brand
-  set — roughly forty concepts in the design files' `assets/icon-*-olive.svg` — so an
-  editor picks FROM a library rather than supplying artwork, which AGENTS.md rule 5 puts in
-  code. Widen the choice by adding to `EXPECTATION_ICONS`.
 - **The right-hand column owns the gap between the quote and the video card**, rather than
   the quote carrying it as trailing padding. Trailing padding looks right only at desktop,
   where the card sits beside the copy; stacked, it is the one thing holding the two apart,
@@ -80,8 +86,8 @@ Three things in it are ours rather than the artboard's:
   grid gap is `--space-xl` for the same reason — `--space-lg` bottomed out at 36px, under
   the 44px inside the column, so the section read as four loose blocks instead of two.
 - **Below 500px the row becomes a grid reflow**, not a squeeze: the blurb leaves the middle
-  column and takes the full width, because the icon and toggle between them ate 90px of a
-  335px row and the blurb was wrapping every four words. The quote's attribution row
+  column and takes the full width, because the toggle was eating 48px of a 335px row and the
+  blurb wrapped every few words. The quote's attribution row
   reflows at the same step — the hairline above it goes, since stacked and full-bleed the
   portrait already separates it from the quote.
   **`sm` is 500px, not the 480 it was**, moved on the client's call after checking a phone;
@@ -147,8 +153,8 @@ is attributed to. Still short of a true 2×; a proper still off the master is th
 ### Verified
 
 At 1660 / 900 / 375: two columns collapse to one at 1024, no horizontal scroll at 375, the
-icon ramps 40 → 30px, the disclosure detail aligns to the pixel with the title above it
-(x=178 both), and clicking the video card opens the lightbox with the right Wistia embed
+disclosure detail runs flush with the title above it, and clicking the video card opens the
+lightbox with the right Wistia embed
 and tears the iframe down on close. Both animations measured with transitions forced off,
 since a hidden browser pane never advances them: `::details-content` goes 0px → 90.19px,
 and the toggle's vertical bar `rotate(90deg)` → `rotate(0)`.
@@ -158,11 +164,48 @@ line-height, dash where it belongs: hero and section kickers 15px with the gold 
 "What you can expect" sub-kicker 15px with an olive one, the stats band and the video
 caption dashless at 15 and 13px, the footer's column labels at 13px.
 
-## The fee explainer — built, NOT yet modelled
+## Site Settings → Firm Details
+
+A new singleton, `firmDetails`, and a **Site Settings** folder in the desk to hold it. It
+carries the firm's legal and short name, the description under the footer logo, the main
+phone and text numbers, both offices, and the attorney-advertising notice.
+
+**The bar for putting something here is "appears in more than one place."** The phone
+number was in the header, the drawer, the footer and the fee explainer — four copies of one
+string, and changing it was a code change and a deploy. Everything reads it through
+**`getFirm()`** in `src/lib/firm.ts`, which memoises the request for the whole build so the
+shell and the page body share one round trip rather than two.
+
+**Phone numbers are stored in DISPLAY form only.** `telHref()` / `smsHref()` in
+`src/lib/phone.ts` derive the link. The old constant stored the pair, and a pair is two
+things that can disagree — an editor fixes the visible number and the link keeps dialling
+the old one, with nothing to show for it until someone taps it.
+
+**`advertisingLabel` is its own field, not part of the disclaimer text.** New York Rule 7.1
+requires the words "Attorney Advertising" specifically; it is a legal label with a legal
+wording, so it is a required field of its own rather than two words at the front of a
+paragraph an editor might reword. The copyright line is appended in the component.
+
+Three things are deliberately NOT in it:
+
+- **Navigation.** The menus, their nesting and every href stay in `src/data/navigation.ts`.
+  That is already-indexed IA, parsed from the live WordPress nav with each URL checked
+  against its own page's `og:url` — changing one is a redirect to write, not a field to
+  edit. `FIRM` is gone from that file; a comment there says why the nav did not follow it.
+- **SEO defaults.** A Global SEO Settings singleton is a separate, planned thing that
+  `/new-seo-setup` builds near launch. Two settings singletons is the intended shape.
+- **Anything with one consumer.** A field only the footer reads belongs on the footer.
+
+**Offices are nested in the singleton, not a collection.** Two rows of contact data with
+nothing referencing one individually. `href` is on each so the office pages the live site
+already has can be generated from the array when they are built; promote to a document type
+only if an office needs its own body copy, photographs or SEO fields.
+
+## The fee explainer — modelled and wired
 
 The forest card inset on the cream page, immediately after "Our goals": three fee columns,
 a partner's line and the call to action. `src/components/Fees.astro`, content in
-`src/data/homeFees.ts`, both temporary in the same way the about band's are.
+a `feesSection` object on `homePage`.
 
 **This band is the homepage's version of the firm's named "No Fee Promise"**, which has its
 own page in the mirror at `about/no-fee-promise/`. That page is the source for the whole
@@ -207,9 +250,18 @@ Two mechanical notes:
   to be inset, so the rule does not apply. Keeping the background on a child means nobody
   has to work out which case it is.
 
-`ATTORNEY_PORTRAITS` in `src/data/attorneyPortraits.ts` is the temporary slug→file map, now
-shared by both sections that quote someone rather than duplicated per component. It goes
-when the sections are modelled and the reference can be dereferenced.
+Both sections' quotes use the shared **`attorneyQuote`** object, whose `attorney` field is a
+**`reference` to the Attorneys collection** — an editor picks the person, and the name, role
+and portrait all come from that one document. Portraits are served from the Sanity CDN off
+the attorney's own `portrait`, so a homepage quote can never carry a title the bio page has
+since corrected. The temporary slug→file map is gone.
+
+⚠️ **One visible consequence, worth a decision.** The fee band's attribution now reads
+"Stephen M. Cohen · Partner · Personal Injury Attorney", because it prints the attorney's
+real `role` and that role is the live site's full string. The artboard shows the shorter
+"Stephen M. Cohen · Partner". Shortening it means either editing the attorney's role — which
+changes it everywhere, including the bio page — or having the section print only the name.
+One line either way; nobody has picked one.
 
 ## The eyebrow is one component now
 
@@ -321,7 +373,13 @@ needs `object-position: 50% 14%` in a circle or it frames a tie.
 `.error()`" rule, which is about string lengths. Four across, four carousel pages, nowhere
 for a fifth.
 
-`About.astro` is wired to **`src/data/homeAbout.ts`**, not to Sanity.
+`aboutSection` / `feesSection` objects → `about` and `fees` on `homePage` → the same
+`HOME_PAGE_QUERY` → `About.astro` and `Fees.astro`. Both dereference an `attorney` through
+`attorneyQuote`.
+
+`firmDetails` singleton → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro`, which passes
+it to `Nav`, `MobileNav` and `Footer`; `Fees.astro` calls `getFirm()` directly for the phone
+number and shares the memoised request.
 
 Desk shape: **Collections → { Case Results → { Featured Case Results, Case Results },
 Attorneys }**. Anything listed explicitly in `structure.ts` must also appear in `LISTED`,
@@ -425,30 +483,20 @@ credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
-1. **Model "Our goals" in Sanity** once it is approved — an `aboutSection` object on
-   `homePage`: `eyebrow`, `heading`, `body` (`richText`), `expectationsLabel`, an array of
-   an `expectation` object (icon key as a `string` with a `list`, title, blurb, optional
-   detail), a `quote` object (text, accent, `reference` to `attorney` — no link label, the
-   name IS the link), and an optional `video` object. Then `npm run typegen`, extend `HOME_PAGE_QUERY`, delete
-   `src/data/homeAbout.ts`, and drop the temporary `PORTRAITS` map in `About.astro`.
-2. **Model the fee explainer** alongside it — a `feesSection` object: `heading`, an array
-   of a `feeColumn` object (label, body), a `quote` object (text + `reference` to
-   `attorney`), a `ctaLink`, a phone line, and a required `disclaimer`. The disclaimer is
-   one of the few genuinely `.required()` fields on the site: it is a legal-advertising
-   note, not a nicety.
-3. **The homepage attorneys section** — "The three people who will actually work your
+
+1. **The homepage attorneys section** — "The three people who will actually work your
    case." An `attorneysSection` object on `homePage`: heading, lead, an ordered array of
    `attorney` references for the three large cards, a second array for the three
    thumbnails, and a `ctaLink`. Design is at line 511 of the homepage artboard. **Do not
    let it repeat whichever quote "Our goals" is using.**
-4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
+2. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
    (large horizontal cards) from associates (a three-up grid); the bio page reads nearly
    every field. Both artboards are approved and the URLs are already in the nav.
-5. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
+3. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
    "See all results" link already points there.
-6. Then **Practice Areas**, then New York Deadlines. Order is in the artboard.
-7. A **`video` document type** once the Wistia uploads exist.
-8. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
+4. Then **Practice Areas**, then New York Deadlines. Order is in the artboard.
+5. A **`video` document type** once the Wistia uploads exist.
+6. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
    `Astro.site` is configured — it is not, so none is written.
 
 ## Things that would surprise someone
