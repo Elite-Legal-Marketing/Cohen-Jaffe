@@ -1,7 +1,7 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-02
+Last updated: 2026-09-03
 
 ## Where things stand
 
@@ -10,32 +10,22 @@ end** — hero, stats band, case results, "Our goals" and the fee explainer. Not
 homepage reads from a hardcoded constant any more. There is also the **attorneys
 collection**, which the last two sections now reference.
 
-`origin/master` is at `14b1cf9` (PR #11, which merged the two sections). Current branch is
-**`hp_about_sanity`**, carrying the Sanity wiring, uncommitted.
+`origin/master` is at **`e6c3b61`** (PR #12, the Sanity wiring and Firm Details; PR #11
+before it merged the two sections themselves). Working on **`master`**, level with origin,
+with only this handoff uncommitted.
 
 Gates: `npm run build` green, `npm run check:types` **0 errors**, `npx sanity documents
 validate --yes` clean at **72 documents, 0 errors, 0 warnings**. References verified through
 the PUBLIC API with no token, which is the only check that catches the dotted-id trap.
 
-Gates: `npm run build` green and `npm run check:types` **0 errors** — both verified after
-the last change. `npx sanity documents validate --yes` was last clean at 71 documents and
-is unaffected by this session, which added no schema.
-
 ## The "Our goals" section — modelled and wired
 
-**The expectation rows carry no icons.** The artboard draws an olive line glyph beside each
-one and they were built that way, from a fixed brand set in the repo; both the `icon` field
-and the glyphs were removed on the client's call. A row is now a title, a summary and an
-optional detail, and the whole row is flush left. If icons come back, the field is a
-`string` with a `list` of keys plus a matching map in `About.astro` — a fixed brand set is a
-library to choose from, not artwork to upload, so it stays out of Sanity's image fields.
-
-
 The two-column band immediately after the case results, and the next section in the
-artboard's own order. It is `data-dc-tpl="148"` in the published canvas, line 219 of
-`Cohen & Jaffe Homepage v1.dc.html`. (Those ids are not in the file — `support.js` stamps
-them as a pre-order element counter at render time, so mapping one back to the source means
-counting elements.)
+artboard's own order — line 219 of `Cohen & Jaffe Homepage v1.dc.html`, which is
+`data-dc-tpl="148"` under the LOCAL copy's numbering. Those ids are not in the file:
+`support.js` stamps them as a pre-order element counter at render, so mapping one back to
+source means counting elements. The canvas the client reads from numbers differently — see
+"Things that would surprise someone".
 
 Built hardcoded, signed off, then modelled — AGENTS.md → "Building sections", followed
 end to end. **The content is now in `production` and the hardcoded constants are deleted.**
@@ -85,11 +75,18 @@ Three things in it are ours rather than the artboard's:
   and the responsive rule that helpfully zeroed it collapsed them together. The stacked
   grid gap is `--space-xl` for the same reason — `--space-lg` bottomed out at 36px, under
   the 44px inside the column, so the section read as four loose blocks instead of two.
-- **Below 500px the row becomes a grid reflow**, not a squeeze: the blurb leaves the middle
-  column and takes the full width, because the toggle was eating 48px of a 335px row and the
-  blurb wrapped every few words. The quote's attribution row
-  reflows at the same step — the hairline above it goes, since stacked and full-bleed the
-  portrait already separates it from the quote.
+- **The rows carry NO icons.** The artboard draws an olive line glyph beside each one and
+  they were built that way, from a fixed brand set in the repo. Both the `icon` field and
+  the glyphs went on the client's call, so a row is a title, a summary and an optional
+  detail, flush left, and the row grid is two columns rather than three. If icons come
+  back, the field is a `string` with a `list` of keys plus a matching map in `About.astro`
+  — a fixed brand set is a library to choose from, not artwork to upload, so it stays out
+  of Sanity's image fields.
+- **Below 500px the row becomes a grid reflow**, not a squeeze: the blurb drops out of the
+  text column onto a row of its own, because the toggle was eating 48px of a 335px row and
+  the blurb wrapped every few words. The quote's attribution row reflows at the same step —
+  the hairline above it goes, since stacked and full-bleed the portrait already separates
+  it from the quote.
   **`sm` is 500px, not the 480 it was**, moved on the client's call after checking a phone;
   all three uses in the codebase moved together, and the scale in `AGENTS.md` with them.
 
@@ -154,8 +151,7 @@ is attributed to. Still short of a true 2×; a proper still off the master is th
 
 At 1660 / 900 / 375: two columns collapse to one at 1024, no horizontal scroll at 375, the
 disclosure detail runs flush with the title above it, and clicking the video card opens the
-lightbox with the right Wistia embed
-and tears the iframe down on close. Both animations measured with transitions forced off,
+lightbox with the right Wistia embed and tears the iframe down on close. Both animations measured with transitions forced off,
 since a hidden browser pane never advances them: `::details-content` goes 0px → 90.19px,
 and the toggle's vertical bar `rotate(90deg)` → `rotate(0)`.
 
@@ -204,8 +200,8 @@ only if an office needs its own body copy, photographs or SEO fields.
 ## The fee explainer — modelled and wired
 
 The forest card inset on the cream page, immediately after "Our goals": three fee columns,
-a partner's line and the call to action. `src/components/Fees.astro`, content in
-a `feesSection` object on `homePage`.
+a partner's line and the call to action. `src/components/Fees.astro`, modelled as a
+`feesSection` object on `homePage`.
 
 **This band is the homepage's version of the firm's named "No Fee Promise"**, which has its
 own page in the mirror at `about/no-fee-promise/`. That page is the source for the whole
@@ -255,6 +251,18 @@ Both sections' quotes use the shared **`attorneyQuote`** object, whose `attorney
 and portrait all come from that one document. Portraits are served from the Sanity CDN off
 the attorney's own `portrait`, so a homepage quote can never carry a title the bio page has
 since corrected. The temporary slug→file map is gone.
+
+**Three fields were cut after review, on the client's call.** Worth knowing before anyone
+re-adds one thinking it was an oversight:
+
+- **`attorneyQuote.accent`** held the closing clause so the design could set it in the
+  section's accent colour — the artboards draw the "Our goals" quote two-tone. Its words
+  were merged back into the quote rather than dropped, so that quote now runs in one
+  colour.
+- **`feesSection.phoneLabel`** held the words in front of the number. A field whose only
+  sensible value is "or call" is a decision an editor should not have to make; the words
+  are in the component and the number comes from Firm Details.
+- **`expectation.icon`**, with the glyphs themselves — see the "Our goals" section.
 
 ⚠️ **One visible consequence, worth a decision.** The fee band's attribution now reads
 "Stephen M. Cohen · Partner · Personal Injury Attorney", because it prints the attorney's
@@ -381,9 +389,11 @@ for a fifth.
 it to `Nav`, `MobileNav` and `Footer`; `Fees.astro` calls `getFirm()` directly for the phone
 number and shares the memoised request.
 
-Desk shape: **Collections → { Case Results → { Featured Case Results, Case Results },
-Attorneys }**. Anything listed explicitly in `structure.ts` must also appear in `LISTED`,
-or the Studio shows it twice.
+Desk shape: **Pages → { Homepage }**, then **Collections → { Case Results → { Featured Case
+Results, Case Results }, Attorneys }**, then **Site Settings → { Firm Details }**. Two rules
+in `structure.ts` and neither fails loudly: anything listed explicitly must also appear in
+`LISTED`, or the Studio shows it twice, and any singleton must appear in `SINGLETONS`, or
+the Studio offers a "create new" beside it and an editor ends up with two.
 
 ## Case results — unchanged, and still the launch blocker
 
@@ -451,30 +461,32 @@ card.
 
 ## Open questions / waiting on the user
 
-1. **Sign off the "Our goals" design**, so it can be modelled. Load `localhost:4321/` and
-   scroll past the case results.
-2. **The rewritten expectation copy needs the firm's blessing** — see the numbered list
+1. **The rewritten expectation copy needs the firm's blessing** — see the numbered list
    above. Three of the four rows are now the live site's own claims rather than the
    artboard's; if the firm actually does assign a partner per case, the artboard's stronger
    version can go back in.
-3. **The "Our goals" pull quote is invented and attributed to Richard Jaffe.** Restored
+2. **The "Our goals" pull quote is invented and attributed to Richard Jaffe.** Restored
    from the artboard on the client's instruction. Confirm it or replace it before launch —
    his real, sourced quote is already on his `attorney` document.
-4. **Attorney roles need the firm's confirmation** — "Partner" (live) versus the artboards'
-   "Founding Partner" and "Managing Partner · Lead Trial Lawyer".
-5. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
+3. **Attorney roles need the firm's confirmation** — "Partner" (live) versus the artboards'
+   "Founding Partner" and "Managing Partner · Lead Trial Lawyer". This one is now visible
+   on the page: the fee band prints the referenced attorney's real role, so it reads
+   "Stephen M. Cohen · Partner · Personal Injury Attorney" where the artboard shows just
+   "Partner". Shortening it means either editing the role — which changes it everywhere,
+   including his bio — or having that section print only the name. One line either way.
+4. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
    The four in `production` are fabricated. This is the item that has to close before the
    site can go public.
-6. **The client-story videos in the artboards do not exist.** The Video Center artboard
+5. **The client-story videos in the artboards do not exist.** The Video Center artboard
    shows three testimonial videos (Maria R. · Hempstead, and two more) that are on neither
    the site nor the channel. Filmed, planned, or aspirational?
-7. **The hero's video card is deliberately not built** (440×264, bottom-right in the
+6. **The hero's video card is deliberately not built** (440×264, bottom-right in the
    artboard). Unblocked now the lightbox exists, but it needs its own fields — and, like
    the "Our goals" card, a real video.
-8. **The Spanish section is deferred.** `/es/` is 17 pages with a translated menu whose
+7. **The Spanish section is deferred.** `/es/` is 17 pages with a translated menu whose
    links all point at *English* pages, and machine-translated place names. Needs a client
    decision. Background is a comment in `navigation.ts`.
-9. **Two live-nav links point at pages absent from the mirror** —
+8. **Two live-nav links point at pages absent from the mirror** —
    `/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`.
    Verify before launch.
 
@@ -482,7 +494,6 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
 credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
-
 
 1. **The homepage attorneys section** — "The three people who will actually work your
    case." An `attorneysSection` object on `homePage`: heading, lead, an ordered array of
@@ -574,10 +585,17 @@ credentials, or that origin's `/admin` hangs on a spinner.
 - **`options: { collapsible }` does not exist on array fields** — only `ObjectOptions`. An
   array section needs a document **fieldset** for the same accordion.
 - **The Sanity CLI has no `patch`**, and `documents create --replace` overwrites the whole
-  document. To add a section: fetch, merge, upsert — or earlier sections are dropped.
+  document — `createOrReplace` on the homepage singleton drops every section the script
+  does not know about. The JS client through `npx sanity exec` DOES have one:
+  `client.patch(id).set({…}).commit()` touches only the fields named, which is how the two
+  sections were added without disturbing the hero, the stats or the case results.
+- **`unset(["path.array[].field"])` is accepted and silently matches nothing.** The wildcard
+  form looks right, returns success, and leaves the key in place — the only tell is
+  re-querying. Removing a key inside an array needs an explicit path per item:
+  `path.array[_key=="…"].field`. Fetch the `_key`s first and build the list.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen does not error; it
   silently regenerates with `0 queries` and leaves stale result types behind. `npm run
-  typegen` currently reports **1 query and 23 schema types** — if the query count drops,
+  typegen` currently reports **2 queries and 32 schema types** — if the query count drops,
   this is why.
 - **`--gutter-header` is smaller than `--gutter` on purpose**, and `.nav { flex: none }`
   makes a future overflow break visibly instead of silently overlapping.
