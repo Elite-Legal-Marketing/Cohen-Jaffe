@@ -411,7 +411,7 @@ be unreadable on dark sections.
 
 ⚠️ **Breakpoints are NOT from the designs.** The artboards are fixed `min-width:1660px`
 boards with no `@media` rules and no mobile counterparts, so they describe the desktop end
-only. The responsive layer is ours: `sm 480 · md 768 · lg 1024 · xl 1280 · 2xl 1660`.
+only. The responsive layer is ours: `sm 500 · md 768 · lg 1024 · xl 1280 · 2xl 1660`.
 They are documented in `:root` as a comment and **repeated as literals in the media
 queries** — custom properties do not work inside `@media`. The header is the exception: it
 swaps to the drawer at **1280px**, a measured fit limit rather than a scale step. Change both or neither.
@@ -501,6 +501,12 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   nothing to resolve against, because `<picture>` is auto-height — so a full-bleed
   photograph stops short and leaves a bar of the section's own background along the bottom.
   Size the `<picture>`, not just the `<img>`.
+- **`text-decoration-line` cannot be transitioned**, so an underline that only exists in a
+  `:hover` rule pops in no matter what the transition line says. Declare the underline at
+  rest with `text-decoration-color: transparent` and animate the COLOUR to `currentColor`
+  — colour interpolation is premultiplied, so it fades up from nothing rather than through
+  a grey. This bit four links before it was noticed: both phone numbers, `.link-arrow`, and
+  the fee band's call line.
 - **A responsive override must come AFTER the rule it overrides.** Media queries carry no
   extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
   loses. A block moved during an edit is the usual cause; the symptom is a mobile value

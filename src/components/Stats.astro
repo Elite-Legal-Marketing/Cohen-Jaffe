@@ -25,7 +25,7 @@ const { stats } = Astro.props;
         stats.map((stat) => (
           <li class="stat">
             <p class="stat__figure">{stat.figure}</p>
-            <p class="stat__label">{stat.label}</p>
+            <p class="eyebrow eyebrow--bare stat__label">{stat.label}</p>
             <p class="stat__body">{stat.body}</p>
           </li>
         ))
@@ -88,15 +88,12 @@ const { stats } = Astro.props;
     white-space: nowrap;
   }
 
-  .stat__label {
+  /* Type comes from `.eyebrow` — this only owns its place in the stack. The
+     rule is off because a dash per cell, four across, reads as a table border.
+     (This used to restate the whole component at `--ls-eyebrow`, 0.14em, which
+     is where the band drifted from the hero.) */
+  .stats .stat__label {
     margin-block: var(--space-18) var(--space-8);
-    font-family: var(--font-label);
-    font-size: var(--fs-eyebrow);
-    font-weight: var(--fw-bold);
-    letter-spacing: var(--ls-eyebrow);
-    text-transform: uppercase;
-    line-height: var(--lh-label);
-    color: var(--gold);
   }
 
   .stat__body {

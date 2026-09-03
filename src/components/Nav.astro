@@ -452,13 +452,19 @@ const hasFlyouts = (item: (typeof PRIMARY_NAV)[number]) =>
     letter-spacing: 0.01em;
     line-height: 1.15;
     color: var(--ink);
+    /* Underline at rest in transparent, so the hover FADES it up rather than
+       snapping it on — `text-decoration-line` cannot be transitioned. */
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    transition: color var(--duration) var(--ease);
+    text-decoration-color: transparent;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
   }
 
   .site-header__phone:hover {
     color: var(--gold-ink);
-    text-decoration: underline;
+    text-decoration-color: currentColor;
   }
 
   /* ---- Mobile toggle ----------------------------------------------------- */

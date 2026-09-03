@@ -5,105 +5,297 @@ Last updated: 2026-09-02
 
 ## Where things stand
 
-Three of the homepage's fifteen sections are done end to end — **hero**, **stats band**
-and **case results** — plus, as of this session, the **attorneys collection**, which is a
-collection with no page consuming it yet. `origin/master` is at `fa77acf` (PR #9). Current
-branch is **`attorneys_collection`** and it now carries the attorney work, uncommitted.
+Five of the homepage's fifteen sections are now built — **hero**, **stats band**, **case
+results**, **"Our goals"** (the about band) and the **fee explainer**. The first three are
+finished end to end; the last two are **built and awaiting design sign-off, with their
+content still hardcoded**. There is also the **attorneys collection**, which no page
+consumes yet.
 
-Gates after every change: `npm run build` green, `npm run check:types` **0 errors**,
-`npx sanity documents validate --yes` clean. All three are green right now — 71 documents,
-0 errors, 0 warnings.
+`origin/master` is at `c980d3e` (PR #10). Current branch is **`hp_about`**: the "Our goals"
+work is committed there as `84403c9`, and the fee explainer is uncommitted on top of it.
+Nothing is pushed.
+
+Gates: `npm run build` green and `npm run check:types` **0 errors** — both verified after
+the last change. `npx sanity documents validate --yes` was last clean at 71 documents and
+is unaffected by this session, which added no schema.
+
+## The "Our goals" section — built, NOT yet modelled
+
+The two-column band immediately after the case results, and the next section in the
+artboard's own order. It is `data-dc-tpl="148"` in the published canvas, line 219 of
+`Cohen & Jaffe Homepage v1.dc.html`. (Those ids are not in the file — `support.js` stamps
+them as a pre-order element counter at render time, so mapping one back to the source means
+counting elements.)
+
+This is AGENTS.md → "Building sections" being followed deliberately: **built with its copy
+hardcoded, signed off, and only then modelled in Sanity.** Nothing is in the dataset yet.
+
+| File | What |
+| --- | --- |
+| `src/components/About.astro` | The section |
+| `src/data/homeAbout.ts` | **Temporary.** The copy, plus the provenance of every line |
+| `src/components/RichText.astro` | **New, and general.** Portable Text → HTML |
+| `src/assets/icons/expect-*.svg` | The four olive glyphs the rows draw |
+| `src/assets/about-video-cover.jpg` | The video card's cover |
+
+`homeAbout` is shaped exactly the way the GROQ projection will project `homePage.about`,
+so wiring it is a swap in `src/pages/index.astro` — `homeAbout` becomes `home.about` — and
+`src/data/homeAbout.ts` is deleted.
+
+**`RichText.astro` is now the only way Portable Text should be rendered.** It always emits
+`.prose` on its wrapper, which is what AGENTS.md asks for: rhythm becomes structural
+instead of a class every consumer has to remember.
+
+⚠️ **`.prose` no longer caps the measure, and `--measure` is gone from the tokens.** It
+used to cap at 600px (~68 characters, the readable band). On the page that left the intro
+copy stopping ~90px short of its column while the list under it ran the full width, which
+read as a mistake, and it was removed on the client's call. Long-form pages that genuinely
+want a narrow column should reach for `.container--prose` (790px). The `ch`-unit
+calibration note that justified the old number is preserved in the comment where the rule
+used to be, in case it is ever wanted back.
+
+Three things in it are ours rather than the artboard's:
+
+- **The expectation rows are `<details>`/`<summary>`.** The artboard uses the canvas's own
+  `sc-if` state. A disclosure element gives the same behaviour with no JavaScript,
+  announces its expanded state for free, and keeps the hidden paragraph in the document for
+  crawlers. The whole row toggles, not just the circle.
+- **The open/close is animated with `::details-content`, still without JavaScript.** That
+  pseudo-element is the box the UA wraps a disclosure's content in, and it is the only way
+  to animate a `<details>` in BOTH directions from CSS. Growing to `auto` needs
+  **`interpolate-size: allow-keywords`, which is now set on `:root` in `global.css`** —
+  without it the transition silently does not run. Browsers that lack either feature drop
+  the rules and snap open, exactly as before. The `+`/`−` is **two drawn bars**, not a
+  glyph: Roboto Condensed's plus sits high and thin in the em box and never looked centred,
+  and `content` cannot be transitioned, so a glyph swap can only snap. The vertical bar
+  rotates flat onto the horizontal one.
+- **The icons are repo assets picked by key**, not Sanity images. They are a fixed brand
+  set — roughly forty concepts in the design files' `assets/icon-*-olive.svg` — so an
+  editor picks FROM a library rather than supplying artwork, which AGENTS.md rule 5 puts in
+  code. Widen the choice by adding to `EXPECTATION_ICONS`.
+- **The right-hand column owns the gap between the quote and the video card**, rather than
+  the quote carrying it as trailing padding. Trailing padding looks right only at desktop,
+  where the card sits beside the copy; stacked, it is the one thing holding the two apart,
+  and the responsive rule that helpfully zeroed it collapsed them together. The stacked
+  grid gap is `--space-xl` for the same reason — `--space-lg` bottomed out at 36px, under
+  the 44px inside the column, so the section read as four loose blocks instead of two.
+- **Below 500px the row becomes a grid reflow**, not a squeeze: the blurb leaves the middle
+  column and takes the full width, because the icon and toggle between them ate 90px of a
+  335px row and the blurb was wrapping every four words. The quote's attribution row
+  reflows at the same step — the hairline above it goes, since stacked and full-bleed the
+  portrait already separates it from the quote.
+  **`sm` is 500px, not the 480 it was**, moved on the client's call after checking a phone;
+  all three uses in the codebase moved together, and the scale in `AGENTS.md` with them.
+
+### ⚠️ What in this section's copy is real, and what is not
+
+The **heading and both intro paragraphs are verbatim from the live WordPress homepage.**
+The artboard's only edit — dropping the SEO-stuffed "At the Law Office of Cohen & Jaffe:
+Long Island Personal Injury Lawyer" — is kept.
+
+The **four "What you can expect" rows are not on the live site.** They are the artboard's
+own copy, and they are operational promises about a real law firm, so each was checked
+against the mirror. Two were rewritten and one trimmed:
+
+1. *We take the pressure off* — as drawn. A general service description, consistent with
+   the live "we take a comprehensive approach to helping accident victims".
+2. *You work directly with an attorney* — **rewritten.** The artboard's "Not just a
+   paralegal or a secretary" is off-brand: the firm credits its paralegals by name in the
+   testimonials it publishes. And nothing anywhere supports "one of our partners is
+   assigned to your case". The live site's own, stronger claim is used instead — clients
+   get Richard Jaffe's cell number for 24/7 accessibility.
+3. *We help with the day-to-day* — **trimmed.** The lien explanation is the live site's.
+   "Arranging transportation to appointments" and "dealing with your employer about time
+   off" are not claimed anywhere and were dropped.
+4. *Calls returned within 24 hours* — **enriched**, and every clause is now live-evidenced,
+   including "we can come to you".
+
+⚠️ **The pull quote is the artboard's INVENTED line, attributed to Richard Jaffe** — "I
+worked ambulances before I practiced law…". It was built with Cohen's real, sourced quote
+instead; the client asked for the artboard's back, which is their call to make and the same
+one they made for the four featured case results. **It still needs confirming or replacing
+before launch.** What the mirror supports: Jaffe is a certified emergency response medic
+and a former firefighter. What it contradicts: his bio puts that work in the past, so the
+artboard's companion line about a weekly volunteer shift in Brentwood is not used anywhere.
+
+Jaffe's real quote lives on his `attorney` document. **The ATTORNEYS band must not print
+both**, and the artboard is no guide here — it prints Jaffe's invented quote twice on the
+homepage, here and there, which only works because both were made up.
+
+**There is no "read more" link — the attorney's NAME is the link to their bio.** The
+artboard draws a separate "His story →" control beside the name; it was built that way and
+then cut. One consequence is worth keeping: a labelled link here would have to be a content
+field rather than a hardcoded string, because the section points at whichever attorney an
+editor picks and a fixed label would either assert a pronoun or name the wrong person the
+moment someone swaps the reference. Linking the name sidesteps that, so `quote` has no
+`linkLabel` field to model. The name is underlined in gold at rest, following `.prose a` —
+a name that is quietly a link with no affordance until hover is a link nobody finds.
+
+⚠️ **The video card is a placeholder.** No firm video exists on Wistia yet, and the
+artboard's "Why we do this work · 2 min" is on neither the site nor the YouTube channel.
+The card is wired to `c6b0eghb5r` — the same test id already on the first case-result card
+— so it is verifiable end to end. **The id, the title and the duration all need replacing
+after the Wistia uploads.**
+
+Its cover is **`video-cover.jpg` (1321×792), not the artboard's `firm-video-cover.png`**,
+and **the card takes that photograph's aspect ratio instead of the artboard's 520px
+height**. The artboard's cover is only 971px wide AND a wide shot, so a 690×520 card threw
+away a quarter of the frame and upscaled the rest — visibly soft. Both are frames from the
+same courthouse shoot and both are Richard Jaffe, which is now also who the quote beside it
+is attributed to. Still short of a true 2×; a proper still off the master is the real fix.
+
+### Verified
+
+At 1660 / 900 / 375: two columns collapse to one at 1024, no horizontal scroll at 375, the
+icon ramps 40 → 30px, the disclosure detail aligns to the pixel with the title above it
+(x=178 both), and clicking the video card opens the lightbox with the right Wistia embed
+and tears the iframe down on close. Both animations measured with transitions forced off,
+since a hidden browser pane never advances them: `::details-content` goes 0px → 90.19px,
+and the toggle's vertical bar `rotate(90deg)` → `rotate(0)`.
+
+Every eyebrow on the page now computes to the same thing — 0.16em tracking, 1.35
+line-height, dash where it belongs: hero and section kickers 15px with the gold dash, the
+"What you can expect" sub-kicker 15px with an olive one, the stats band and the video
+caption dashless at 15 and 13px, the footer's column labels at 13px.
+
+## The fee explainer — built, NOT yet modelled
+
+The forest card inset on the cream page, immediately after "Our goals": three fee columns,
+a partner's line and the call to action. `src/components/Fees.astro`, content in
+`src/data/homeFees.ts`, both temporary in the same way the about band's are.
+
+**This band is the homepage's version of the firm's named "No Fee Promise"**, which has its
+own page in the mirror at `about/no-fee-promise/`. That page is the source for the whole
+section and it is unusually good — it states the fee, the costs and the losing case
+outright, which is exactly what the three columns need. It is also under `/about/`, which
+is why this section reads as part of "about" despite sitting on the homepage.
+
+These are **fee representations by a law firm**, so every clause was checked against that
+page rather than trusted from the artboard. Two did not survive:
+
+- **"You are welcome to have another lawyer review it first"** is supported nowhere in the
+  mirror. Benign and client-favourable, but still a claim about how this firm operates.
+  Replaced with two things the page states outright: no hourly fees ever, and no bill for a
+  phone call, an email or a meeting.
+- **"Depositions"** was dropped from the costs list. The firm names court and filing fees,
+  medical records and expert doctors; depositions are a normal litigation cost but not one
+  it lists.
+
+The load-bearing claim **is** evidenced, which is worth recording because many firms do the
+opposite: *"if you don't win your case, you don't owe us a penny. Period."* and *"If for
+some reason we are unable to get you compensation, you will never have to pay us back for
+these expenses."* The firm absorbs advanced costs on a loss, in writing, on its own site.
+
+The **disclaimer is accurate and must not be dropped to save space** — New York Judiciary
+Law § 474-a really does put medical malpractice on a sliding scale rather than a flat
+percentage, and the firm's own blog already explains it ("the fee usually starts at 30% of
+the first $250,000").
+
+The artboard's quote for this band — "No one should have to decide between paying rent and
+hiring a lawyer" — is **invented**, like the one it gives Jaffe above. Cohen's real quote is
+used instead: it fits a section about not pricing people out, it is the last of the three
+partners' sourced quotes still unspent, and it is attributed to the same person the artboard
+names, so nothing about the design changes.
+
+Two mechanical notes:
+
+- **The artboard sets `white-space: nowrap` on the h2 and that is deliberately not carried
+  over.** At 36px the sentence is ~52em and would force a horizontal scrollbar on anything
+  under ~1180px. It wraps, with `text-wrap: balance`.
+- **The card's background is on an inner element, not on `.container`.** AGENTS.md warns
+  never to put one on a `.container` because the gutter insets it — but this card is *meant*
+  to be inset, so the rule does not apply. Keeping the background on a child means nobody
+  has to work out which case it is.
+
+`ATTORNEY_PORTRAITS` in `src/data/attorneyPortraits.ts` is the temporary slug→file map, now
+shared by both sections that quote someone rather than duplicated per component. It goes
+when the sections are modelled and the reference can be dereferenced.
+
+## The eyebrow is one component now
+
+Settled this session, on the observation that kickers had drifted apart across the site.
+**The homepage hero is the reference.** The gold dash is part of `.eyebrow` itself — it
+used to be an opt-in `.eyebrow--rule`, which meant every new kicker was one forgotten class
+away from silently not matching, and that is exactly what had happened. Use
+**`.eyebrow--bare`** where a dash does not belong: it reads as "a section starts here", so
+it is wrong on a caption over a photograph or a label inside a card.
+
+Three components had restated the type by hand and drifted while doing it — the stats
+band's labels and the "What you can expect" sub-kicker were on `--ls-eyebrow` (0.14em)
+rather than `--ls-eyebrow-wide` (0.16em), and the footer's column labels set no
+`line-height` at all, so they fell back to the body's 1.6 instead of `--lh-label`. All
+three now inherit from `.eyebrow` and own only what is genuinely theirs: colour, size and
+their place in the stack.
+
+**The case-result cards' micro-labels are deliberately NOT in this family** and were left
+alone. "Insurer offered", "Recovered" and the meta line are data labels, not kickers, and
+each carries a documented reason for its own values — the 12px recovered label uses
+`--ls-button` to buy back ~4px the figure needs on a 272px card, and the meta line is 13px
+because 14 left card bottoms ragged across a row.
 
 ## The attorneys collection — one type, six documents
 
 **`attorney`**, in `src/sanity/schemaTypes/documents/attorney.ts`. Six documents, seeded
-into `production` from `scripts/seed-attorneys.ts` (idempotent).
+into `production` from `scripts/seed-attorneys.ts` (idempotent). Merged in PR #10.
 
-The featured-versus-full question that case results raised is **settled here in the
-opposite direction, on the user's call**: ONE type, and a section picks who appears with an
-ordered array of references. Case results needed two types because a featured card is
-different *content* — a client interview, a portrait, a quote, an insurer's offer the
-ledger never had. An attorney is the same person on every page; the homepage band, the
-listing and the bio page just read different fields. So there is **no `featured` flag, no
-second type, and nothing to drift**. Ordering and the partners/associates split are
-properties of the *section*, not of the person — which is why `attorney` has no `order` or
-`group` field.
+ONE type, and a section picks who appears with an ordered array of references. Case results
+needed two types because a featured card is different *content* — a client interview, a
+portrait, a quote, an insurer's offer the ledger never had. An attorney is the same person
+on every page. So there is **no `featured` flag, no second type, and nothing to drift**;
+ordering and the partners/associates split are properties of the *section*, not the person,
+which is why `attorney` has no `order` or `group` field. That is rule 7 in `AGENTS.md`.
 
-That is now rule 7 in `AGENTS.md` → "Sanity conventions".
-
-The field list is the union of what three approved artboards read: the homepage's OUR
-ATTORNEYS band, `CJ - Attorneys.dc.html` (partner + associate cards) and
-`CJ - Attorney Bio.dc.html` (which reads nearly all of it). Seventeen fields in four groups —
-Profile, Biography, Credentials, Contact.
+Seventeen fields in four groups — Profile, Biography, Credentials, Contact — the union of
+what three approved artboards read.
 
 **Slugs match `src/data/navigation.ts` exactly** — `stephen-cohen`, `richard-jaffe`,
 `stephen-tiger`, `caitlin-mcnaughton`, `katherine-sawicki`, `garrett-parnell`. Those are
 the live, indexed paths under `/about/attorneys/`. Changing one is a redirect to write.
 
-**Only six of seventeen fields are required** — name, slug, role, portrait, summary,
-biography. This is the deliberate corrective to `featuredCaseResult`, where every field is
-required and the cost is permanent: the 60 real ledger results can never be promoted
-without someone inventing four fields each. Bar admissions, honors and quotes are simply
-absent from the live site for most of the six attorneys, so an empty credentials card is
-the correct output. Now rule 6 in `AGENTS.md`.
+**Only six of seventeen fields are required.** The deliberate corrective to
+`featuredCaseResult`, where every field is required and the cost is permanent: the 60 real
+ledger results can never be promoted without someone inventing four fields each. Bar
+admissions, honors and quotes are simply absent from the live site for most of the six, so
+an empty credentials card is the correct output. Rule 6 in `AGENTS.md`.
 
-### Three blocks the bio artboard draws are deliberately NOT modelled
+**`attorney` is wired to nothing yet, on purpose.** No page consumes it, so there is no
+`ATTORNEYS_QUERY` — an unused query would be dead code. `About.astro` therefore holds a
+temporary slug→file map for the quote portrait; wiring the section replaces the whole map
+with `urlFor(quote.attorney.portrait)` off a dereferenced reference.
 
-Each needs a document type that is already planned. Modelling them as loose strings now
-would only have to be unpicked — the same parallel-taxonomy problem the case-result
-categories already have.
+Three blocks the bio artboard draws are deliberately NOT modelled, each waiting on a type
+that is already planned: the **video card** (→ `video`), the **practice-areas sidebar**
+(→ `reference` to `practiceArea`), and the **award badge row** (firm-level, model it once
+in the homepage's Recognition section). `representativeCases` deliberately *is* free text —
+the ledger publishes no attorney attribution, so nothing links a result to who tried it.
 
-- **The video card** (thumbnail, "Watch · 2:14", title) → waits on the `video` type. No
-  attorney video exists yet anyway.
-- **The practice-areas sidebar** → becomes `reference` to `practiceArea`.
-- **The award badge row** → firm-level imagery the homepage's Recognition section needs
-  too. Model it once, there.
+### None of the attorney content is invented
 
-`representativeCases` is the one that deliberately *is* free text
-(`objects/representativeCase.ts`), not a reference to `caseResult`: the ledger publishes no
-attorney attribution, so nothing links a result to who tried it. Tiger's seven come from
-his own bio page.
-
-## ⚠️ Unlike the case results, NONE of this content is invented
-
-That is the point. Every word came from the six live bio pages in the mirror at
-`Sitesucker/about/attorneys/`; biographies are that copy sub-edited the way the approved
-artboard sub-edits Jaffe's, and headlines, blurbs and pull quotes are phrases lifted from
-the same pages. Three consequences the client has to resolve:
+Every word came from the six live bio pages in `Sitesucker/about/attorneys/`. Three
+consequences the client still has to resolve:
 
 1. **Three of the six have no quote, and `quote` is empty for them.** McNaughton, Sawicki
-   and Parnell are not quoted anywhere on the live site. The homepage artboard's quotes for
-   the three partners were ignored in favour of the real ones those three have given — the
-   artboard's "I worked ambulances before I practiced law" for Jaffe is invented, and its
-   "still works a weekly shift as a volunteer medic in Brentwood" actually *contradicts* his
-   bio, which puts the EMT and firefighter work in the past.
+   and Parnell are not quoted anywhere on the live site.
 2. **Roles are the live site's, not the artboards'.** The live site titles Cohen, Jaffe and
    Tiger identically — "Partner". The artboards say "Founding Partner", "Managing Partner ·
-   Lead Trial Lawyer" and "Partner". Cohen founding the practice is well evidenced;
-   Jaffe as *managing* partner is not evidenced anywhere. These are claims about a real
-   person's position at a real firm, so the firm confirms them, not us. McNaughton's
-   "Managing Attorney" **is** live and is used.
-3. **Most credential lists are empty.** Bar admissions beyond New York, honors, and any
-   education a bio does not name are absent from the source. McNaughton has none at all —
-   her bio says she is "licensed in three states" and holds an LL.M., but names neither the
-   states nor the school. The Attorneys artboard's "3 States — NY, NJ, and D.C." is
-   presented as a firm-wide stat and is most likely hers; unconfirmed either way.
+   Lead Trial Lawyer" and "Partner". These are claims about real people's positions at a
+   real firm, so the firm confirms them. McNaughton's "Managing Attorney" **is** live and is
+   used. (Note one live page does call Jaffe a *founding* partner in passing — which still
+   is not the artboard's *managing* partner.)
+3. **Most credential lists are empty.** McNaughton has none at all — her bio says she is
+   "licensed in three states" and holds an LL.M., but names neither the states nor the
+   school.
 
-One knowing edit: Tiger's notable-case list on the live site reads "2.75 for an injured
-construction worker" — a missing "$" and "million" that every other line in the list has.
-Seeded as "$2.75 million".
+One knowing edit: Tiger's live notable-case list reads "2.75 for an injured construction
+worker", missing the "$" and "million" every other line has. Seeded as "$2.75 million".
 
-## Two live-site bugs found in the mirror
+### Two live-site bugs found in the mirror
 
 Both on **Garrett Parnell's** page, and both look like a WordPress duplicate of Caitlin
-McNaughton's:
-
-- His `og:url` is `https://www.cohenjaffe.com/about/attorneys/caitlin-mcnaughton/` — the
-  wrong canonical. Worth telling the client; it is also why his page is the one exception
-  to the "every href checked against that page's own `og:url`" rule used for the nav.
-- His badge row renders `mybadge-Caitlin-McNaughton.png`.
-
-Neither affects the new site. Both matter for the redirect/SEO pass.
+McNaughton's: his `og:url` points at *her* page, and his badge row renders
+`mybadge-Caitlin-McNaughton.png`. Neither affects the new site; both matter for the
+redirect/SEO pass. The bad canonical is also why his page is the one exception to the
+"every href checked against that page's own `og:url`" rule used for the nav.
 
 ## Portraits
 
@@ -113,13 +305,9 @@ headshots with the background replaced** (verified against the WordPress origina
 person, same suit, same tie). Not stock, not generated.
 
 One photograph per attorney serves every crop — 1:1 on the homepage, 4:5 on an associate
-card, 3:4 on the bio hero, and a 62px circle beside the pull quote — so `portrait` has a
-hotspot and there is no second image field. (`cohen-headshot.png` and `jaffe-headshot.png`
-in the design assets are byte-identical to `atty-cohen.png` / `atty-jaffe.png`; the artboard
-just crops them round.)
-
-Per `AGENTS.md` rule 5 these belong in Sanity, not `astro:assets` — an editor swaps an
-attorney portrait as content. The repo copies are the seed script's source.
+card, 3:4 on the bio hero, and the 72px circle beside the "Our goals" pull quote — so
+`portrait` has a hotspot and there is no second image field. A standing 720×1280 portrait
+needs `object-position: 50% 14%` in a circle or it frames a tie.
 
 ## What is wired
 
@@ -133,9 +321,7 @@ attorney portrait as content. The repo copies are the seed script's source.
 `.error()`" rule, which is about string lengths. Four across, four carousel pages, nowhere
 for a fifth.
 
-**`attorney` is wired to nothing yet, on purpose.** No page consumes it, so there is no
-`ATTORNEYS_QUERY` — an unused query would be dead code. The homepage's attorneys section
-adds one when it is built.
+`About.astro` is wired to **`src/data/homeAbout.ts`**, not to Sanity.
 
 Desk shape: **Collections → { Case Results → { Featured Case Results, Case Results },
 Attorneys }**. Anything listed explicitly in `structure.ts` must also appear in `LISTED`,
@@ -196,33 +382,41 @@ Things that will bite:
 - **10 of the 81 are 360p at source.** Nothing better exists on YouTube; they are the
   oldest uploads. Masters are the only route.
 - **17 are vertical (1080×1920) and 7 are square.** One, `uJzfvaZ3J-0`, sits in a 16:9 slot
-  on the current Video Center. Mixed aspect ratios need a decision.
+  on the current Video Center. Mixed aspect ratios need a decision. That video —
+  "Cohen & Jaffe: Different Kind of NY Personal Injury Lawyer", 0:35 — is the closest thing
+  the channel has to the "Our goals" card's "Why we do this work", and it is vertical.
 - **3 of the 10 videos on the current site are unlisted** — a channel-only pull drops them.
 - yt-dlp goes stale fast. A 403, or only 360p offered, means upgrade it first.
 
-`c6b0eghb5r` is wired to the first case-result card as a live end-to-end test.
+`c6b0eghb5r` is a test id, wired to the first case-result card AND to the "Our goals" video
+card.
 
 ## Open questions / waiting on the user
 
-1. **Attorney roles need the firm's confirmation** — see the numbered list above. This is
-   the only thing in the attorney data that is a judgment call rather than a copy.
-2. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
+1. **Sign off the "Our goals" design**, so it can be modelled. Load `localhost:4321/` and
+   scroll past the case results.
+2. **The rewritten expectation copy needs the firm's blessing** — see the numbered list
+   above. Three of the four rows are now the live site's own claims rather than the
+   artboard's; if the firm actually does assign a partner per case, the artboard's stronger
+   version can go back in.
+3. **The "Our goals" pull quote is invented and attributed to Richard Jaffe.** Restored
+   from the artboard on the client's instruction. Confirm it or replace it before launch —
+   his real, sourced quote is already on his `attorney` document.
+4. **Attorney roles need the firm's confirmation** — "Partner" (live) versus the artboards'
+   "Founding Partner" and "Managing Partner · Lead Trial Lawyer".
+5. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
    The four in `production` are fabricated. This is the item that has to close before the
    site can go public.
-3. **The Studio's desk has still not been seen signed-in.** `/admin/` itself is now
-   confirmed rendering — the branded Elite login card comes up clean in dev — but the
-   **Pages** folder, the **stats fieldset** accordion and the new **Collections →
-   Attorneys** list are all behind a sign-in only the user can do. Load
-   `localhost:4321/admin/` (trailing slash required) and eyeball them.
-4. **The client-story videos in the artboards do not exist.** The Video Center artboard
+6. **The client-story videos in the artboards do not exist.** The Video Center artboard
    shows three testimonial videos (Maria R. · Hempstead, and two more) that are on neither
    the site nor the channel. Filmed, planned, or aspirational?
-5. **The hero's video card is deliberately not built** (440×264, bottom-right in the
-   artboard). Unblocked now the lightbox exists, but it needs its own fields.
-6. **The Spanish section is deferred.** `/es/` is 17 pages with a translated menu whose
+7. **The hero's video card is deliberately not built** (440×264, bottom-right in the
+   artboard). Unblocked now the lightbox exists, but it needs its own fields — and, like
+   the "Our goals" card, a real video.
+8. **The Spanish section is deferred.** `/es/` is 17 pages with a translated menu whose
    links all point at *English* pages, and machine-translated place names. Needs a client
    decision. Background is a comment in `navigation.ts`.
-7. **Two live-nav links point at pages absent from the mirror** —
+9. **Two live-nav links point at pages absent from the mirror** —
    `/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`.
    Verify before launch.
 
@@ -231,36 +425,83 @@ credentials, or that origin's `/admin` hangs on a spinner.
 
 ## What's next
 
-The attorneys collection exists but nothing renders it. In rough order:
-
-1. **The homepage attorneys section** — "The three people who will actually work your
+1. **Model "Our goals" in Sanity** once it is approved — an `aboutSection` object on
+   `homePage`: `eyebrow`, `heading`, `body` (`richText`), `expectationsLabel`, an array of
+   an `expectation` object (icon key as a `string` with a `list`, title, blurb, optional
+   detail), a `quote` object (text, accent, `reference` to `attorney` — no link label, the
+   name IS the link), and an optional `video` object. Then `npm run typegen`, extend `HOME_PAGE_QUERY`, delete
+   `src/data/homeAbout.ts`, and drop the temporary `PORTRAITS` map in `About.astro`.
+2. **Model the fee explainer** alongside it — a `feesSection` object: `heading`, an array
+   of a `feeColumn` object (label, body), a `quote` object (text + `reference` to
+   `attorney`), a `ctaLink`, a phone line, and a required `disclaimer`. The disclaimer is
+   one of the few genuinely `.required()` fields on the site: it is a legal-advertising
+   note, not a nicety.
+3. **The homepage attorneys section** — "The three people who will actually work your
    case." An `attorneysSection` object on `homePage`: heading, lead, an ordered array of
    `attorney` references for the three large cards, a second array for the three
-   thumbnails in the "six attorneys and a support staff of more than twenty" line, and a
-   `ctaLink`. Design is at line 511 of `Cohen & Jaffe Homepage v1.dc.html`.
-2. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
+   thumbnails, and a `ctaLink`. Design is at line 511 of the homepage artboard. **Do not
+   let it repeat whichever quote "Our goals" is using.**
+4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
    (large horizontal cards) from associates (a three-up grid); the bio page reads nearly
    every field. Both artboards are approved and the URLs are already in the nav.
-3. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
+5. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
    "See all results" link already points there.
-4. Section 4: **Fee Explainer**, then Practice Areas, then New York Deadlines. Order is in
-   the homepage artboard.
-5. A **`video` document type** once the Wistia uploads exist.
-6. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
+6. Then **Practice Areas**, then New York Deadlines. Order is in the artboard.
+7. A **`video` document type** once the Wistia uploads exist.
+8. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
    `Astro.site` is configured — it is not, so none is written.
 
 ## Things that would surprise someone
 
+- **Astro's scoped styles do not reach a class you pass INTO a child component.** Scoping
+  stamps `data-astro-cid-*` onto the elements in a component's own template, so
+  `<RichText class="about__body" />` produced a `.about__body` selector that matched
+  nothing and margins that silently did nothing. Own the wrapper element yourself and use
+  `:global()` for what is inside it. Cost the first fifteen minutes of the "Our goals"
+  build.
+- **`interpolate-size: allow-keywords` is set on `:root`.** It is what lets a size animate
+  to or from a keyword, and without it a `height: 0` → `height: auto` transition does not
+  run at all rather than failing loudly. The "What you can expect" disclosures depend on
+  it. It is inherited, so it now applies site-wide.
+- **A running dev server can serve a STALE scoped-CSS module** while `curl` of the same
+  page shows the new rule inline. The HTML hot-updates and the style module does not, so
+  the section renders with last edit's layout and every measurement lies. `touch` the
+  component and reload. Related: `npm run check:types` re-optimises Vite's deps out from
+  under an already-running dev server, which is what leaves `504 (Outdated Optimize Dep)`
+  in its console. Astro's dev-toolbar entrypoint 504ing is harmless; site assets 504ing is
+  not.
+- **Every hover underline on the site is now declared at rest in `transparent`** and fades
+  by animating `text-decoration-color`. `text-decoration-line` is not animatable, so the
+  previous "add `text-decoration: underline` on `:hover`" pattern could only pop — it was
+  doing that on both phone numbers, `.link-arrow` and the fee band's call line. Rule is in
+  `AGENTS.md`; follow it for any new link.
+- **The published design canvas has moved on from the local `.dc.html` copies.** Everything
+  in `Claude Files/` is dated 1 Sep and stamps `data-dc-tpl` (a per-artboard pre-order
+  element counter). The canvas the client reads from now stamps **`data-om-id`**, an
+  id-plus-index pair such as `66ef3db2:216` — a different scheme, and the numeric half does
+  NOT map onto the old counter, so an id from it cannot be resolved against these files.
+  Ask for the section by name, or for a fresh export. Other artboards may have changed too.
 - **The design files live outside the repo** in `~/Downloads/Cohen & Jaffe/`. If they
   suddenly read as `EPERM`, that is macOS blocking `~/Downloads`; Full Disk Access fixes it
   but **only after the app restarts**.
+- **`data-dc-tpl` ids are not in the `.dc.html` files.** `support.js` stamps them at render
+  as a pre-order element counter, so mapping one back to source means counting elements.
 - **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.** Production returns a 308.
 - **A blank black `/admin` in dev with a `504 (Outdated Optimize Dep)` in the console is a
-  stale Vite cache, not a broken Studio.** Hit it again this session.
-  `rm -rf node_modules/.vite .astro` and restart; `npm ls @sanity/ui` must show v4 at the
-  top level. Full write-up in `AGENTS.md`.
+  stale Vite cache, not a broken Studio.** `rm -rf node_modules/.vite .astro` and restart;
+  `npm ls @sanity/ui` must show v4 at the top level. Full write-up in `AGENTS.md`.
 - **A dev server is usually already running on port 4321** and it is the user's. Use it.
   Only 4321 and the Vercel URL are registered Sanity CORS origins.
+- **`await`ing a `requestAnimationFrame` in a hidden browser pane hangs until the tool
+  times out**, because the callback never runs. Measure a transitioned property by
+  injecting a `transition: none !important` stylesheet and reading the target — an inline
+  style cannot reach a pseudo-element like `::details-content`. Beware too that a call
+  which times out has usually already run its earlier statements: one that set a
+  `<details>` open before hanging made the next reading look like a broken CSS rule.
+- **In a hidden browser pane, CSS transitions do not advance and `requestAnimationFrame`
+  never fires** — which also means `scroll-behavior: smooth` never completes, so
+  `scrollTop = n` reads back as ~20 and screenshots come back stale or blank. Hide the
+  sections above instead and measure the DOM.
 - **The recovered figure is sized by a CONTAINER query, not the viewport.** Card width falls
   faster than viewport width, because `.container` spends up to 100px a side on a gutter the
   artboard's zero-gutter board does not have.
@@ -290,8 +531,6 @@ The attorneys collection exists but nothing renders it. In rough order:
   silently regenerates with `0 queries` and leaves stale result types behind. `npm run
   typegen` currently reports **1 query and 23 schema types** — if the query count drops,
   this is why.
-- **In a hidden browser pane, CSS transitions do not advance, `requestAnimationFrame` never
-  fires, and queued tasks may never arrive.** Verify by measuring the DOM.
 - **`--gutter-header` is smaller than `--gutter` on purpose**, and `.nav { flex: none }`
   makes a future overflow break visibly instead of silently overlapping.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
