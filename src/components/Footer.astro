@@ -166,6 +166,9 @@ const year = new Date().getFullYear();
     font-weight: var(--fw-bold);
     letter-spacing: var(--ls-eyebrow-wide);
     text-transform: uppercase;
+    /* Stated, not inherited: without it these fell to the body's 1.6, which is
+       the one thing in this family that was not on `--lh-label`. */
+    line-height: var(--lh-label);
     color: var(--gold);
     margin-block-end: var(--space-10);
   }

@@ -1,0 +1,701 @@
+---
+/**
+ * Homepage "Our goals" section — the firm's own introduction.
+ *
+ * Design: the OUR GOALS (2-col) band of `Cohen & Jaffe Homepage v1.dc.html`,
+ * the section immediately after the case results. Two 790px columns on the
+ * cream surface: the firm's pitch and a four-row "What you can expect" list on
+ * the left, a partner's pull quote and a video card on the right.
+ *
+ * Content is hardcoded for now — see `src/data/homeAbout.ts`, which carries the
+ * copy AND the provenance of every line of it. AGENTS.md → "Building sections":
+ * build it, approve it, then model it in Sanity.
+ *
+ * Two things here are ours rather than the artboard's:
+ *
+ *   - The expectation rows are `<details>`/`<summary>`, not a scripted toggle.
+ *     The artboard uses the canvas's own `sc-if` state; a disclosure element
+ *     gives the same behaviour with no JavaScript, announces its expanded state
+ *     to a screen reader for free, and keeps the hidden paragraph in the
+ *     document for crawlers. The whole row toggles, not just the little circle.
+ *
+ *   - The icons are repo assets picked by key, not Sanity images. They are a
+ *     fixed brand set (`assets/icon-*-olive.svg` in the design files — roughly
+ *     forty concepts), so an editor is choosing FROM a library rather than
+ *     supplying artwork: AGENTS.md rule 5 puts that in code. Add a row to
+ *     `EXPECTATION_ICONS` to widen the choice.
+ */
+import iconPressure from "../assets/icons/expect-pressure.svg";
+import iconAttorney from "../assets/icons/expect-attorney.svg";
+import iconDayToDay from "../assets/icons/expect-day-to-day.svg";
+import iconCalls from "../assets/icons/expect-calls.svg";
+import videoCover from "../assets/about-video-cover.jpg";
+import attyCohen from "../assets/atty-cohen.png";
+import attyJaffe from "../assets/atty-jaffe.png";
+import attyTiger from "../assets/atty-tiger.png";
+import attyMcnaughton from "../assets/atty-mcnaughton.png";
+import attySawicki from "../assets/atty-sawicki.png";
+import attyParnell from "../assets/atty-parnell.png";
+import { getImage } from "astro:assets";
+import RichText from "./RichText.astro";
+import type { AboutSection } from "../data/homeAbout";
+
+interface Props {
+  section: AboutSection;
+}
+
+const { section } = Astro.props;
+
+/** The brand glyphs this section can draw, keyed by the value in the content. */
+const EXPECTATION_ICONS = {
+  pressure: iconPressure,
+  attorney: iconAttorney,
+  "day-to-day": iconDayToDay,
+  calls: iconCalls,
+} as const;
+
+/**
+ * The card is 690px wide at the artboard width and never wider, so these three
+ * candidates cover the whole ramp.
+ *
+ * This is `video-cover.jpg` (1321x792), not the `firm-video-cover.png` the
+ * artboard uses. That one is 971px wide AND a wide shot, so a 690x520 card
+ * cropped a quarter off its sides and then upscaled what was left — it was
+ * visibly soft. Both are frames from the same courthouse shoot; this one is the
+ * close-up, which is also simply a better thumbnail at this size.
+ *
+ * Still short of a true 2x. A proper still off the master is the real fix.
+ */
+const cover = await getImage({
+  src: videoCover,
+  widths: [690, 990, 1321],
+  format: "webp",
+});
+
+/**
+ * TEMPORARY, and it goes when the section is modelled.
+ *
+ * The portrait belongs to the ATTORNEY, not to this section — every one of
+ * these six files is already uploaded to Sanity as that document's `portrait`
+ * (`scripts/seed-attorneys.ts` seeded them from exactly these bytes). Wiring
+ * this section up replaces the whole map with `urlFor(quote.attorney.portrait)`
+ * off the dereferenced reference. Until the `about` field exists there is no
+ * reference to dereference, and adding a query for one attorney would be dead
+ * code the moment it lands — so the repo copies stand in.
+ */
+const PORTRAITS: Record<string, ImageMetadata> = {
+  "stephen-cohen": attyCohen,
+  "richard-jaffe": attyJaffe,
+  "stephen-tiger": attyTiger,
+  "caitlin-mcnaughton": attyMcnaughton,
+  "katherine-sawicki": attySawicki,
+  "garrett-parnell": attyParnell,
+};
+
+const quote = section.quote;
+const video = section.video;
+
+// 144 = the 72px circle at 2x. The source is a 720x1280 standing portrait, so
+// the square crop is CSS's job; this only caps what gets downloaded.
+const portrait = quote
+  ? await getImage({ src: PORTRAITS[quote.attorney.slug], width: 144, format: "webp" })
+  : null;
+---
+
+<section class="about section" aria-labelledby="about-heading">
+  <div class="container about__grid">
+    <div class="about__copy">
+      <p class="eyebrow about__eyebrow">{section.eyebrow}</p>
+      <h2 class="about__heading" id="about-heading">{section.heading}</h2>
+
+      {/* The wrapper is here, not a class passed into RichText: Astro scopes a
+          style block to the elements in ITS OWN template, so `.about__body` on
+          a node rendered inside RichText would never match the selector below
+          and the margins would silently do nothing. */}
+      <div class="about__body">
+        <RichText value={section.body} />
+      </div>
+
+      <p class="eyebrow about__expect-label">{section.expectationsLabel}</p>
+
+      <ul class="expect" role="list">
+        {
+          section.expectations.map((item) => {
+            const icon = EXPECTATION_ICONS[item.icon];
+            return (
+              <li class="expect__item">
+                <details class="expect__disclosure">
+                  <summary class="expect__summary">
+                    <img
+                      class="expect__icon"
+                      src={icon.src}
+                      alt=""
+                      width="40"
+                      height="40"
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <span class="expect__title">{item.title}</span>
+                    <span class="expect__blurb">{item.blurb}</span>
+                    <span class="expect__toggle" aria-hidden="true">
+                      <span class="expect__bar" />
+                      <span class="expect__bar expect__bar--v" />
+                    </span>
+                  </summary>
+                  {item.detail && (
+                    <div class="expect__detail">
+                      <p class="expect__detail-text">{item.detail}</p>
+                    </div>
+                  )}
+                </details>
+              </li>
+            );
+          })
+        }
+      </ul>
+    </div>
+
+    <div class="about__aside">
+      {
+        quote && (
+          <figure class="quote">
+            <span class="quote__mark" aria-hidden="true">
+              &ldquo;
+            </span>
+
+            <blockquote class="quote__text">
+              {quote.text}
+              {quote.accent && <span class="quote__accent"> {quote.accent}</span>}
+            </blockquote>
+
+            <figcaption class="quote__by">
+              {portrait && (
+                <span class="quote__portrait">
+                  <img
+                    src={portrait.src}
+                    alt={quote.attorney.name}
+                    width={portrait.attributes.width}
+                    height={portrait.attributes.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+              )}
+
+              <span class="quote__who">
+                <a class="quote__name" href={`/about/attorneys/${quote.attorney.slug}/`}>
+                  {quote.attorney.name}
+                </a>
+                <span class="quote__role">{quote.attorney.role}</span>
+              </span>
+            </figcaption>
+          </figure>
+        )
+      }
+
+      {
+        video && (
+          <button type="button" class="about-video" data-video-id={video.wistiaId}>
+            <img
+              class="about-video__image"
+              src={cover.src}
+              srcset={cover.srcSet.attribute}
+              sizes="(max-width: 1024px) 92vw, 46vw"
+              alt={video.coverAlt}
+              width={cover.attributes.width}
+              height={cover.attributes.height}
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="about-video__scrim" aria-hidden="true" />
+            <span class="about-video__play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="26" height="26" fill="currentColor">
+                <path d="M7 5v14l10-7z" />
+              </svg>
+            </span>
+            <span class="about-video__caption">
+              <span class="eyebrow eyebrow--bare about-video__eyebrow">{video.eyebrow}</span>
+              <span class="about-video__title">{video.title}</span>
+            </span>
+          </button>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The page surface is already cream, so this band carries no background of
+     its own — the sand case-results section above it provides the break. */
+  .about__grid {
+    display: grid;
+    /* The artboard's two 790px columns. `minmax(0, …)` because a grid track
+       otherwise refuses to shrink below its content, and the quote's long words
+       would push the layout wider than the container. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-80);
+    align-items: start;
+  }
+
+  .about__heading {
+    /* The base rule's 0.5em lands on 21px; the artboard sets 24. */
+    margin-block-end: var(--space-24);
+  }
+
+  .about__body {
+    margin-block-end: var(--space-36);
+  }
+
+  /* The artboard sets the second paragraph in the muted tone and the first in
+     body colour — a deliberate de-emphasis, with the bolded clause pulled back
+     up to body colour inside it. Written as "every paragraph after the first"
+     rather than `:last-child` so an editor adding a third paragraph gets the
+     supporting tone, not a lone dark block at the bottom. */
+  .about__body :global(p ~ p) {
+    color: var(--muted);
+  }
+
+  .about__body :global(strong) {
+    font-weight: var(--fw-semibold);
+    color: var(--body);
+  }
+
+  /* Olive rather than the gold `.eyebrow` gives it, exactly as the artboard
+     draws it: a second-level kicker inside the section, not the section's own.
+     The dash is tinted to match, so the component still reads as one thing
+     rather than an olive label wearing a gold tick. Type is inherited — it used
+     to be restated here at `--ls-eyebrow` (0.14em), which is one of the places
+     the site drifted away from the hero. */
+  .about__expect-label {
+    color: var(--green);
+    margin-block-end: var(--space-22);
+  }
+
+  .about__expect-label::before {
+    background: var(--green);
+  }
+
+  /* --- "What you can expect" ---------------------------------------------- */
+
+  .expect {
+    /* The hidden paragraph's left inset has to line up with the title above it,
+       which means matching the icon column exactly. Held in custom properties
+       so the responsive step changes one number, not three. */
+    --expect-icon: 40px;
+    --expect-gap: var(--space-18);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .expect__item {
+    border-block-start: 1px solid var(--border-strong);
+  }
+
+  .expect__item:last-child {
+    border-block-end: 1px solid var(--border-strong);
+  }
+
+  /* A grid rather than a flex row, so the blurb can leave the middle column and
+     run the full width on a phone — where the icon and the toggle between them
+     take 90px out of a 335px row and the blurb was wrapping every four words. */
+  .expect__summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    column-gap: var(--expect-gap);
+    align-items: start;
+    padding-block: var(--space-24);
+    cursor: pointer;
+  }
+
+  /* The whole row is the control, so it takes the focus ring rather than
+     leaving a keyboard user aiming at the circle. */
+  .expect__summary:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: 2px;
+  }
+
+  .expect__icon {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    width: var(--expect-icon);
+    height: var(--expect-icon);
+    margin-block-start: 2px;
+  }
+
+  .expect__title {
+    grid-column: 2;
+    grid-row: 1;
+    font-family: var(--font-heading);
+    font-size: var(--fs-24);
+    line-height: var(--lh-card);
+    color: var(--ink);
+    margin-block-end: var(--space-6);
+  }
+
+  .expect__blurb {
+    grid-column: 2;
+    grid-row: 2;
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--muted);
+  }
+
+  .expect__toggle {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+    position: relative;
+    width: 30px;
+    height: 30px;
+    border: 1px solid rgba(169, 126, 55, 0.5);
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-ink);
+    transition: background-color var(--duration) var(--ease),
+      color var(--duration) var(--ease),
+      border-color var(--duration) var(--ease);
+  }
+
+  /* Two drawn bars rather than a "+" and a "−" glyph. Two reasons: Roboto
+     Condensed's plus is thin and sits high in the em box, so it never looked
+     centred in the circle — and `content` cannot be transitioned, so a glyph
+     swap can only ever snap. The vertical bar rotates flat onto the horizontal
+     one, which is the whole animation. */
+  .expect__bar {
+    position: absolute;
+    width: 11px;
+    height: 2px;
+    border-radius: 1px;
+    background: currentColor;
+  }
+
+  .expect__bar--v {
+    transform: rotate(90deg);
+    transition: transform var(--duration) var(--ease);
+  }
+
+  .expect__disclosure[open] .expect__bar--v {
+    transform: rotate(0deg);
+  }
+
+  .expect__summary:hover .expect__toggle,
+  .expect__summary:focus-visible .expect__toggle {
+    background-color: var(--gold);
+    border-color: var(--gold);
+    color: var(--ink);
+  }
+
+  /* `::details-content` is the box the UA wraps a disclosure's content in, and
+     it is the only way to animate a <details> both ways without JavaScript.
+     Growing to `auto` needs `interpolate-size: allow-keywords`, which is set on
+     :root in global.css.
+     Where the pseudo-element is not supported the rules are dropped whole and
+     the panel simply snaps open, which is the behaviour it had before. */
+  .expect__disclosure::details-content {
+    block-size: 0;
+    overflow: hidden;
+    transition:
+      block-size var(--duration) var(--ease),
+      content-visibility var(--duration) var(--ease) allow-discrete;
+  }
+
+  .expect__disclosure[open]::details-content {
+    block-size: auto;
+  }
+
+  .expect__detail {
+    /* Aligned under the title, not under the icon. */
+    margin-inline-start: calc(var(--expect-icon) + var(--expect-gap));
+    /* No negative top margin pulling this up under the summary's padding any
+       more: inside a clipped, animating box that shaves the dashed rule off. */
+    padding-block: var(--space-14) var(--space-24);
+    border-block-start: 1px dashed rgba(169, 126, 55, 0.4);
+  }
+
+  .expect__detail-text {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--body);
+  }
+
+  /* The column owns the gap between the quote and the card under it, rather
+     than the quote carrying it as trailing padding. That padding only ever
+     looked like the right answer at desktop, where the card sits BESIDE the
+     copy — stacked, it is the only thing holding the two apart, and the
+     responsive rule that zeroed it collapsed them together. */
+  .about__aside {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-44);
+  }
+
+  /* --- The pull quote ----------------------------------------------------- */
+
+  .quote {
+    margin: 0;
+  }
+
+  .quote__mark {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--fs-62);
+    /* Safe below `--lh-flat` only because this is a single glyph that cannot
+       wrap: it pulls the quotation mark tight against the line under it, the
+       way the artboard sets it. */
+    line-height: 0.6;
+    color: var(--gold-ink);
+    /* Half the artboard's 26px. It is one punctuation mark belonging to the
+       sentence under it, not a divider between two blocks. */
+    margin-block-end: var(--space-12);
+  }
+
+  .quote__text {
+    margin: 0;
+    font-family: var(--font-heading);
+    font-size: var(--fs-30);
+    line-height: var(--lh-lead);
+    font-style: italic;
+    color: var(--ink);
+  }
+
+  /* The closing clause, lifted out of the italic into olive roman. */
+  .quote__accent {
+    color: var(--green);
+    font-style: normal;
+  }
+
+  /* The attorney's own name is the link to their bio — there is no separate
+     "read more" control, so this is a portrait and a two-line text block and
+     nothing else. */
+  .quote__by {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: var(--space-18);
+    margin-block-start: var(--space-32);
+    padding-block-start: var(--space-26);
+    border-block-start: 1px solid var(--border-strong);
+  }
+
+  .quote__portrait {
+    grid-column: 1;
+    width: 72px;
+    height: 72px;
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .quote__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* A standing 720x1280 portrait: without this the circle frames a tie. */
+    object-position: 50% 14%;
+  }
+
+  .quote__who {
+    grid-column: 2;
+  }
+
+  /* Underlined at rest, following `.prose a`: a name that is quietly a link
+     with no affordance until you hover is a link nobody finds. The gold
+     decoration keeps it from reading as body copy. */
+  .quote__name {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--fs-23);
+    line-height: var(--lh-snug);
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: var(--gold);
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .quote__name:hover {
+    color: var(--gold-ink);
+    text-decoration-color: var(--gold-ink);
+  }
+
+  .quote__role {
+    display: block;
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--gold-ink);
+    margin-block-start: var(--space-4);
+  }
+
+  /* --- The video card ----------------------------------------------------- */
+
+  .about-video {
+    position: relative;
+    display: block;
+    width: 100%;
+    /* The source photograph's own ratio, so `cover` has nothing to crop and
+       every pixel of a 1321px-wide frame is spent on a 690px card. The artboard
+       draws a 520px-tall card, which at this column width is 4:3 — it threw
+       away a quarter of the frame's width and then upscaled the rest.
+       `aspect-ratio` is safe here ONLY because nothing caps the height: pair it
+       with a `max-height` and the ratio pulls the WIDTH in instead. */
+    aspect-ratio: 1321 / 792;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: none;
+    cursor: pointer;
+    text-align: start;
+  }
+
+  .about-video__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 40%;
+    transition: transform var(--duration) var(--ease);
+  }
+
+  .about-video__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(20, 22, 14, 0.1) 0%,
+      rgba(20, 22, 14, 0.62) 100%
+    );
+  }
+
+  .about-video__play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 78px;
+    height: 78px;
+    border-radius: var(--radius-full);
+    background-color: rgba(248, 244, 236, 0.94);
+    color: var(--forest-700);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* The optical centre of a triangle sits left of its bounding box. */
+    padding-inline-start: 5px;
+    transition: background-color var(--duration) var(--ease),
+      transform var(--duration) var(--ease);
+  }
+
+  .about-video:hover .about-video__image {
+    transform: scale(1.03);
+  }
+
+  .about-video:hover .about-video__play {
+    background-color: var(--gold);
+    transform: translate(-50%, -50%) scale(1.06);
+  }
+
+  .about-video:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: 3px;
+  }
+
+  .about-video__caption {
+    position: absolute;
+    left: var(--space-32);
+    right: var(--space-32);
+    bottom: var(--space-28);
+  }
+
+  /* `.eyebrow--bare`: same component, no dash — it captions a photograph
+     rather than opening a section. Only the size and the gap differ. */
+  .about-video__eyebrow {
+    font-size: var(--fs-meta);
+    color: var(--gold);
+    margin-block-end: 0;
+  }
+
+  .about-video__title {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--fs-26);
+    line-height: var(--lh-card);
+    color: var(--cream);
+    margin-block-start: var(--space-6);
+  }
+
+  /* ---- Responsive --------------------------------------------------------
+     Not from the designs — the artboard is a fixed 1660px board with no media
+     queries. These blocks MUST stay after the rules they override; a media
+     query carries no extra specificity, so source order decides. */
+
+  /* Two 790px columns stop being two columns well before the tablet step: each
+     side is under 470px by 1024, where the video card is taller than it is
+     wide and the quote is setting 30px type into a narrow measure. */
+  @media (max-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 1fr);
+      /* One step up from `--space-lg`, which bottomed out at 36px — under the
+         44px the aside puts between its own two children. Stacked, this is the
+         gap between the two halves of the section, so it has to stay the
+         biggest one in play or the column reads as four loose blocks. */
+      gap: var(--space-xl);
+    }
+
+    /* The aside's own gap carries the quote clear of the card, at every width.
+       The video card needs nothing here: it is sized by its ratio and follows
+       the column. */
+  }
+
+  @media (max-width: 768px) {
+    .expect {
+      --expect-icon: 30px;
+      --expect-gap: var(--space-14);
+    }
+
+    .about-video__caption {
+      left: var(--space-24);
+      right: var(--space-24);
+      bottom: var(--space-24);
+    }
+  }
+
+  /* The attribution row runs out of width for a name, a role and a link on one
+     line: the link drops under the portrait rather than squeezing the name. */
+  @media (max-width: 500px) {
+    /* The blurb leaves the middle column and takes the whole row; the icon and
+       the toggle keep the top line to themselves. */
+    .expect__icon,
+    .expect__toggle {
+      grid-row: 1;
+    }
+
+    .expect__blurb {
+      grid-column: 1 / -1;
+      margin-block-start: var(--space-10);
+    }
+
+    /* Nothing left to line up with, so the detail runs flush too. */
+    .expect__detail {
+      margin-inline-start: 0;
+    }
+
+    /* The rule and the gap above it are the desktop column's work — they
+       separate the attribution from a quote sitting directly over it. Stacked
+       and full-bleed on a phone the portrait already does that, and the
+       hairline just reads as a stray divider. */
+    .quote__by {
+      margin-block-start: 0;
+      border-block-start: 0;
+    }
+  }
+</style>

@@ -1,0 +1,29 @@
+---
+/**
+ * Portable Text → HTML.
+ *
+ * The ONLY way editor-authored copy should be rendered. It always emits
+ * `.prose` on its wrapper, so long-form rhythm is structural rather than
+ * something each consumer has to remember a class for — see AGENTS.md →
+ * "Design tokens": body text carries no default margin by design, and `.prose`
+ * is where the rhythm lives.
+ *
+ * `.prose` also caps the measure at ~68 characters. That is deliberate even
+ * inside a wider column: the 790px design column runs past 90 characters at
+ * this size.
+ */
+import { PortableText } from "astro-portabletext";
+import type { PortableTextProps } from "astro-portabletext/types";
+
+interface Props {
+  value: PortableTextProps["value"];
+  /** Extra classes for spacing or colour, applied alongside `.prose`. */
+  class?: string;
+}
+
+const { value, class: className } = Astro.props;
+---
+
+<div class:list={["prose", className]}>
+  <PortableText value={value} />
+</div>

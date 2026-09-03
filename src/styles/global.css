@@ -290,19 +290,17 @@
   --space-section: clamp(40px, 1.7704rem + 3.1128vw, 80px);
   --space-section-sm: clamp(32px, 1.5805rem + 1.7899vw, 55px);
 
+  /* Lets a size animate to or from a keyword — `height: 0` to `height: auto`.
+     Without it those transitions do not run at all, which is what makes a
+     no-JavaScript <details> animation possible (see `::details-content` in
+     About.astro). Unsupported browsers ignore the declaration and the elements
+     that use it snap instead of sliding. */
+  interpolate-size: allow-keywords;
+
   /* --- Layout ----------------------------------------------------------- */
   --container: 1660px;         /* the artboard width */
   --container-narrow: 1040px;  /* article / long-form measure */
   --container-prose: 790px;    /* layout column for a single text block */
-  /* The readable measure — applied to `.prose`, so running text stays in the
-     45-75 character band even when its container is wider.
-
-     Deliberately NOT expressed in `ch`. That unit is the width of the font's
-     "0", and Instrument Sans sets a wide zero (~0.67em) against an average
-     lowercase advance of ~0.52em — so `68ch` measured out at 82 characters.
-     This is calibrated instead: 37.5rem = 600px ≈ 68 characters at the 17px
-     prose size. Re-measure if the body face ever changes. */
-  --measure: 37.5rem;
   /* Ramps from 768px, not 375px like everything else: phones want the content
      edge-to-edge, and the growth belongs on desktop. 20px through tablet,
      100px once the viewport reaches the artboard width. */
@@ -319,7 +317,7 @@
   /* Breakpoints are documented here for reference only — custom properties do
      not work inside @media, so the media queries below repeat the literals.
      Change both or neither.
-       sm 480px | md 768px | lg 1024px | xl 1280px | 2xl 1660px               */
+       sm 500px | md 768px | lg 1024px | xl 1280px | 2xl 1660px               */
 
   /* --- Radius ----------------------------------------------------------- */
   --radius-sm: 4px;   /* buttons, inputs, pills, badges */
@@ -621,8 +619,21 @@ details > summary::-webkit-details-marker {
    5. Typographic primitives
    -------------------------------------------------------------------------- */
 
-/* The gold rule + uppercase kicker that opens nearly every section. */
+/* The gold rule + uppercase kicker that opens nearly every section.
+ *
+ * The dash is part of `.eyebrow` itself, NOT an opt-in variant. It used to be
+ * `.eyebrow--rule`, which meant every kicker was one forgotten class away from
+ * silently not matching the hero — and that is exactly what happened. The
+ * homepage hero is the reference for this component; anything that plays the
+ * eyebrow role gets this treatment. Use `.eyebrow--bare` for the handful of
+ * places a dash does not belong. */
 .eyebrow {
+  display: flex;
+  /* Not `center`: on a wrapped eyebrow that floats the dash between the two
+     lines, attached to neither. Align to the top and drop it to the optical
+     middle of the FIRST line instead. */
+  align-items: flex-start;
+  gap: var(--space-16);
   font-family: var(--font-label);
   font-size: var(--fs-eyebrow);
   font-weight: var(--fw-bold);
@@ -644,18 +655,9 @@ details > summary::-webkit-details-marker {
   color: var(--gold);
 }
 
-/* `.eyebrow--rule` adds the short gold dash the artboards set to the kicker's
-   left — half the artboard's 52px, which reads as a tick rather than a rule. */
-.eyebrow--rule {
-  display: flex;
-  /* Not `center`: on a wrapped eyebrow that floats the dash between the two
-     lines, attached to neither. Align to the top and drop it to the optical
-     middle of the FIRST line instead. */
-  align-items: flex-start;
-  gap: var(--space-16);
-}
-
-.eyebrow--rule::before {
+/* The short gold dash the artboards set to the kicker's left — half the
+   artboard's 52px, which reads as a tick rather than a rule. */
+.eyebrow::before {
   content: "";
   flex: none;
   width: 26px;
@@ -665,6 +667,17 @@ details > summary::-webkit-details-marker {
      correction — the dash reads a touch low against uppercase, which has no
      descenders to balance it. */
   margin-block-start: calc(var(--fs-eyebrow) * var(--lh-label) / 2 - 1px);
+}
+
+/* Same type, no dash — for a kicker that labels rather than opens: a caption
+   over a photograph, a figure's label inside a card. The dash reads as "a
+   section starts here", so it is wrong on both. */
+.eyebrow--bare {
+  display: block;
+}
+
+.eyebrow--bare::before {
+  content: none;
 }
 
 .label {
@@ -704,11 +717,14 @@ details > summary::-webkit-details-marker {
    introduces instead of floating between two blocks. The previous rules had
    this backwards: a flat 24px separated everything, and headings then got LESS
    (`--space-xs`), which tied each heading to the paragraph it followed. */
-.prose {
-  /* Cap the measure. 45-75 characters is the readable band; the 790px column
-     alone ran past 90 at this size. */
-  max-width: var(--measure);
-}
+/* No measure cap: `.prose` fills whatever column it is given. There WAS a
+   600px cap here (~68 characters, the readable band) and it was removed on the
+   client's call — it left the homepage's intro copy stopping ~90px short of its
+   column while the list below ran the full width, which read as a mistake. If a
+   cap is ever wanted again, calibrate it in `rem`, not `ch`: Instrument Sans
+   sets a wide zero (~0.67em) against an average lowercase advance of ~0.52em,
+   so `68ch` measures out at 82 characters. Anything genuinely long-form should
+   reach for `.container--prose` (790px) instead. */
 
 .prose > * + * {
   margin-block-start: 1.25em;
@@ -1153,12 +1169,12 @@ body.drawer-open {
 }
 
 /* sm and below — phones */
-@media (max-width: 480px) {
-  .eyebrow--rule {
+@media (max-width: 500px) {
+  .eyebrow {
     gap: var(--space-12);
   }
 
-  .eyebrow--rule::before {
+  .eyebrow::before {
     width: 16px;
   }
 }

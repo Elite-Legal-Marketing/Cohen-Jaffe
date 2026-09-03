@@ -411,7 +411,7 @@ be unreadable on dark sections.
 
 ⚠️ **Breakpoints are NOT from the designs.** The artboards are fixed `min-width:1660px`
 boards with no `@media` rules and no mobile counterparts, so they describe the desktop end
-only. The responsive layer is ours: `sm 480 · md 768 · lg 1024 · xl 1280 · 2xl 1660`.
+only. The responsive layer is ours: `sm 500 · md 768 · lg 1024 · xl 1280 · 2xl 1660`.
 They are documented in `:root` as a comment and **repeated as literals in the media
 queries** — custom properties do not work inside `@media`. The header is the exception: it
 swaps to the drawer at **1280px**, a measured fit limit rather than a scale step. Change both or neither.
