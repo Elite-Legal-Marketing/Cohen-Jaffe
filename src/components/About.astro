@@ -30,14 +30,9 @@ import iconAttorney from "../assets/icons/expect-attorney.svg";
 import iconDayToDay from "../assets/icons/expect-day-to-day.svg";
 import iconCalls from "../assets/icons/expect-calls.svg";
 import videoCover from "../assets/about-video-cover.jpg";
-import attyCohen from "../assets/atty-cohen.png";
-import attyJaffe from "../assets/atty-jaffe.png";
-import attyTiger from "../assets/atty-tiger.png";
-import attyMcnaughton from "../assets/atty-mcnaughton.png";
-import attySawicki from "../assets/atty-sawicki.png";
-import attyParnell from "../assets/atty-parnell.png";
 import { getImage } from "astro:assets";
 import RichText from "./RichText.astro";
+import { ATTORNEY_PORTRAITS } from "../data/attorneyPortraits";
 import type { AboutSection } from "../data/homeAbout";
 
 interface Props {
@@ -72,33 +67,13 @@ const cover = await getImage({
   format: "webp",
 });
 
-/**
- * TEMPORARY, and it goes when the section is modelled.
- *
- * The portrait belongs to the ATTORNEY, not to this section — every one of
- * these six files is already uploaded to Sanity as that document's `portrait`
- * (`scripts/seed-attorneys.ts` seeded them from exactly these bytes). Wiring
- * this section up replaces the whole map with `urlFor(quote.attorney.portrait)`
- * off the dereferenced reference. Until the `about` field exists there is no
- * reference to dereference, and adding a query for one attorney would be dead
- * code the moment it lands — so the repo copies stand in.
- */
-const PORTRAITS: Record<string, ImageMetadata> = {
-  "stephen-cohen": attyCohen,
-  "richard-jaffe": attyJaffe,
-  "stephen-tiger": attyTiger,
-  "caitlin-mcnaughton": attyMcnaughton,
-  "katherine-sawicki": attySawicki,
-  "garrett-parnell": attyParnell,
-};
-
 const quote = section.quote;
 const video = section.video;
 
 // 144 = the 72px circle at 2x. The source is a 720x1280 standing portrait, so
 // the square crop is CSS's job; this only caps what gets downloaded.
 const portrait = quote
-  ? await getImage({ src: PORTRAITS[quote.attorney.slug], width: 144, format: "webp" })
+  ? await getImage({ src: ATTORNEY_PORTRAITS[quote.attorney.slug], width: 144, format: "webp" })
   : null;
 ---
 

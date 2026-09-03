@@ -184,13 +184,19 @@ const year = new Date().getFullYear();
     font-weight: var(--fw-semibold);
     line-height: 1.3;
     color: var(--on-dark);
+    /* Underline at rest in transparent, so the hover FADES it up rather than
+       snapping it on — `text-decoration-line` cannot be transitioned. */
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
     text-underline-offset: 4px;
-    transition: color var(--duration) var(--ease);
+    text-decoration-color: transparent;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
   }
 
   .site-footer__phone:hover {
     color: var(--gold);
-    text-decoration: underline;
+    text-decoration-color: currentColor;
   }
 
   .site-footer__brand .site-footer__phone {

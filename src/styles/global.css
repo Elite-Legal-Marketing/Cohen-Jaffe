@@ -961,14 +961,22 @@ button:focus-visible .arrow--back {
   letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--gold-ink);
+  /* `text-decoration-line` is NOT animatable, so an underline that only exists
+     in the `:hover` rule can only ever pop in. It is declared here at rest with
+     a transparent decoration colour, and the COLOUR is what animates — colour
+     interpolation is premultiplied, so it fades up from nothing rather than
+     through a grey. Same pattern anywhere a link underlines on hover. */
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+  text-decoration-color: transparent;
   transition: color var(--duration) var(--ease),
     text-decoration-color var(--duration) var(--ease);
 }
 
 .link-arrow:hover {
   color: var(--ink);
-  text-decoration: underline;
-  text-underline-offset: 4px;
+  text-decoration-color: currentColor;
 }
 
 .on-dark .link-arrow,

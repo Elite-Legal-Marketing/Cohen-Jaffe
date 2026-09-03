@@ -501,6 +501,12 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   nothing to resolve against, because `<picture>` is auto-height — so a full-bleed
   photograph stops short and leaves a bar of the section's own background along the bottom.
   Size the `<picture>`, not just the `<img>`.
+- **`text-decoration-line` cannot be transitioned**, so an underline that only exists in a
+  `:hover` rule pops in no matter what the transition line says. Declare the underline at
+  rest with `text-decoration-color: transparent` and animate the COLOUR to `currentColor`
+  — colour interpolation is premultiplied, so it fades up from nothing rather than through
+  a grey. This bit four links before it was noticed: both phone numbers, `.link-arrow`, and
+  the fee band's call line.
 - **A responsive override must come AFTER the rule it overrides.** Media queries carry no
   extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
   loses. A block moved during an edit is the usual cause; the symptom is a mobile value

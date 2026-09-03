@@ -1,0 +1,357 @@
+---
+/**
+ * Homepage fee explainer band.
+ *
+ * Design: the FEE EXPLAINER BAND of `Cohen & Jaffe Homepage v1.dc.html` — a
+ * forest card inset on the cream page, three fee columns divided by hairlines,
+ * a partner's line, and the call to action.
+ *
+ * This is the homepage's version of the firm's named "No Fee Promise". Content
+ * is hardcoded for now; `src/data/homeFees.ts` carries the copy AND the source
+ * of every clause in it, which for a section making fee representations is the
+ * part that matters.
+ *
+ * The card is `.on-dark`, so everything nested inside takes the dark palette
+ * from the semantic tokens without restating a colour per element.
+ */
+import { getImage } from "astro:assets";
+import { ATTORNEY_PORTRAITS } from "../data/attorneyPortraits";
+import type { FeesSection } from "../data/homeFees";
+
+interface Props {
+  section: FeesSection;
+}
+
+const { section } = Astro.props;
+const quote = section.quote;
+
+// 152 = the 76px circle at 2x.
+const portrait = quote
+  ? await getImage({ src: ATTORNEY_PORTRAITS[quote.attorney.slug], width: 152, format: "webp" })
+  : null;
+---
+
+<section class="fees" aria-labelledby="fees-heading">
+  <div class="container">
+    {/* The card's background lives here rather than on `.container` itself.
+        AGENTS.md warns never to put one on a `.container`, because the gutter
+        insets it and a full-bleed band then shows two strips of whatever is
+        behind. This card is MEANT to be inset — but keeping the background on
+        an inner element means nobody has to work out which case this is. */}
+    <div class="fees__card on-dark">
+      <h2 class="fees__heading" id="fees-heading">{section.heading}</h2>
+
+      <ul class="fees__cols" role="list">
+        {
+          section.columns.map((col) => (
+            <li class="fee">
+              <p class="eyebrow eyebrow--bare fee__label">{col.label}</p>
+              <p class="fee__body">{col.body}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="fees__foot">
+        {
+          quote && (
+            <figure class="pledge">
+              {portrait && (
+                <span class="pledge__portrait">
+                  <img
+                    src={portrait.src}
+                    alt={quote.attorney.name}
+                    width={portrait.attributes.width}
+                    height={portrait.attributes.height}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </span>
+              )}
+              <figcaption class="pledge__body">
+                <blockquote class="pledge__text">{quote.text}</blockquote>
+                <a class="pledge__by" href={`/about/attorneys/${quote.attorney.slug}/`}>
+                  {quote.attorney.name} &middot; {quote.attorney.role}
+                </a>
+              </figcaption>
+            </figure>
+          )
+        }
+
+        <div class="fees__actions">
+          {section.cta && (
+            <a class="btn btn--gold" href={section.cta.href}>
+              {section.cta.label}
+            </a>
+          )}
+          {
+            section.phone && (
+              <p class="fees__call">
+                {section.phone.label}{" "}
+                <a href={`tel:${section.phone.number.replace(/[^0-9+]/g, "")}`}>
+                  {section.phone.number}
+                </a>
+              </p>
+            )
+          }
+        </div>
+      </div>
+
+      <p class="fees__disclaimer">{section.disclaimer}</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* No top padding: the section above already owns the gap under itself, and
+     the artboard sets this band to `padding: 0 0 var(--pad)` for that reason. */
+  .fees {
+    padding-block-end: var(--space-section);
+  }
+
+  .fees__card {
+    border-radius: var(--radius);
+    /* The artboard's own linear layer is `--gradient-forest-card`; only the
+       gold bloom is composed on top, the same way the stats band does it. */
+    background:
+      radial-gradient(
+        1000px 520px at 82% 0%,
+        rgba(217, 185, 120, 0.16) 0%,
+        rgba(217, 185, 120, 0) 62%
+      ),
+      var(--gradient-forest-card);
+    padding: var(--space-56) var(--space-60) var(--space-44);
+  }
+
+  .fees__heading {
+    /* The artboard sets `white-space: nowrap` on this. That is a fixed-board
+       trick and is deliberately NOT carried over — at 36px the sentence is
+       ~52em and would force a horizontal scrollbar on anything under ~1180px.
+       It wraps, and `balance` keeps the two lines even. */
+    font-size: var(--fs-36);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--ls-tight);
+    color: var(--on-dark);
+    text-wrap: balance;
+    margin-block-end: var(--space-32);
+  }
+
+  /* --- The three columns --------------------------------------------------- */
+
+  .fees__cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    /* No gap: the 48px sits inside each cell so the hairline lands on the cell
+       edge, exactly as the stats band does it. */
+    gap: 0;
+    align-items: stretch;
+    margin: 0 0 var(--space-32);
+    padding: 0;
+    list-style: none;
+  }
+
+  .fee {
+    padding-inline: var(--space-44);
+    border-inline-start: 1px solid var(--on-dark-border);
+  }
+
+  .fee:first-child {
+    padding-inline-start: 0;
+    border-inline-start: none;
+  }
+
+  .fee:last-child {
+    padding-inline-end: 0;
+  }
+
+  .fee__label {
+    font-size: var(--fs-meta);
+    color: var(--gold);
+    margin-block-end: var(--space-10);
+  }
+
+  .fee__body {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+  }
+
+  /* --- The partner's line, and the call to action -------------------------- */
+
+  .fees__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-44);
+    flex-wrap: wrap;
+    padding-block-start: var(--space-28);
+    /* Gold rather than the columns' cream hairline: this rule separates the
+       explanation from the ask, so it carries the accent. */
+    border-block-start: 1px solid rgba(217, 185, 120, 0.45);
+  }
+
+  .pledge {
+    display: flex;
+    align-items: center;
+    gap: var(--space-22);
+    max-width: 820px;
+    margin: 0;
+  }
+
+  .pledge__portrait {
+    flex: none;
+    width: 76px;
+    height: 76px;
+    border: 2px solid var(--gold);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+    display: inline-block;
+  }
+
+  .pledge__portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* A standing 720x1280 portrait: without this the circle frames a tie. */
+    object-position: 50% 14%;
+  }
+
+  .pledge__text {
+    margin: 0 0 var(--space-8);
+    font-family: var(--font-heading);
+    font-size: var(--fs-21);
+    line-height: var(--lh-lead);
+    font-style: italic;
+    color: var(--on-dark);
+  }
+
+  /* The name is the link to the bio — same convention as the section above, so
+     there is no second "read more" control anywhere on the page. */
+  .pledge__by {
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--gold);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: rgba(217, 185, 120, 0.4);
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .pledge__by:hover {
+    color: var(--on-dark);
+    text-decoration-color: var(--on-dark);
+  }
+
+  .fees__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-26);
+  }
+
+  .fees__call {
+    font-size: var(--fs-17);
+    line-height: var(--lh-body-lg);
+    color: var(--on-dark-80);
+    white-space: nowrap;
+  }
+
+  /* `text-decoration-line` is NOT animatable, so an underline that only exists
+     in the `:hover` rule can only ever pop in. It is declared at rest with a
+     transparent decoration colour and the COLOUR is what animates — colour
+     interpolation is premultiplied, so it fades up from nothing rather than
+     through a grey. */
+  .fees__call a {
+    color: var(--on-dark);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: transparent;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .fees__call a:hover {
+    color: var(--gold);
+    text-decoration-color: var(--gold);
+  }
+
+  .fees__disclaimer {
+    max-width: 820px;
+    margin-block-start: var(--space-22);
+    font-size: var(--fs-13);
+    line-height: var(--lh-small);
+    color: var(--on-dark-50);
+  }
+
+  /* ---- Responsive --------------------------------------------------------
+     Not from the designs — the artboard is a fixed 1660px board. These blocks
+     MUST stay after the rules they override; a media query carries no extra
+     specificity, so source order decides. */
+
+  /* The card's inner padding is the first thing to give: 60px a side is a
+     tenth of the card at this width. */
+  @media (max-width: 1280px) {
+    .fees__card {
+      padding: var(--space-40) var(--space-36) var(--space-36);
+    }
+
+    .fee {
+      padding-inline: var(--space-32);
+    }
+  }
+
+  /* Three columns of ~30 characters stop being columns. Stacked, the hairline
+     turns horizontal — the same move the stats band makes. */
+  @media (max-width: 900px) {
+    .fees__cols {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .fee:nth-child(n) {
+      padding-inline: 0;
+      border-inline-start: none;
+    }
+
+    .fee + .fee {
+      margin-block-start: var(--space-28);
+      padding-block-start: var(--space-28);
+      border-block-start: 1px solid var(--on-dark-border);
+    }
+
+    /* The ask goes under the pledge rather than beside it. */
+    .fees__foot {
+      align-items: flex-start;
+      gap: var(--space-32);
+    }
+  }
+
+  @media (max-width: 500px) {
+    .fees__card {
+      padding: var(--space-32) var(--space-24) var(--space-28);
+    }
+
+    /* The portrait is the first thing to go: at this width it costs 98px of a
+       ~290px row and the quote is the point, not the face. */
+    .pledge__portrait {
+      display: none;
+    }
+
+    /* A button and a phone number cannot share a line here. */
+    .fees__actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-18);
+      width: 100%;
+    }
+
+    .fees__call {
+      text-align: center;
+    }
+  }
+</style>

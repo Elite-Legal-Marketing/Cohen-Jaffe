@@ -5,13 +5,15 @@ Last updated: 2026-09-02
 
 ## Where things stand
 
-Four of the homepage's fifteen sections are now built — **hero**, **stats band**, **case
-results** and, as of this session, **"Our goals"** (the about band). The first three are
-finished end to end; the fourth is **built and awaiting design sign-off, with its content
-still hardcoded**. There is also the **attorneys collection**, which no page consumes yet.
+Five of the homepage's fifteen sections are now built — **hero**, **stats band**, **case
+results**, **"Our goals"** (the about band) and the **fee explainer**. The first three are
+finished end to end; the last two are **built and awaiting design sign-off, with their
+content still hardcoded**. There is also the **attorneys collection**, which no page
+consumes yet.
 
-`origin/master` is at `c980d3e` (PR #10). Current branch is **`hp_about`**, which carries
-the "Our goals" work, uncommitted.
+`origin/master` is at `c980d3e` (PR #10). Current branch is **`hp_about`**: the "Our goals"
+work is committed there as `84403c9`, and the fee explainer is uncommitted on top of it.
+Nothing is pushed.
 
 Gates: `npm run build` green and `npm run check:types` **0 errors** — both verified after
 the last change. `npx sanity documents validate --yes` was last clean at 71 documents and
@@ -155,6 +157,59 @@ Every eyebrow on the page now computes to the same thing — 0.16em tracking, 1.
 line-height, dash where it belongs: hero and section kickers 15px with the gold dash, the
 "What you can expect" sub-kicker 15px with an olive one, the stats band and the video
 caption dashless at 15 and 13px, the footer's column labels at 13px.
+
+## The fee explainer — built, NOT yet modelled
+
+The forest card inset on the cream page, immediately after "Our goals": three fee columns,
+a partner's line and the call to action. `src/components/Fees.astro`, content in
+`src/data/homeFees.ts`, both temporary in the same way the about band's are.
+
+**This band is the homepage's version of the firm's named "No Fee Promise"**, which has its
+own page in the mirror at `about/no-fee-promise/`. That page is the source for the whole
+section and it is unusually good — it states the fee, the costs and the losing case
+outright, which is exactly what the three columns need. It is also under `/about/`, which
+is why this section reads as part of "about" despite sitting on the homepage.
+
+These are **fee representations by a law firm**, so every clause was checked against that
+page rather than trusted from the artboard. Two did not survive:
+
+- **"You are welcome to have another lawyer review it first"** is supported nowhere in the
+  mirror. Benign and client-favourable, but still a claim about how this firm operates.
+  Replaced with two things the page states outright: no hourly fees ever, and no bill for a
+  phone call, an email or a meeting.
+- **"Depositions"** was dropped from the costs list. The firm names court and filing fees,
+  medical records and expert doctors; depositions are a normal litigation cost but not one
+  it lists.
+
+The load-bearing claim **is** evidenced, which is worth recording because many firms do the
+opposite: *"if you don't win your case, you don't owe us a penny. Period."* and *"If for
+some reason we are unable to get you compensation, you will never have to pay us back for
+these expenses."* The firm absorbs advanced costs on a loss, in writing, on its own site.
+
+The **disclaimer is accurate and must not be dropped to save space** — New York Judiciary
+Law § 474-a really does put medical malpractice on a sliding scale rather than a flat
+percentage, and the firm's own blog already explains it ("the fee usually starts at 30% of
+the first $250,000").
+
+The artboard's quote for this band — "No one should have to decide between paying rent and
+hiring a lawyer" — is **invented**, like the one it gives Jaffe above. Cohen's real quote is
+used instead: it fits a section about not pricing people out, it is the last of the three
+partners' sourced quotes still unspent, and it is attributed to the same person the artboard
+names, so nothing about the design changes.
+
+Two mechanical notes:
+
+- **The artboard sets `white-space: nowrap` on the h2 and that is deliberately not carried
+  over.** At 36px the sentence is ~52em and would force a horizontal scrollbar on anything
+  under ~1180px. It wraps, with `text-wrap: balance`.
+- **The card's background is on an inner element, not on `.container`.** AGENTS.md warns
+  never to put one on a `.container` because the gutter insets it — but this card is *meant*
+  to be inset, so the rule does not apply. Keeping the background on a child means nobody
+  has to work out which case it is.
+
+`ATTORNEY_PORTRAITS` in `src/data/attorneyPortraits.ts` is the temporary slug→file map, now
+shared by both sections that quote someone rather than duplicated per component. It goes
+when the sections are modelled and the reference can be dereferenced.
 
 ## The eyebrow is one component now
 
@@ -376,19 +431,24 @@ credentials, or that origin's `/admin` hangs on a spinner.
    detail), a `quote` object (text, accent, `reference` to `attorney` — no link label, the
    name IS the link), and an optional `video` object. Then `npm run typegen`, extend `HOME_PAGE_QUERY`, delete
    `src/data/homeAbout.ts`, and drop the temporary `PORTRAITS` map in `About.astro`.
-2. **The homepage attorneys section** — "The three people who will actually work your
+2. **Model the fee explainer** alongside it — a `feesSection` object: `heading`, an array
+   of a `feeColumn` object (label, body), a `quote` object (text + `reference` to
+   `attorney`), a `ctaLink`, a phone line, and a required `disclaimer`. The disclaimer is
+   one of the few genuinely `.required()` fields on the site: it is a legal-advertising
+   note, not a nicety.
+3. **The homepage attorneys section** — "The three people who will actually work your
    case." An `attorneysSection` object on `homePage`: heading, lead, an ordered array of
    `attorney` references for the three large cards, a second array for the three
    thumbnails, and a `ctaLink`. Design is at line 511 of the homepage artboard. **Do not
    let it repeat whichever quote "Our goals" is using.**
-3. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
+4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — the listing splits partners
    (large horizontal cards) from associates (a three-up grid); the bio page reads nearly
    every field. Both artboards are approved and the URLs are already in the nav.
-4. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
+5. Build **`/case-results/`** — the 60 ledger entries have no page, and the homepage's
    "See all results" link already points there.
-5. Then **Fee Explainer**, Practice Areas, New York Deadlines. Order is in the artboard.
-6. A **`video` document type** once the Wistia uploads exist.
-7. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
+6. Then **Practice Areas**, then New York Deadlines. Order is in the artboard.
+7. A **`video` document type** once the Wistia uploads exist.
+8. **Set `site` in `astro.config.mjs`.** `Layout.astro` emits a canonical link only when
    `Astro.site` is configured — it is not, so none is written.
 
 ## Things that would surprise someone
@@ -410,6 +470,17 @@ credentials, or that origin's `/admin` hangs on a spinner.
   under an already-running dev server, which is what leaves `504 (Outdated Optimize Dep)`
   in its console. Astro's dev-toolbar entrypoint 504ing is harmless; site assets 504ing is
   not.
+- **Every hover underline on the site is now declared at rest in `transparent`** and fades
+  by animating `text-decoration-color`. `text-decoration-line` is not animatable, so the
+  previous "add `text-decoration: underline` on `:hover`" pattern could only pop — it was
+  doing that on both phone numbers, `.link-arrow` and the fee band's call line. Rule is in
+  `AGENTS.md`; follow it for any new link.
+- **The published design canvas has moved on from the local `.dc.html` copies.** Everything
+  in `Claude Files/` is dated 1 Sep and stamps `data-dc-tpl` (a per-artboard pre-order
+  element counter). The canvas the client reads from now stamps **`data-om-id`**, an
+  id-plus-index pair such as `66ef3db2:216` — a different scheme, and the numeric half does
+  NOT map onto the old counter, so an id from it cannot be resolved against these files.
+  Ask for the section by name, or for a fresh export. Other artboards may have changed too.
 - **The design files live outside the repo** in `~/Downloads/Cohen & Jaffe/`. If they
   suddenly read as `EPERM`, that is macOS blocking `~/Downloads`; Full Disk Access fixes it
   but **only after the app restarts**.
