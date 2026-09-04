@@ -1,20 +1,21 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-04 (after Phase C — the practice areas section is modelled and wired)
+Last updated: 2026-09-04 (Phase C merged to master as PR #13)
 
 ## Where things stand
 
-Seven of the homepage's fifteen sections are built, modelled in Sanity and wired: hero, stats
+Six of the homepage's fifteen sections are built, modelled in Sanity and wired: hero, stats
 band, case results, "Our goals", the fee explainer, and now **practice areas** — Phase C is
 done. Underneath it the **practice areas collection is done end to end** (47 documents), and
 it finally has a consumer.
 
-Branch **`hp_practice_areas`**, off `origin/master` at `e6c3b61` (PR #12). **Committed, not
-pushed.** Four commits: `Working commit` (the collection and the hardcoded section, from the
-previous session), then the scroll-jump fix, the "Long Island" label change, and Phase C. The
-old three-PR plan is spent — the first two landed inside `Working commit` before anyone split
-them, so this branch is one PR now. Push only when asked.
+**All of this is on `master`.** `hp_practice_areas` merged as PR #13 (`a213d68`) and
+**nothing is in flight** — the working tree is clean and the next section starts from a fresh
+branch off `master`. The four commits it carried, oldest first: `Working commit` (the
+collection and the hardcoded section, from the previous session), the scroll-jump fix, the
+"Long Island" label change, and Phase C. The old three-PR plan is spent — the first two
+landed inside `Working commit` before anyone split them.
 
 Gates: `npm run build` green, `npm run check:types` **0 errors (65 files)**, `npm run typegen`
 **2 queries, 37 schema types**, `npx sanity documents validate --yes` clean at **119 documents,
