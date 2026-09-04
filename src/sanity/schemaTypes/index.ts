@@ -13,6 +13,8 @@ import { expectation } from "./objects/expectation";
 import { feeColumn } from "./objects/feeColumn";
 import { feesSection } from "./objects/feesSection";
 import { ctaLink } from "./objects/ctaLink";
+import { deadlineFigure } from "./objects/deadlineFigure";
+import { deadlinesSection } from "./objects/deadlinesSection";
 import { hero } from "./objects/hero";
 import { office } from "./objects/office";
 import { practiceAreaTab } from "./objects/practiceAreaTab";
@@ -37,9 +39,11 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   aboutSection,
   feesSection,
   practiceAreasSection,
+  deadlinesSection,
   // Shared objects
   attorneyQuote,
   ctaLink,
+  deadlineFigure,
   expectation,
   feeColumn,
   office,

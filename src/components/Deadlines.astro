@@ -1,0 +1,245 @@
+---
+/**
+ * Homepage "New York deadlines" band.
+ *
+ * Design: the NEW YORK DEADLINES band of `Cohen & Jaffe Homepage v1.dc.html`
+ * (lines 403–437). A gold-ruled dark strip between two light sections: the
+ * kicker, heading and lead on the left with the CTA held to the right, then a
+ * hairline and three big gold figures across.
+ *
+ * It is the darkest surface on the page, and on purpose — `--gradient-forest-night`
+ * exists for this band alone. Three forest gradients already run down this
+ * homepage; the one section telling a reader that a clock is running should not
+ * read as a fourth.
+ *
+ * Content comes from the `deadlines` field on the `homePage` singleton.
+ *
+ * ⚠️ EVERY WORD IN THIS SECTION IS A STATEMENT OF NEW YORK LAW, and the
+ * citation for each of the three figures — plus the two places the artboard's
+ * copy was corrected and the reason the band carries no disclaimer of its own —
+ * is in the docblock of `scripts/seed-home-deadlines.ts`. For a section that
+ * tells an injured person how long they have, that file is the part that
+ * matters; this one only draws it.
+ *
+ * Two things here are ours rather than the artboard's:
+ *
+ *   - THE HEADING DOES NOT `white-space: nowrap`. The board sets it, as it does
+ *     on the fee band, and it is a fixed-1660px trick: at 38px the sentence is
+ *     ~800px and would force a horizontal scrollbar under about 1150px. It
+ *     wraps, and the base `h2` rule's `text-wrap: balance` evens the lines.
+ *
+ *   - THE CTA IS SET IN OSWALD, not the board's Roboto Condensed. `.btn` is
+ *     Oswald by house rule and `.btn--green` is the documented exception; this
+ *     one button is the only place on the board that asks for a third voice,
+ *     and taking it would leave the page's four gold CTAs saying the same thing
+ *     in two typefaces. The geometry IS the board's — 48px tall, 250px wide,
+ *     which is `.btn--sm.btn--wide`.
+ */
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["deadlines"]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
+// An empty array would otherwise draw the grid's gold hairline over nothing.
+const deadlines = section.deadlines ?? [];
+---
+
+<section class="deadlines section on-dark" aria-labelledby="deadlines-heading">
+  <div class="container">
+    <div class="deadlines__head">
+      <div class="deadlines__intro">
+        <p class="eyebrow">{section.eyebrow}</p>
+        <h2 class="deadlines__heading" id="deadlines-heading">{section.heading}</h2>
+        <p class="deadlines__lead">{section.lead}</p>
+      </div>
+
+      {
+        section.cta && (
+          <a class="btn btn--gold btn--sm btn--wide deadlines__cta" href={section.cta.href}>
+            {section.cta.label}
+            <span class="arrow" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        )
+      }
+    </div>
+
+    {
+      deadlines.length > 0 && (
+        <ul class="deadlines__grid" role="list">
+          {deadlines.map((deadline) => (
+            <li class="deadline">
+              <p class="deadline__figure">
+                <span class="deadline__number">{deadline.figure}</span>
+                <span class="eyebrow eyebrow--bare deadline__unit">{deadline.unit}</span>
+              </p>
+              <p class="deadline__body">{deadline.body}</p>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .deadlines {
+    /* The gold bloom is composed over the gradient token, the same way the
+       stats band and the fee card do it. It is thinner here than on the stats
+       band — 0.10 against 0.17 — because it has a much darker fade under it. */
+    background:
+      radial-gradient(
+        900px 460px at 16% -12%,
+        rgba(217, 185, 120, 0.1) 0%,
+        rgba(217, 185, 120, 0) 62%
+      ),
+      var(--gradient-forest-night);
+    /* The same gold rule the fee band draws above its foot. It sits on the
+       boundary with the sand section above and reads as the accent that opens
+       the band, not as a divider. */
+    border-block-start: 1px solid rgba(217, 185, 120, 0.45);
+  }
+
+  /* --- Header: copy left, CTA held right ---------------------------------- */
+
+  .deadlines__head {
+    display: flex;
+    /* `flex-end`, so the button sits on the lead's last line rather than
+       floating against the top of a two-line heading. */
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-xl);
+    /* `--space-section` is the SAME token `.section` uses for its own padding,
+       and that is the point: below the grid is the section's bottom padding, so
+       borrowing the token here frames the figures with equal space above and
+       below at every width, rather than matching only at the one where a fixed
+       value happened to be measured. The artboard's 32px left the hairline
+       crowding the lead with 80px of air under the last line. */
+    margin-block-end: var(--space-section);
+  }
+
+  .deadlines__intro {
+    /* The board's own width for this block. It leaves exactly the 250px button
+       plus its gap inside the 1660px container. */
+    max-width: 1160px;
+  }
+
+  .deadlines__heading {
+    /* 38px, not the `h2` default of 42 — everything else comes from the base
+       heading rule, including the colour, which `.on-dark` has already flipped. */
+    font-size: var(--fs-38);
+    /* The board's 12px, tighter than the 0.5em floor `h2` carries for the case
+       where nobody has thought about it. */
+    margin-block-end: var(--space-12);
+  }
+
+  .deadlines__lead {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--on-dark-80);
+  }
+
+  .deadlines__cta {
+    flex: none;
+  }
+
+  /* --- The three figures --------------------------------------------------- */
+
+  .deadlines__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-xl);
+    margin: 0;
+    /* A fluid step rather than a fixed one, which is the whole reason it can be
+       a desktop value without a media query: `--space-md` floors at exactly the
+       28px this used to be, so nothing changes on a phone, and tops out at 48px
+       from 1660px down through the desktop range. The scale has no 48 or 50
+       fixed step, and a one-off pixel here would be the first value in this
+       component that answers to nothing. */
+    padding-block-start: var(--space-md);
+    /* Fainter than the band's own top rule: this one separates the claim from
+       the numbers that support it, rather than opening the section. */
+    border-block-start: 1px solid rgba(217, 185, 120, 0.34);
+    list-style: none;
+  }
+
+  .deadline__figure {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-14);
+    margin-block-end: var(--space-10);
+  }
+
+  .deadline__number {
+    font-family: var(--font-heading);
+    font-size: var(--fs-72);
+    color: var(--gold);
+    /* Deliberately below `--lh-flat`, and the one place on the site that is.
+       A 72px numeral has a ~50px cap height and no descender, so a line-height
+       of 1 sets a 72px-tall row for it — and this row is baseline-aligned to a
+       15px label, which makes the slack visible as a gap under the number.
+       0.8 crops the leading to the glyph. Safe only because a numeral cannot
+       wrap; see the `--lh-flat` note in global.css. */
+    line-height: 0.8;
+  }
+
+  /* Type comes from `.eyebrow--bare` — the unit labels a figure rather than
+     opening a section, which is exactly what that variant is for. Only the
+     colour changes: gold on gold would lose the numeral. The letter-spacing is
+     deliberately left at the shared 0.16em rather than the board's 0.14em, so
+     this label cannot drift away from every other one on the page. */
+  .deadlines .deadline__unit {
+    color: var(--on-dark-80);
+    margin-block-end: 0;
+  }
+
+  .deadline__body {
+    font-size: var(--fs-16);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+  }
+
+  /* ---- Responsive --------------------------------------------------------
+     Not from the designs — the artboard is a fixed 1660px board with no mobile
+     counterpart. These blocks MUST stay after the rules they override; a media
+     query carries no extra specificity, so source order is what decides. */
+
+  /* Three columns of a 72px numeral plus a tracked unit stop being three
+     columns at about 200px each. Stacked, the vertical gaps turn into rules —
+     the same move the stats band and the fee columns make. */
+  @media (max-width: 900px) {
+    .deadlines__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 0;
+    }
+
+    .deadline + .deadline {
+      margin-block-start: var(--space-28);
+      padding-block-start: var(--space-28);
+      border-block-start: 1px solid var(--on-dark-rule);
+    }
+  }
+
+  /* The button costs 250px of a ~420px intro here, which is what pushes the
+     heading to three lines. It goes under the copy instead. */
+  @media (max-width: 768px) {
+    .deadlines__head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-sm);
+    }
+
+    .deadlines__intro {
+      max-width: none;
+    }
+
+    /* No width rule for the button: `.btn--wide` already goes full-width at
+       this exact breakpoint in global.css, site-wide. */
+  }
+</style>

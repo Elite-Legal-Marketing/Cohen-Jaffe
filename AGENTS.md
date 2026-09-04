@@ -381,6 +381,13 @@ tracked micro-type wants *more* leading than its size suggests, because caps are
 full-height with no x-height or descender relief. The footer's office pill is the case that
 proved it.
 
+`--lh-flat` is the FLOOR of the token ramp, not of every value on the site. A display
+numeral baseline-aligned beside a small label is the one case that goes under it: a 72px
+figure has a ~50px cap height and no descender, so `1` sets a 72px row for it and the slack
+shows as a gap under the number. The deadlines band sets `line-height: 0.8` locally and
+says why. Safe only because a numeral cannot wrap — do not reach for it on anything that
+might, and do not make it a token.
+
 **Measure** — `--measure` caps `.prose` at ~68 characters (45-75 is the readable band).
 It is **not** in `ch` on purpose: `ch` is the width of the font's "0", and Instrument Sans
 sets a wide zero (~0.67em) against an average lowercase advance of ~0.52em, so `68ch`

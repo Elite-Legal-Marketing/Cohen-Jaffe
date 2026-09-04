@@ -1,96 +1,134 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-04 (Phase C merged to master as PR #13)
+Last updated: 2026-09-04 (deadlines band committed on `hp_time`, not pushed, no PR)
 
 ## Where things stand
 
-Six of the homepage's fifteen sections are built, modelled in Sanity and wired: hero, stats
-band, case results, "Our goals", the fee explainer, and now **practice areas** — Phase C is
-done. Underneath it the **practice areas collection is done end to end** (47 documents), and
-it finally has a consumer.
+Seven of the homepage's fifteen sections are built, modelled in Sanity and wired: hero,
+stats band, case results, "Our goals", the fee explainer, practice areas, and now **the
+New York deadlines band**.
 
-**All of this is on `master`.** `hp_practice_areas` merged as PR #13 (`a213d68`) and
-**nothing is in flight** — the working tree is clean and the next section starts from a fresh
-branch off `master`. The four commits it carried, oldest first: `Working commit` (the
-collection and the hardcoded section, from the previous session), the scroll-jump fix, the
-"Long Island" label change, and Phase C. The old three-PR plan is spent — the first two
-landed inside `Working commit` before anyone split them.
+**`hp_time` is one commit ahead of `master` and has not been pushed** — no branch on the
+remote, no PR. It branched off `f3102ae` and carries the whole deadlines section in a single
+commit: four new files plus the schema, query, page, tokens and both docs. The working tree
+is clean. Note `src/data/homeDeadlines.ts` was created and deleted inside that one commit,
+so the hardcoded stage leaves no trace in the diff.
 
-Gates: `npm run build` green, `npm run check:types` **0 errors (65 files)**, `npm run typegen`
-**2 queries, 37 schema types**, `npx sanity documents validate --yes` clean at **119 documents,
-0 errors, 0 warnings**. All 47 practice areas and the whole seeded section read through the
-PUBLIC API with no token — the only check that catches the dotted-id trap and a dangling ref.
+Gates: `npm run build` green, `npm run check:types` **0 errors (69 files)**, `npm run typegen`
+**2 queries, 39 schema types**, `npx sanity documents validate --yes` clean at **119 documents,
+0 errors, 0 warnings**. The section reads back through the PUBLIC API with no token — the
+only check that catches the dotted-id trap.
 
-## What Phase C actually did
+## The deadlines band
 
-The section moved from a hardcoded constant to Sanity, and **the built HTML did not change by
-one byte**. That was verified, not assumed: the pre-swap tree was rebuilt from HEAD and the
-two `dist/index.html` files diffed. The only differences were the seven CTA labels changed
-deliberately in the same session — every image URL, `srcset`, hotspot `object-position`,
-sub-link and the entire all-areas card were identical.
+`src/components/Deadlines.astro`, rendered after practice areas. A gold-ruled dark strip
+between two light sections: kicker, heading and lead on the left with the CTA held right,
+then a hairline and three big gold figures — 30 days, 3 years, 90 days.
 
 | File | What |
 | --- | --- |
-| `src/sanity/schemaTypes/objects/practiceAreasSection.ts` | The band — groups Copy / Tabs / All areas card |
-| `src/sanity/schemaTypes/objects/practiceAreaTab.ts` | One tab: an `area` reference plus the homepage's pitch |
-| `src/sanity/schemaTypes/objects/textLink.ts` | **New shared type** — a link rendered as TEXT |
-| `src/sanity/schemaTypes/hrefRule.ts` | `validateHref`, shared by `ctaLink` and `textLink` |
-| `scripts/seed-home-practice-areas.ts` | The seed — **and the provenance record** |
-| `scripts/patch-practice-area-link-labels.ts` | One-shot: stripped "Long Island" from 8 documents |
+| `src/sanity/schemaTypes/objects/deadlinesSection.ts` | The band |
+| `src/sanity/schemaTypes/objects/deadlineFigure.ts` | One figure: `figure` + `unit` + `body`, all required |
+| `src/components/Deadlines.astro` | The section |
+| `scripts/seed-home-deadlines.ts` | The seed — **and the provenance record** |
+| `src/styles/global.css` | `--forest-1100` and `--gradient-forest-night` |
 
-`src/data/homePracticeAreas.ts` is **deleted**. `PracticeAreas.astro` now takes a `section`
-prop typed `NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["practiceAreas"]>`, and
-`index.astro` guards it like every other section.
+`src/data/homeDeadlines.ts` was the hardcoded stage and is **deleted**. The swap to Sanity
+was verified, not assumed: `dist/index.html` was saved before the swap and diffed after, and
+the two files are **byte-identical at 229,195 bytes**. (The 30-day card was corrected after
+that diff, so `dist/` no longer matches those bytes — the diff proved the WIRING, not the
+current copy.)
 
-⚠️ **The provenance moved into the seed script, and that is where it lives now.** Which of the
-seven callouts are statements of New York law, which were checked against the firm's own
-pages, and which four were corrected (construction, slip & fall, medical malpractice, wrongful
-death) is the docblock of `scripts/seed-home-practice-areas.ts`. For a section stating law
-that is the part that matters — do not treat that file as a throwaway script.
+Typegen landed at **39 schema types, exactly the predicted +2** — no `<type>.reference`
+companion this time, because nothing new references a document type.
 
-### Two things the old plan got wrong
+### ⚠️ The provenance lives in the seed script, and that is where it stays
 
-- **Typegen lands at 37 schema types, not the predicted 35.** Two came from the new section
-  types, one from `textLink`, and one is `practiceArea.reference` — Sanity auto-emits a
-  `<type>.reference` companion the first time any reference to a document type exists, and
-  until Phase C nothing referenced `practiceArea`. Now in AGENTS.md.
-- **The sub-links are `textLink`, not `ctaLink`.** The plan said `ctaLink`. Seeding proved it
-  wrong: 13 of the 21 approved sub-link labels are longer than `ctaLink`'s 28-character
-  button cap, so every publish raised 13 warnings claiming approved copy would "wrap the
-  button", about things that are not buttons. A nested type's validation cannot be overridden
-  per usage, so the fix was a second link type. `ctaLink` is now titled "Button" and says so;
-  both share `validateHref` so they cannot drift on the trailing-slash rule. `allLink` is a
-  `textLink` too — it renders as an underlined link, not a button. Rule 10 in AGENTS.md.
+Every word of this section is a statement of New York law, and a reader who believes a
+number here and acts on it loses their claim. The statute behind each figure is in the
+docblock of `scripts/seed-home-deadlines.ts`:
 
-### The shape, for when it needs changing
+- **30 days** — 11 NYCRR § 65-1.1, no-fault written notice. Most people get this wrong
+  because it was 90 days until the 2002 revision.
+- **3 years** — CPLR § 214(5).
+- **90 days** — GML § 50-e(1)(a), notice of claim against a public corporation. Transit
+  authorities come in by their own enabling acts (e.g. Public Authorities Law § 1212), which
+  is why the card names them separately. The statute runs the 90 days from when the CLAIM
+  ARISES — and in a wrongful death case from the appointment of the estate's representative.
 
-`practiceAreasSection`: `eyebrow`, `heading` (required), `subheading`, `tabs[]` of
-`practiceAreaTab`, `disclaimer` (required), `allHeading`, `allLink` (`textLink`), `allAreas[]`
-references (`.unique()`, max 16 warning). `tabs` is capped at **7 with `.warning()`**, not
-`.error()` — an eighth tab makes a taller rail, which is ugly, not broken, unlike the fifth
-case-result card. Duplicate areas are caught by a **`.custom()`**, because `.unique()` on an
-array of objects compares whole objects and two tabs pointing at the same area differ in
-`_key` and copy, so it would never fire.
+All three were re-verified against the primary source on 2026-09-04: nysenate.gov for the
+statutes, dfs.ny.gov for Regulation 68.
 
-`practiceAreaTab`: `area` reference (**the one required field**), `headline`, `callout`,
-`links[]` of `textLink` max 3 warning. **There is deliberately no `quote` field** — see below.
+**Three** lines of the artboard were **corrected**:
 
-## Seeding and re-seeding
+- **The lead contradicted its own first card.** It read "the shortest deadline applies when
+  a bus, a town, or a school district was involved" — but 30 days is shorter, and applies to
+  every crash. Only the superlative was replaced: "the window shortens sharply". The point it
+  was reaching for is true (90 days' notice, then one year and ninety days to sue, GML § 50-i)
+  and now survives the card next to it.
+- **"Less for malpractice"** → **"medical malpractice"**. Unqualified it is wrong in the
+  client's favour: legal malpractice is three years, CPLR § 214(6). Medical malpractice is
+  two and a half, CPLR § 214-a.
+- **"To file your no-fault application"** → **"to give your insurer written notice of a
+  no-fault claim"**, caught on a re-check after the section was already seeded. The artboard
+  hangs the 30 days on the wrong document. § 65-1.1 puts it on WRITTEN NOTICE; the NF-2
+  "Application for Motor Vehicle No-Fault Benefits" is a different filing, which the insurer
+  must mail out within five business days of receiving that notice (§ 65-3.4(b)) and which
+  the claimant returns on its own clock. DFS **OGC Opinion 08-06-01** is explicit that a late
+  NF-2 does not defeat a claim where timely written notice was given some other way — an
+  MV-104 police report will do. The original misleads both ways: someone waiting for a form
+  to arrive can blow the notice deadline, and someone whose form arrives late can believe
+  they have lost a claim they still have.
 
-`npx sanity exec scripts/seed-home-practice-areas.ts --with-user-token`
+**The heading is a generalisation and was deliberately left alone.** "The clock started the
+day of your accident" is true of ordinary negligence and not of wrongful death (runs from
+death), medical malpractice (act, or end of continuous treatment) or toxic exposure
+(discovery). It is approved copy. **Do not "tighten" the figures to agree with it.**
 
-It writes ONE field on the `homePage` singleton — `createIfNotExists` then `patch().set()`,
-**never `createOrReplace`**, which would take the other five sections with it. Three guards:
-it aborts unless the collection counts 47, aborts if any referenced area is missing (a
-dangling `_ref` publishes fine and then dereferences to null at build time, killing the
-build), and **refuses to run at all if the section already exists** — `.set()` replaces the
-whole section, and an editor's tuning would go with it. `SEED_OVERWRITE=1` forces it.
+### ⚠️ This section has no disclaimer, and it leans on the one above it
 
-`scripts/patch-practice-area-link-labels.ts` is the same idea at document level and is now
-**spent** — it stripped "Long Island " from the 8 `practiceArea.linkLabel` values so the CTAs
-read "Car accident lawyers". It asserts each stored value before writing and reports drift
-rather than overwriting a hand-edit. Once nothing else needs it, delete it.
+`deadlinesSection` has **no `disclaimer` field**. The practice-areas band directly above
+closes with "Information on this page is general and is not legal advice about your case.
+New York deadlines and rules vary by claim type" — this section's disclaimer, one band away,
+naming deadlines specifically. A second would be the same sentence twice in a screen.
+
+**Reordering those two bands, or removing the practice-areas one, leaves a section of bare
+legal deadlines with nothing qualifying it.** The warning is on the field in `homePage.ts`
+and in `deadlinesSection.ts`; it is the single most breakable thing about this section.
+
+### Four things in it are ours, not the artboard's
+
+- **The heading does not `white-space: nowrap`.** Same fixed-1660px trick the fee band had —
+  it would force a horizontal scrollbar under ~1150px.
+- **The CTA is Oswald**, not the board's Roboto Condensed. The geometry is the board's
+  exactly (48 × 250 = `.btn--sm.btn--wide`); this is the only button on the board asking for a
+  third typeface, and taking it would leave the page's four gold CTAs in two voices.
+- **The head's bottom margin is `--space-section`, not the artboard's 32px.** That is the
+  SAME token `.section` uses for its own padding, and deliberately so: what sits below the
+  grid is the section's bottom padding, so borrowing the token frames the grid with equal
+  space above and below at every width instead of matching at one measured viewport. At 1440
+  it is 73px each side; the artboard's 32px left the hairline crowding the lead with 80px of
+  air under the last line. Confirmed with the user 2026-09-04 against the alternative (equal
+  air around the FIGURES rather than the grid box) — the two cannot both be equal, because
+  the hairline is the grid's own top border, so space added above the box moves the rule away
+  from the lead but not from the figures.
+- **`--gradient-forest-night` exists for this band alone.** The board's darkest fade, used
+  once. Three forest gradients already run down this page and the one section saying a clock
+  is running should not read as a fourth. Its first stop is snapped onto `--forest-900` — the
+  board's `#22291a` is off by one in two channels — so the scale keeps one value.
+
+**The figure's `line-height` is 0.8**, the only sub-`--lh-flat` value on the site, and it is
+explained both in the component and now in AGENTS.md.
+
+**Below 768px the button goes full width because of a GLOBAL `.btn--wide` rule**, not
+anything this section does. A local rule duplicating it was written and then removed.
+
+Two things nobody has ruled on: at 1660 the lead runs to a single ~1100px line, well past the
+readable measure the design system sets elsewhere (the board draws it that way and
+`CaseResults` set the no-cap precedent, so both were followed); and the CTA label promises a
+checker that does not exist — it goes to `/contact/`, matching the hero and the fee band,
+because the only honest way to check a deadline is to have a lawyer look at the facts.
 
 ## Case results — unchanged, and still the launch blocker
 
@@ -134,6 +172,31 @@ with every fill and stroke `currentColor`, so olive→gold on a tab is one `colo
 **Premises Liability's photograph is only 1000px wide** (the live site's own upload; the
 artboard reused the dog-bite shot). Fine for a card, replace before any full-bleed use.
 
+## The homepage practice areas section
+
+`src/components/PracticeAreas.astro`. Three things in it are ours rather than the artboard's,
+and all three are load-bearing:
+
+- **The tabs are radio buttons and there is no JavaScript.** `input` → `label` → `article`, so
+  `:checked + label + pane` reveals the pane by CSS adjacency alone. All seven panes are in
+  the DOM for crawlers, the first is active with no script, and the radio group gives
+  arrow-key selection and one tab stop for free.
+- **The hidden radios are `position: fixed; top: 0; left: 0`, and that is not cosmetic.** As
+  `position: absolute` with no offsets they all resolved to one point at the top of the rail,
+  and since clicking a label focuses its input — and focusing scrolls it into view — clicking
+  the sixth tab threw the page up by 440px. Now a gotcha in AGENTS.md.
+- **Below 1024px it is an accordion**, and below 768px the pane stacks. In accordion mode
+  `scrollTop` still shifts when a pane above collapses — Chrome's scroll anchoring keeping the
+  tapped tab in place. Not a bug; do not "fix" it.
+
+⚠️ **The seven callouts are statements of New York law**; full provenance in
+`scripts/seed-home-practice-areas.ts`. **The artboard's seven pull quotes are NOT on the page
+and `practiceAreaTab` has no field for them** — every one was invented and credited to Jaffe.
+Do not add a `quote` field back without real, sourced quotes.
+
+**The three sub-links per tab point at pages that do not exist yet**, so each links to the
+area's own page. They become anchors when the detail pages are built — a Studio edit now.
+
 ## Site Settings, "Our goals", the fee explainer, attorneys
 
 `firmDetails` is a singleton under **Site Settings**, read everywhere through **`getFirm()`**
@@ -162,70 +225,26 @@ the first case-result card. Id, title and duration all need replacing after the 
 **The "What you can expect" rows map their four olive glyphs BY POSITION**, with no Sanity
 field — reordering rows in the Studio moves the words, not the pictures.
 
-## The homepage practice areas section on the page
-
-`src/components/PracticeAreas.astro`, rendered after the fee band. Three things in it are ours
-rather than the artboard's, and all three are load-bearing:
-
-- **The tabs are radio buttons and there is no JavaScript.** `input` → `label` → `article`, so
-  `:checked + label + pane` reveals the pane by CSS adjacency alone. All seven panes are in
-  the DOM for crawlers, the first is active with no script, and the radio group gives
-  arrow-key selection and one tab stop for free. Adjacency rather than `:has()` so it works
-  for any number of tabs.
-- **The hidden radios are `position: fixed; top: 0; left: 0`, and that is not cosmetic.** As
-  `position: absolute` with no offsets they all resolved to the grid container's padding edge
-  — one point at the top of the rail — and since clicking a label focuses its input, and
-  focusing scrolls it into view, clicking the sixth tab threw the page back up by 440px.
-  Measured 0px of on-screen movement after the fix at 1440 / 900 / 375. The offsets are
-  required: with `top`/`left` auto a fixed box sits at its static position and the jump
-  returns. Now a gotcha in AGENTS.md.
-- **Below 1024px it is an accordion**, and below 768px the pane stacks. In accordion mode
-  `scrollTop` still shifts when a pane above collapses — that is Chrome's scroll anchoring
-  keeping the tapped tab where it is, confirmed by reproducing it with no focus at all. Not a
-  bug; do not "fix" it.
-
-**The tabs never grow or shrink; only the pane sizes to its content** — `repeat(7, 96px)` plus
-a trailing `auto` row that absorbs a taller pane, and `align-self: start` so a shorter one ends
-early. The one cost is a single row-gap under the rail when that row is empty.
-
-**The ghost button is local**, not `.btn--outline`. It gets a global variant only when the
-listing page becomes a second consumer.
-
-### ⚠️ What in this section's copy is real, and what is not
-
-The header copy, the seven thesis headlines, the sub-link labels and the twelve "all areas"
-labels are the artboard's. **The seven callouts are statements of New York law** — full
-provenance in the seed script's docblock. Car, truck and premises stand as drawn; construction,
-slip & fall, medical malpractice and wrongful death were corrected against the statute and the
-firm's own pages.
-
-**The artboard's seven pull quotes are NOT on the page, and `practiceAreaTab` has no field for
-them.** One per tab, every one credited to "Richard S. Jaffe · Managing Partner", every one
-invented — two of them operational claims the site does not support. Built, then cut whole on
-the client's call. **Do not add a `quote` field back** without real, sourced quotes.
-
-**The three sub-links per tab point at pages that do not exist yet**, so each links to the
-area's own page. They become anchors when the detail pages are built — now an edit in the
-Studio, not a code change.
-
-Two small things nobody has ruled on: on a phone a long sub-link can wrap its arrow onto a line
-of its own, and the tab rail is 520px at 1660 but 440px from 1400px down, a step the artboard
-does not have.
-
 ## What is wired
 
 `hero` / `stat` / `ctaLink` → `homePage` → `HOME_PAGE_QUERY` → `Hero.astro`, `Stats.astro`.
 `caseResultsSection` → `results[]->` `featuredCaseResult` (capped at **four with a hard
 `.error()`**, the deliberate exception) → `CaseResults.astro`. `aboutSection` / `feesSection` →
-`About.astro` / `Fees.astro`. **`practiceAreasSection` → `tabs[].area->` and `allAreas[]->`
-`practiceArea` → `PracticeAreas.astro`.** `firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` →
-`Layout.astro` → `Nav`, `MobileNav`, `Footer`; `Fees.astro` calls `getFirm()` directly.
+`About.astro` / `Fees.astro`. `practiceAreasSection` → `tabs[].area->` and `allAreas[]->`
+`practiceArea` → `PracticeAreas.astro`. **`deadlinesSection` → `deadlines[]` of
+`deadlineFigure` → `Deadlines.astro`** — no references, the only section so far with none.
+`firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`, `MobileNav`,
+`Footer`; `Fees.astro` calls `getFirm()` directly.
 
 Desk shape: **Pages → { Homepage }**, then **Collections → { Case Results → { Featured Case
 Results, Case Results }, Attorneys, Practice Areas }**, then **Site Settings → { Firm Details }**.
 Two rules in `structure.ts` and neither fails loudly: anything listed explicitly must also be in
 `LISTED`, or the Studio shows it twice; any singleton must be in `SINGLETONS`, or the Studio
 offers a "create new" beside it.
+
+**The new section's Studio form has not been seen signed in.** `/admin/` renders its login card
+(healthy), but the desk is only visible to a signed-in session — check the collapsed "New York
+deadlines" field once.
 
 ## Videos — pulled, not yet uploaded
 
@@ -245,50 +264,56 @@ first case-result card AND the "Our goals" video card.
 6. **The hero's video card is deliberately not built.**
 7. **The Spanish section is deferred** — background in `navigation.ts`.
 8. **Nine practice-area URLs need confirming live** — the seven missing from the mirror above,
-   plus `/personal-injury-lawyer-nassau-county/` and `/medical-device-lawyer-long-island/`
-   from the nav.
+   plus `/personal-injury-lawyer-nassau-county/` and `/medical-device-lawyer-long-island/`.
 9. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
-   allow and the homepage headline says the opposite. The firm should pick one.
+   allow and the practice-areas headline says the opposite. The firm should pick one.
+10. **The deadlines lead's measure**, and whether "Check my deadline" should keep pointing at
+    `/contact/` or get a real deadline page. Both flagged above.
 
 A new Sanity CORS origin **will** be needed for the eventual custom domain — with credentials.
 
 ## What's next
 
-1. **The homepage attorneys section** — "The three people who will actually work your case."
+1. **Push `hp_time` and open a PR.** One commit, nothing on the remote yet.
+2. **Testimonials** — the next band down the artboard (line 440).
+3. **The homepage attorneys section** — "The three people who will actually work your case."
    **Do not let it repeat whichever quote "Our goals" is using.**
-2. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both artboards approved. The bio
+4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both artboards approved. The bio
    sidebar can now `reference` `practiceArea`.
-3. **`/practice-areas/`** — `CJ - Practice Areas.dc.html`: featured six cards (reads `image`,
-   `icon`, `blurb`, `linkLabel`), then five group cards from `PRACTICE_AREA_GROUPS` with the
-   dash-prefixed link lists. Per-group order is a section decision — an ordered reference array
-   or `order(name asc)` — not a document field.
-4. **`/case-results/`** — the 60 ledger entries have no page yet.
-5. Then New York Deadlines, a **`video`** type once the Wistia uploads exist, and **set `site`
-   in `astro.config.mjs`** so `Layout.astro` emits a canonical link.
+5. **`/practice-areas/`** — `CJ - Practice Areas.dc.html`: featured six cards, then five group
+   cards from `PRACTICE_AREA_GROUPS`. Per-group order is a section decision, not a document field.
+6. **`/case-results/`** — the 60 ledger entries have no page yet.
+7. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
+   `astro.config.mjs`** so `Layout.astro` emits a canonical link.
 
 ## Things that would surprise someone
 
+- **`--lh-flat: 1` is the token ramp's floor, not the site's.** A display numeral
+  baseline-aligned beside a small label goes under it; the deadlines figure is `0.8` and says
+  why. Do not make it a token.
 - **A visually-hidden radio must be `position: fixed` with explicit offsets.** Focusing an
-  input scrolls it into view, so wherever it sits is where the page jumps. Full story in
-  AGENTS.md; the practice-area tabs are the case that proved it.
+  input scrolls it into view, so wherever it sits is where the page jumps.
 - **A nested type's validation cannot be overridden per usage** — which is why `ctaLink`
   (button, 28) and `textLink` (text, 48) are two types sharing one `validateHref`.
 - **Typegen counts an auto-generated `<type>.reference` per referenced document type**, so
-  adding two object types can raise the count by three.
+  adding two object types can raise the count by three — or, as here, by exactly two when the
+  new types reference nothing.
 - **Astro's scoped styles do not reach a class you pass INTO a child component** — including
-  an SVG component. Own a wrapper element and use `:global()`. Third time.
+  an SVG component. Own a wrapper element and use `:global()`.
 - **A `cd` in one Bash call leaks into parallel calls in the same shell.** Use absolute paths.
-- **GROQ `match "*/*"` matches everything** — `match` tokenises on non-word characters, so it
-  is not the way to find a slug with a slash in it. Filter in the projection instead.
+- **GROQ `match "*/*"` matches everything** — `match` tokenises on non-word characters.
 - **`sips -Z 2400` writes ~400–1100 KB JPEGs at quality 82** from 5–20 MB camera originals.
 - **The vendor icon SVGs carry `<defs>` with full-canvas clipPaths and `id`s on every group.**
-  Inlined seven times on one page those ids collide; they clip nothing, so strip both.
+  Inlined seven times on one page those ids collide; strip both.
 - **`interpolate-size: allow-keywords` is set on `:root`** — the "What you can expect"
   disclosures depend on it.
 - **A running dev server can serve a STALE scoped-CSS module** while `curl` shows the new
   rule. `touch` the component and reload. **`npm run check:types` re-optimises Vite's deps
-  under a running dev server, leaving `504 (Outdated Optimize Dep)` in the browser console —
-  a reload clears it.** A Studio that renders its login card is healthy; a BLANK one is not.
+  under a running dev server, leaving `504 (Outdated Optimize Dep)` in the browser console.**
+  The one that survives a cache wipe and a restart is
+  `astro/runtime/client/dev-toolbar/entrypoint.js` — Astro's own dev toolbar, dev-only, and it
+  touches neither the site nor the build. A Studio that renders its login card is healthy; a
+  BLANK one is not.
 - **Every hover underline on the site is declared at rest in `transparent`** and fades by
   animating `text-decoration-color`.
 - **The published design canvas has moved on from the local `.dc.html` copies** — it stamps
@@ -300,8 +325,9 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
 - **A dev server is usually already running on port 4321 and it is the user's.** Only 4321 and
   the Vercel URL are registered Sanity CORS origins.
 - **In a hidden browser pane the page cannot scroll at all** — `scrollTop` reads back 0 and
-  real input times out. A NESTED `overflow: auto` container still works, which is how the
-  scroll-jacking fix was A/B tested. Transitions also do not advance and `rAF` never fires.
+  real input times out. The way round it is to `display: none` the other sections and
+  screenshot what is left; that is how this band was checked at every breakpoint. Transitions
+  also do not advance and `rAF` never fires.
 - **The recovered figure is sized by a CONTAINER query**; **a carousel dot is a PAGE**;
   **`.arrow` is a site-wide convention**; **the lightbox tears down synchronously**;
   **`Layout.astro` has a `videoEmbed` prop** without which every `[data-video-id]` is inert.
@@ -312,6 +338,6 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   how a section is added to the homepage singleton without disturbing the others.
 - **`unset(["path.array[].field"])` silently matches nothing** — use an explicit `_key` path.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen currently reports
-  **2 queries and 37 schema types**; if the query count drops, this is why.
+  **2 queries and 39 schema types**; if the query count drops, this is why.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
 - `/new-seo-setup`, `/studio-polish ux` and `/page-speed` remain **deliberately deferred**.
