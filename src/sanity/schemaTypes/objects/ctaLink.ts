@@ -1,8 +1,14 @@
 import { defineField, defineType } from "sanity";
 import { LinkIcon } from "@sanity/icons/Link";
 
+import { validateHref } from "../hrefRule";
+
 /**
- * A call-to-action link.
+ * A call-to-action link — a BUTTON.
+ *
+ * Use `textLink` for a link rendered as text. The two differ only in how
+ * long a label may be, and a nested type's validation cannot be overridden
+ * per usage, which is why they are separate types rather than one.
  *
  * `href` is a plain string rather than a reference because these point at a
  * mix of internal routes, `tel:` numbers and the odd external URL. The
@@ -40,16 +46,7 @@ export const ctaLink = defineType({
       type: "string",
       fieldset: "link",
       placeholder: "/contact/",
-      validation: (rule) =>
-        rule.required().custom((value) => {
-          if (typeof value !== "string") return true;
-          if (/^(https?:\/\/|tel:|sms:|mailto:|#)/.test(value)) return true;
-          if (!value.startsWith("/"))
-            return "Use an internal path like /contact/, or a full https:// or tel: URL";
-          // Site-wide rule: every internal URL is slash-terminated.
-          if (!value.endsWith("/")) return "Internal links must end with a trailing slash";
-          return true;
-        }),
+      validation: (rule) => rule.required().custom(validateHref),
     }),
   ],
   preview: {

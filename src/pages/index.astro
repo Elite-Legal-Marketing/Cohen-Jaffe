@@ -23,5 +23,5 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.caseResults && <CaseResults section={home.caseResults} />}
   {home?.about && <About section={home.about} />}
   {home?.fees && <Fees section={home.fees} />}
-  <PracticeAreas />
+  {home?.practiceAreas && <PracticeAreas section={home.practiceAreas} />}
 </Layout>

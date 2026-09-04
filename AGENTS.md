@@ -275,6 +275,16 @@ on; they exist so setup can move fast without a decision each time.
    drawer, the footer and the fee explainer, so it is a Firm Details field and every consumer
    reads it through `getFirm()`. A field with one consumer belongs on that consumer.
    Navigation is the deliberate exception — it is indexed IA, not settings.
+10. **A BUTTON and a TEXT LINK are different types.** `ctaLink` (title "Button") caps its
+   label at 28 characters because a longer one wraps inside a fixed-width control;
+   `textLink` (title "Link") caps at 48, where a trailing arrow drops onto its own line.
+   They are otherwise identical, and both take the site's URL rule from the one shared
+   `validateHref` in `schemaTypes/hrefRule.ts` so they cannot drift on trailing slashes.
+   Two types rather than one because **a nested type's validation cannot be overridden per
+   usage** — modelling the practice-area sub-links as `ctaLink` raised thirteen warnings
+   telling an editor that approved artboard copy would "wrap the button", about things that
+   are not buttons. Spurious warnings are how editors learn to ignore warnings; pick the
+   type by how the link is RENDERED, not by whether it is a call to action.
 
 Three mechanical notes that follow from these:
 - **A slug may hold a multi-segment live path.** The WordPress practice-area pages sit at the
@@ -284,6 +294,11 @@ Three mechanical notes that follow from these:
   `options.source` — Sanity's default slugify turns the `/` into a hyphen — and the document
   **id** replaces `/` with `-` (`practice-area-birth-injury-cerebral-palsy`), because an id
   may contain neither a slash nor a dot.
+- **Typegen's schema-type count includes an auto-generated `<type>.reference` per document
+  type that is referenced somewhere**, emitted the first time any reference to it exists.
+  Adding two object types to the schema can therefore raise the count by three. If a
+  predicted count is one short, this is usually why — check
+  `[t.name for t in schema.json if t.name.endswith('.reference')]` before hunting a bug.
 - Project **`_key`** on every array in a GROQ query. It is the render key and the handle
   Visual Editing uses for click-to-edit.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen stops finding the

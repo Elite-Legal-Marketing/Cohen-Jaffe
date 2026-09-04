@@ -5,15 +5,16 @@
  * Design: the PRACTICE AREAS band of `Cohen & Jaffe Homepage v1.dc.html`
  * (lines 327–401). A centred header on the sand surface, then a 520px rail
  * of seven tabs beside a white detail pane — photograph, kicker, thesis,
- * legal callout, a partner's line, three sub-links and a ghost button — and
- * under it the disclaimer and the "Handling all areas" card of twelve links.
+ * legal callout, three sub-links and a ghost button — and under it the
+ * disclaimer and the "Handling all areas" card of twelve links.
  *
- * Content is hardcoded for now — `src/data/homePracticeAreas.ts` carries the
- * copy AND the provenance of every clause, which for a section stating New
- * York law is the part that matters. AGENTS.md → "Building sections": build
- * it, approve it, then model it in Sanity. The practice areas themselves are
- * already Sanity documents; the constant mirrors what the query will
- * dereference.
+ * Content comes from the `practiceAreas` field on the `homePage` singleton.
+ * Everything that names a practice area is a REFERENCE, so the name, icon,
+ * photograph and button label are the collection's and cannot drift; the
+ * per-tab pitch belongs to the section. The PROVENANCE of every clause — which
+ * of these statements of New York law were checked against the firm's own
+ * pages, and which were corrected — is in `scripts/seed-home-practice-areas.ts`,
+ * and for a section stating law that is the part that matters.
  *
  * Three things here are ours rather than the artboard's:
  *
@@ -45,9 +46,16 @@ import PracticeAreaIcon from "./PracticeAreaIcon.astro";
 import Check from "../assets/icons/practice-areas/check.svg";
 import { urlFor, srcSet } from "../lib/image";
 import { practiceAreaHref } from "../lib/practiceAreas";
-import { HOME_PRACTICE_AREAS } from "../data/homePracticeAreas";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
-const section = HOME_PRACTICE_AREAS;
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["practiceAreas"]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
 const tabs = section.tabs ?? [];
 const allAreas = section.allAreas ?? [];
 
@@ -76,6 +84,7 @@ const focus = (hotspot: { x: number; y: number } | null | undefined) =>
           const area = tab.area;
           const id = `pa-${tab._key}`;
           const image = area.image?.asset ? area.image : null;
+          const links = tab.links ?? [];
           return (
             <>
               <input type="radio" name="pa" id={id} class="pa__radio" checked={i === 0} />
@@ -122,9 +131,9 @@ const focus = (hotspot: { x: number; y: number } | null | undefined) =>
                     </div>
                   )}
 
-                  {tab.links.length > 0 && (
+                  {links.length > 0 && (
                     <ul class="pa__links" role="list">
-                      {tab.links.map((link) => (
+                      {links.map((link) => (
                         <li>
                           <a class="pa__link" href={link.href}>
                             {link.label}

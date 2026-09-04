@@ -15,9 +15,12 @@ import { feesSection } from "./objects/feesSection";
 import { ctaLink } from "./objects/ctaLink";
 import { hero } from "./objects/hero";
 import { office } from "./objects/office";
+import { practiceAreaTab } from "./objects/practiceAreaTab";
+import { practiceAreasSection } from "./objects/practiceAreasSection";
 import { representativeCase } from "./objects/representativeCase";
 import { richText } from "./objects/richText";
 import { stat } from "./objects/stat";
+import { textLink } from "./objects/textLink";
 import { videoCard } from "./objects/videoCard";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
@@ -33,14 +36,17 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   caseResultsSection,
   aboutSection,
   feesSection,
+  practiceAreasSection,
   // Shared objects
   attorneyQuote,
   ctaLink,
   expectation,
   feeColumn,
   office,
+  practiceAreaTab,
   representativeCase,
   richText,
   stat,
+  textLink,
   videoCard,
 ];
