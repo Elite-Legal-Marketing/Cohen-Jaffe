@@ -105,7 +105,7 @@ const SEEDS: Seed[] = [
     file: "pa-car.jpg",
     blurb:
       "Injured in a crash caused by someone else’s negligence? New York no-fault covers only the first part of your losses — we pursue the rest.",
-    linkLabel: "Long Island car accident lawyers",
+    linkLabel: "Car accident lawyers",
   },
   {
     slug: "long-island-truck-accident-lawyer",
@@ -115,7 +115,7 @@ const SEEDS: Seed[] = [
     file: "pa-truck.jpg",
     blurb:
       "A truck case is an investigation, not a claim. Driver logs, maintenance records, and black-box data have to be secured before they disappear.",
-    linkLabel: "Long Island truck accident lawyers",
+    linkLabel: "Truck accident lawyers",
   },
   { slug: "long-island-bicycle-accident-lawyer", name: "Bicycle Accidents", group: PI },
   { slug: "long-island-brain-injury-attorney", name: "Traumatic Brain Injury", group: PI },
@@ -127,7 +127,7 @@ const SEEDS: Seed[] = [
     file: "pa-construction.jpg",
     blurb:
       "New York’s Labor Law gives injured construction workers claims beyond workers’ compensation — against contractors, owners, and equipment makers.",
-    linkLabel: "Long Island construction accident lawyers",
+    linkLabel: "Construction accident lawyers",
   },
   {
     slug: "long-island-nursing-home-abuse-lawyer",
@@ -144,7 +144,7 @@ const SEEDS: Seed[] = [
     file: "pa-slip-fall.jpg",
     blurb:
       "Ice, broken stairs, unlit walkways, and spills. The owner had to know about the hazard — we gather the reports, witnesses, and photographs that prove it.",
-    linkLabel: "Long Island slip and fall lawyers",
+    linkLabel: "Slip and fall lawyers",
   },
   {
     slug: "long-island-premises-liability-lawyer",
@@ -152,7 +152,7 @@ const SEEDS: Seed[] = [
     group: PI,
     icon: "premises",
     file: "pa-premises.jpg",
-    linkLabel: "Long Island premises liability lawyers",
+    linkLabel: "Premises liability lawyers",
   },
   { slug: "long-island-workers-compensation-attorney", name: "Workers’ Compensation", group: PI },
   {
@@ -161,7 +161,7 @@ const SEEDS: Seed[] = [
     group: PI,
     icon: "wrongfuldeath",
     file: "pa-wrongfuldeath.jpg",
-    linkLabel: "Long Island wrongful death lawyers",
+    linkLabel: "Wrongful death lawyers",
   },
   // ── Personal Injury — additions (nav, footer, artboards) ────────────────
   {
@@ -172,7 +172,7 @@ const SEEDS: Seed[] = [
     file: "pa-motorcycle.jpg",
     blurb:
       "Riders are blamed first and hurt worst. We counter the anti-motorcycle bias and take on the insurer’s version of what happened.",
-    linkLabel: "Long Island motorcycle accident lawyers",
+    linkLabel: "Motorcycle accident lawyers",
   },
   { slug: "long-island-bus-accident-lawyer", name: "Bus & MTA Accidents", group: PI },
   { slug: "long-island-pedestrian-accident-lawyer", name: "Pedestrian Accidents", group: PI },
@@ -192,7 +192,7 @@ const SEEDS: Seed[] = [
     file: "pa-malpractice.jpg",
     blurb:
       "Missed diagnoses, surgical errors, birth injuries, and medication mistakes — investigated with independent medical experts.",
-    linkLabel: "Long Island medical malpractice lawyers",
+    linkLabel: "Medical malpractice lawyers",
   },
   { slug: "long-island-birth-injury-lawyer", name: "Birth Injuries", group: MM },
   { slug: "birth-injury/cerebral-palsy", name: "Cerebral Palsy", group: MM },

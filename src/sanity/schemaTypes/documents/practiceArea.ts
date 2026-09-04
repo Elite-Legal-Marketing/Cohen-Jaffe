@@ -122,7 +122,7 @@ export const practiceArea = defineType({
       name: "linkLabel",
       title: "Link label",
       description:
-        'The words on the button or link that goes to this page — "Long Island car accident lawyers". Leave empty and the name is used.',
+        'The words on the button or link that goes to this page — "Car accident lawyers". Leave empty and the name is used.',
       type: "string",
       validation: (rule) =>
         rule
