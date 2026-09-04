@@ -23,6 +23,12 @@ export type VideoCard = {
   coverAlt: string;
 };
 
+export type TextLink = {
+  _type: "textLink";
+  label: string;
+  href: string;
+};
+
 export type Stat = {
   _type: "stat";
   figure: string;
@@ -53,6 +59,25 @@ export type RepresentativeCase = {
   _type: "representativeCase";
   cite: string;
   note?: string;
+};
+
+export type PracticeAreaReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "practiceArea";
+};
+
+export type PracticeAreaTab = {
+  _type: "practiceAreaTab";
+  area: PracticeAreaReference;
+  headline?: string;
+  callout?: string;
+  links?: Array<
+    {
+      _key: string;
+    } & TextLink
+  >;
 };
 
 export type Office = {
@@ -98,6 +123,26 @@ export type AttorneyQuote = {
   _type: "attorneyQuote";
   text: string;
   attorney: AttorneyReference;
+};
+
+export type PracticeAreasSection = {
+  _type: "practiceAreasSection";
+  eyebrow?: string;
+  heading: string;
+  subheading?: string;
+  tabs?: Array<
+    {
+      _key: string;
+    } & PracticeAreaTab
+  >;
+  disclaimer: string;
+  allHeading?: string;
+  allLink?: TextLink;
+  allAreas?: Array<
+    {
+      _key: string;
+    } & PracticeAreaReference
+  >;
 };
 
 export type FeesSection = {
@@ -188,6 +233,65 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
+export type PracticeArea = {
+  _id: string;
+  _type: "practiceArea";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  slug: Slug;
+  group:
+    | "personal-injury"
+    | "medical-malpractice"
+    | "defective-medical-devices"
+    | "employment-law"
+    | "mass-torts";
+  icon?:
+    | "car"
+    | "truck"
+    | "motorcycle"
+    | "slip"
+    | "malpractice"
+    | "construction"
+    | "nursing"
+    | "dog"
+    | "premises"
+    | "wrongfuldeath";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  blurb?: string;
+  linkLabel?: string;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
 export type Attorney = {
   _id: string;
   _type: "attorney";
@@ -223,28 +327,6 @@ export type Attorney = {
   location?: string;
   phone?: string;
   fax?: string;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
 };
 
 export type CaseResult = {
@@ -317,6 +399,7 @@ export type HomePage = {
   caseResults?: CaseResultsSection;
   about?: AboutSection;
   fees?: FeesSection;
+  practiceAreas?: PracticeAreasSection;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -418,15 +501,19 @@ export type Geopoint = {
 
 export type AllSanitySchemaTypes =
   | VideoCard
+  | TextLink
   | Stat
   | RichText
   | RepresentativeCase
+  | PracticeAreaReference
+  | PracticeAreaTab
   | Office
   | FeeColumn
   | Expectation
   | CtaLink
   | AttorneyReference
   | AttorneyQuote
+  | PracticeAreasSection
   | FeesSection
   | AboutSection
   | FeaturedCaseResultReference
@@ -434,10 +521,11 @@ export type AllSanitySchemaTypes =
   | Hero
   | FirmDetails
   | SanityImageAssetReference
-  | Attorney
+  | PracticeArea
   | SanityImageCrop
   | SanityImageHotspot
   | Slug
+  | Attorney
   | CaseResult
   | FeaturedCaseResult
   | HomePage
@@ -452,7 +540,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    },    practiceAreas{      eyebrow,      heading,      subheading,      tabs[]{        _key,        headline,        callout,        links[]{ _key, label, href },        area->{          _id,          name,          "slug": slug.current,          icon,          linkLabel,          image{ ..., alt }        }      },      disclaimer,      allHeading,      allLink{ label, href },      allAreas[]->{ _id, name, "slug": slug.current }    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
@@ -460,6 +548,7 @@ export type HOME_PAGE_QUERY_RESULT =
       caseResults: null;
       about: null;
       fees: null;
+      practiceAreas: null;
     }
   | {
       hero: {
@@ -579,6 +668,58 @@ export type HOME_PAGE_QUERY_RESULT =
         } | null;
         disclaimer: string;
       } | null;
+      practiceAreas: {
+        eyebrow: string | null;
+        heading: string;
+        subheading: string | null;
+        tabs: Array<{
+          _key: string;
+          headline: string | null;
+          callout: string | null;
+          links: Array<{
+            _key: string;
+            label: string;
+            href: string;
+          }> | null;
+          area: {
+            _id: string;
+            name: string;
+            slug: string;
+            icon:
+              | "car"
+              | "construction"
+              | "dog"
+              | "malpractice"
+              | "motorcycle"
+              | "nursing"
+              | "premises"
+              | "slip"
+              | "truck"
+              | "wrongfuldeath"
+              | null;
+            linkLabel: string | null;
+            image: {
+              asset?: SanityImageAssetReference;
+              media?: unknown;
+              hotspot?: SanityImageHotspot;
+              crop?: SanityImageCrop;
+              alt: string | null;
+              _type: "image";
+            } | null;
+          };
+        }> | null;
+        disclaimer: string;
+        allHeading: string | null;
+        allLink: {
+          label: string;
+          href: string;
+        } | null;
+        allAreas: Array<{
+          _id: string;
+          name: string;
+          slug: string;
+        }> | null;
+      } | null;
     }
   | null;
 
@@ -601,6 +742,16 @@ export type FIRM_DETAILS_QUERY_RESULT =
       shortName: null;
       blurb: null;
       phone: string | null;
+      sms: null;
+      offices: null;
+      advertisingLabel: null;
+      legalDisclaimer: null;
+    }
+  | {
+      name: string;
+      shortName: null;
+      blurb: string | null;
+      phone: null;
       sms: null;
       offices: null;
       advertisingLabel: null;
@@ -633,7 +784,7 @@ export type FIRM_DETAILS_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
     '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
   }
 }

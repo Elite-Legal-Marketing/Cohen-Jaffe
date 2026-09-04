@@ -1,0 +1,57 @@
+---
+/**
+ * A practice area's brand icon, inlined.
+ *
+ * The SVGs are the vendor set the artboards use (`icon-<key>-olive.svg` /
+ * `-gold.svg`), converted so every fill and stroke is `currentColor`: one
+ * file serves both colourways, and olive→gold on a tab is a single `color`
+ * transition on the parent rather than a swap between two images. A document
+ * stores only the KEY — see `practiceAreaIcons.ts` for why the artwork is
+ * here and not in Sanity.
+ *
+ * `ICONS` is typed against the key list, so a key without a file (or a file
+ * without a key) fails the build rather than rendering nothing.
+ *
+ * Two icon families with different construction: the 512-viewBox set (car,
+ * slip, construction, dog) and the 682-viewBox set (the rest) — both are line
+ * icons drawn at comparable stroke weight, and the artboards render them at
+ * the same 60px box without adjustment, so nothing is scaled here.
+ */
+import type { PracticeAreaIcon } from "../sanity/schemaTypes/practiceAreaIcons";
+import Car from "../assets/icons/practice-areas/car.svg";
+import Truck from "../assets/icons/practice-areas/truck.svg";
+import Motorcycle from "../assets/icons/practice-areas/motorcycle.svg";
+import Slip from "../assets/icons/practice-areas/slip.svg";
+import Malpractice from "../assets/icons/practice-areas/malpractice.svg";
+import Construction from "../assets/icons/practice-areas/construction.svg";
+import Nursing from "../assets/icons/practice-areas/nursing.svg";
+import Dog from "../assets/icons/practice-areas/dog.svg";
+import Premises from "../assets/icons/practice-areas/premises.svg";
+import WrongfulDeath from "../assets/icons/practice-areas/wrongfuldeath.svg";
+
+const ICONS = {
+  car: Car,
+  truck: Truck,
+  motorcycle: Motorcycle,
+  slip: Slip,
+  malpractice: Malpractice,
+  construction: Construction,
+  nursing: Nursing,
+  dog: Dog,
+  premises: Premises,
+  wrongfuldeath: WrongfulDeath,
+} satisfies Record<PracticeAreaIcon, unknown>;
+
+interface Props {
+  /** The document's `icon` key. Renders nothing for an empty or unknown key. */
+  name: string | null | undefined;
+  /** Rendered box, in px. The artboards draw these at 60. */
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 60, class: className } = Astro.props;
+const Icon = name && name in ICONS ? ICONS[name as PracticeAreaIcon] : null;
+---
+
+{Icon && <Icon width={size} height={size} class={className} aria-hidden="true" focusable="false" />}

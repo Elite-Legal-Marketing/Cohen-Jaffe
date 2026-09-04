@@ -69,6 +69,12 @@ export const homePage = defineType({
       type: "feesSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "practiceAreas",
+      title: "Practice areas",
+      type: "practiceAreasSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

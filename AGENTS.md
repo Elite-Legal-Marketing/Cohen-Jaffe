@@ -112,6 +112,9 @@ Rendering rules, ours — the artboards only ever draw the collapsed "▾":
   drawer's open/close.
 - The card is capped at `100vh - nav-height` and scrolls: Practice Areas is 17 links plus
   three headings.
+- **A centred eyebrow has no dash.** Use `.eyebrow--center` over a centred heading: the dash
+  is drawn to the left of the text and reads as a stray mark once the text is centred.
+  `.eyebrow--bare` is the other dashless case, for a label that does not open a section.
 - **Any link or button ending in an arrow animates it.** Wrap the glyph in
   `<span class="arrow" aria-hidden="true">→</span>` and `global.css` slides it 0.25em on
   hover *and* on keyboard focus (`.arrow--back` for a `←`). Sized in `em` so it scales with
@@ -272,8 +275,30 @@ on; they exist so setup can move fast without a decision each time.
    drawer, the footer and the fee explainer, so it is a Firm Details field and every consumer
    reads it through `getFirm()`. A field with one consumer belongs on that consumer.
    Navigation is the deliberate exception — it is indexed IA, not settings.
+10. **A BUTTON and a TEXT LINK are different types.** `ctaLink` (title "Button") caps its
+   label at 28 characters because a longer one wraps inside a fixed-width control;
+   `textLink` (title "Link") caps at 48, where a trailing arrow drops onto its own line.
+   They are otherwise identical, and both take the site's URL rule from the one shared
+   `validateHref` in `schemaTypes/hrefRule.ts` so they cannot drift on trailing slashes.
+   Two types rather than one because **a nested type's validation cannot be overridden per
+   usage** — modelling the practice-area sub-links as `ctaLink` raised thirteen warnings
+   telling an editor that approved artboard copy would "wrap the button", about things that
+   are not buttons. Spurious warnings are how editors learn to ignore warnings; pick the
+   type by how the link is RENDERED, not by whether it is a call to action.
 
-Two mechanical notes that follow from these:
+Three mechanical notes that follow from these:
+- **A slug may hold a multi-segment live path.** The WordPress practice-area pages sit at the
+  root (`/long-island-car-accident-lawyer/`) or one level down (`/birth-injury/cerebral-palsy/`),
+  so `practiceArea.slug` stores the path without its surrounding slashes, slash included, and
+  `practiceAreaHref()` in `src/lib/practiceAreas.ts` adds them back. Such a slug field gets NO
+  `options.source` — Sanity's default slugify turns the `/` into a hyphen — and the document
+  **id** replaces `/` with `-` (`practice-area-birth-injury-cerebral-palsy`), because an id
+  may contain neither a slash nor a dot.
+- **Typegen's schema-type count includes an auto-generated `<type>.reference` per document
+  type that is referenced somewhere**, emitted the first time any reference to it exists.
+  Adding two object types to the schema can therefore raise the count by three. If a
+  predicted count is one short, this is usually why — check
+  `[t.name for t in schema.json if t.name.endswith('.reference')]` before hunting a bug.
 - Project **`_key`** on every array in a GROQ query. It is the render key and the handle
   Visual Editing uses for click-to-edit.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen stops finding the
@@ -528,6 +553,17 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
   loses. A block moved during an edit is the usual cause; the symptom is a mobile value
   that never applies while the layout parts of the same block clearly do.
+- **A visually-hidden radio or checkbox must be `position: fixed` with explicit offsets,
+  never `position: absolute`.** Clicking a `<label>` focuses its input, and focusing an
+  element scrolls it into view — so wherever the input sits is where the page jumps. An
+  absolutely-positioned child of a grid container with no offsets resolves to the
+  container's padding edge, which stacked all seven practice-area radios on ONE point at
+  the top of the tab rail: clicking the sixth tab threw the page back up to the first, by
+  440px. `position: fixed; top: 0; left: 0` is always inside the viewport, so there is
+  nothing to scroll to, at every breakpoint and for any number of tabs. The offsets are
+  not optional — with `top`/`left` auto a fixed box sits at its static position, which is
+  the same off-screen point. Applies to any CSS-only tab/accordion built on
+  `:checked + label + pane`.
 - **Never put a background on an element that is also `.container`.** It is inset by the
   gutter, so the background stops short and whatever sits behind shows in two strips down
   the sides. Put it on the full-width parent.

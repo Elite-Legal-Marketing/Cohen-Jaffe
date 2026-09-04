@@ -57,6 +57,29 @@ export const HOME_PAGE_QUERY = defineQuery(`
       },
       cta{ label, href },
       disclaimer
+    },
+    practiceAreas{
+      eyebrow,
+      heading,
+      subheading,
+      tabs[]{
+        _key,
+        headline,
+        callout,
+        links[]{ _key, label, href },
+        area->{
+          _id,
+          name,
+          "slug": slug.current,
+          icon,
+          linkLabel,
+          image{ ..., alt }
+        }
+      },
+      disclaimer,
+      allHeading,
+      allLink{ label, href },
+      allAreas[]->{ _id, name, "slug": slug.current }
     }
   }
 `);

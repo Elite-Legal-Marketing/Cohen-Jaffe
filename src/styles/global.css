@@ -680,6 +680,18 @@ details > summary::-webkit-details-marker {
   content: none;
 }
 
+/* A centred kicker — over a centred section heading. The dash goes too: it is
+   drawn to the LEFT of the text, so centred it reads as a stray mark hanging
+   off one side rather than a rule. Decided 2026-09-04; applies site-wide. */
+.eyebrow--center {
+  justify-content: center;
+  text-align: center;
+}
+
+.eyebrow--center::before {
+  content: none;
+}
+
 .label {
   font-family: var(--font-label);
   font-size: var(--fs-meta);

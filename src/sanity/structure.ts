@@ -5,6 +5,7 @@ import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
 import { HomeIcon } from "@sanity/icons/Home";
 import { StarIcon } from "@sanity/icons/Star";
+import { TagsIcon } from "@sanity/icons/Tags";
 import { UsersIcon } from "@sanity/icons/Users";
 
 /**
@@ -29,7 +30,7 @@ const SINGLETONS = ["homePage", "firmDetails"] as const;
  * Collections given their own list item above. They must be excluded from the
  * generic fallback too, or the Studio shows each of them twice.
  */
-const LISTED = ["featuredCaseResult", "caseResult", "attorney"] as const;
+const LISTED = ["featuredCaseResult", "caseResult", "attorney", "practiceArea"] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
 const singleton = (
@@ -88,6 +89,11 @@ export const structure: StructureResolver = (S) =>
               // the ordered reference array on that page's section, so there is
               // nothing here to sort.
               S.documentTypeListItem("attorney").title("Attorneys").icon(UsersIcon),
+
+              // Flat too, at forty-seven documents: the row subtitle carries the
+              // group and the path, which is enough to find one. Five per-group
+              // sub-lists are a `/studio-polish` option if editors ask.
+              S.documentTypeListItem("practiceArea").title("Practice Areas").icon(TagsIcon),
             ]),
         ),
 
