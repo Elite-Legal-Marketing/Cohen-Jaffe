@@ -538,6 +538,17 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
   extra specificity, so `@media { .x { … } }` placed above a plain `.x { … }` silently
   loses. A block moved during an edit is the usual cause; the symptom is a mobile value
   that never applies while the layout parts of the same block clearly do.
+- **A visually-hidden radio or checkbox must be `position: fixed` with explicit offsets,
+  never `position: absolute`.** Clicking a `<label>` focuses its input, and focusing an
+  element scrolls it into view — so wherever the input sits is where the page jumps. An
+  absolutely-positioned child of a grid container with no offsets resolves to the
+  container's padding edge, which stacked all seven practice-area radios on ONE point at
+  the top of the tab rail: clicking the sixth tab threw the page back up to the first, by
+  440px. `position: fixed; top: 0; left: 0` is always inside the viewport, so there is
+  nothing to scroll to, at every breakpoint and for any number of tabs. The offsets are
+  not optional — with `top`/`left` auto a fixed box sits at its static position, which is
+  the same off-screen point. Applies to any CSS-only tab/accordion built on
+  `:checked + label + pane`.
 - **Never put a background on an element that is also `.container`.** It is inset by the
   gutter, so the background stops short and whatever sits behind shows in two strips down
   the sides. Put it on the full-width parent.

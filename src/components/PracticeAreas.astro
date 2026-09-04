@@ -242,12 +242,25 @@ const focus = (hotspot: { x: number; y: number } | null | undefined) =>
     margin-block-end: var(--space-26);
   }
 
-  /* Out of the grid's flow and off the page, but NOT `display: none` — a
-     hidden radio cannot take focus, and the keyboard model depends on it.
+  /* Out of the grid's flow and invisible, but NOT `display: none` — a hidden
+     radio cannot take focus, and the keyboard model depends on it.
      `.visually-hidden` is not used because its `:not(:focus)` clause is for
-     skip links and would pop the radio back into view when focused. */
+     skip links and would pop the radio back into view when focused.
+
+     `position: FIXED`, pinned to the viewport's corner, and that is load-
+     bearing: it is the whole fix for a scroll jump. An absolutely-positioned
+     child of a grid container with no offsets resolves to the container's
+     padding edge, so all seven radios stacked on ONE point at the top of the
+     rail. Clicking a label focuses its radio, and focusing an element scrolls
+     it into view — so clicking the sixth tab threw the page back up to the
+     first. A fixed element is always in the viewport, so there is nothing to
+     scroll to, at every breakpoint and for any number of tabs. Offsets must be
+     given explicitly: with `top`/`left` auto a fixed box sits at its static
+     position, which is the same off-screen point, and the scroll comes back. */
   .pa__radio {
-    position: absolute;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 1px;
     height: 1px;
     opacity: 0;
