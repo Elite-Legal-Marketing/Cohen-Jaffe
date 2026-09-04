@@ -21,6 +21,10 @@
  *
  */
 import videoCover from "../assets/about-video-cover.jpg";
+import IconPressure from "../assets/icons/expect/pressure.svg";
+import IconAttorney from "../assets/icons/expect/attorney.svg";
+import IconDayToDay from "../assets/icons/expect/day-to-day.svg";
+import IconCalls from "../assets/icons/expect/calls.svg";
 import { getImage } from "astro:assets";
 import RichText from "./RichText.astro";
 import { urlFor } from "../lib/image";
@@ -56,6 +60,17 @@ const quote = section.quote;
 const video = section.video;
 
 /**
+ * The olive glyph beside each "What you can expect" row, BY ROW POSITION.
+ *
+ * There is deliberately no `icon` field in Sanity — the client cut the field
+ * and kept the glyphs (2026-09-04). So the first row gets the first icon, and
+ * so on; a fifth row would wrap back to the first. Reordering the rows in the
+ * Studio therefore moves the words, not the pictures. If that ever bites, the
+ * fix is the field this replaced: a `string` with a `list` of these keys.
+ */
+const EXPECTATION_ICONS = [IconPressure, IconAttorney, IconDayToDay, IconCalls];
+
+/**
  * The portrait comes from the referenced ATTORNEY document, not from this
  * section — so it can never disagree with the listing page or the bio.
  *
@@ -87,11 +102,17 @@ const portrait = quote?.attorney?.portrait?.asset
 
       <ul class="expect" role="list">
         {
-          (section.expectations ?? []).map((item) => {
+          (section.expectations ?? []).map((item, i) => {
+            const Icon = EXPECTATION_ICONS[i % EXPECTATION_ICONS.length];
             return (
               <li class="expect__item">
                 <details class="expect__disclosure">
                   <summary class="expect__summary">
+                    {/* A wrapper this template owns — scoped styles cannot reach
+                        the SVG component's own root. */}
+                    <span class="expect__icon" aria-hidden="true">
+                      <Icon />
+                    </span>
                     <span class="expect__title">{item.title}</span>
                     <span class="expect__blurb">{item.blurb}</span>
                     <span class="expect__toggle" aria-hidden="true">
@@ -235,6 +256,7 @@ const portrait = quote?.attorney?.portrait?.asset
     /* The gap between the text and the toggle, held in a custom property so the
        responsive step changes one number rather than several. */
     --expect-gap: var(--space-18);
+    --expect-icon: 40px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -253,7 +275,7 @@ const portrait = quote?.attorney?.portrait?.asset
      and the blurb wrapped every few words. */
   .expect__summary {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     column-gap: var(--expect-gap);
     align-items: start;
     padding-block: var(--space-24);
@@ -267,8 +289,24 @@ const portrait = quote?.attorney?.portrait?.asset
     outline-offset: 2px;
   }
 
-  .expect__title {
+  .expect__icon {
     grid-column: 1;
+    grid-row: 1 / span 2;
+    display: block;
+    width: var(--expect-icon);
+    height: var(--expect-icon);
+    margin-block-start: 2px;
+    color: var(--green);
+  }
+
+  .expect__icon :global(svg) {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .expect__title {
+    grid-column: 2;
     grid-row: 1;
     font-family: var(--font-heading);
     font-size: var(--fs-24);
@@ -278,7 +316,7 @@ const portrait = quote?.attorney?.portrait?.asset
   }
 
   .expect__blurb {
-    grid-column: 1;
+    grid-column: 2;
     grid-row: 2;
     font-size: var(--fs-16);
     line-height: var(--lh-body);
@@ -286,7 +324,7 @@ const portrait = quote?.attorney?.portrait?.asset
   }
 
   .expect__toggle {
-    grid-column: 2;
+    grid-column: 3;
     grid-row: 1 / span 2;
     align-self: center;
     position: relative;
@@ -351,9 +389,10 @@ const portrait = quote?.attorney?.portrait?.asset
   }
 
   .expect__detail {
-    /* Flush with the title above it — there is no icon column to clear. No
-       negative top margin pulling it up under the summary's padding either:
-       inside a clipped, animating box that shaves the dashed rule off. */
+    /* Aligned under the title, not under the icon. No negative top margin
+       pulling it up under the summary's padding: inside a clipped, animating
+       box that shaves the dashed rule off. */
+    margin-inline-start: calc(var(--expect-icon) + var(--expect-gap));
     padding-block: var(--space-14) var(--space-24);
     border-block-start: 1px dashed rgba(169, 126, 55, 0.4);
   }
@@ -595,6 +634,11 @@ const portrait = quote?.attorney?.portrait?.asset
 
   @media (max-width: 768px) {
     .expect {
+      --expect-icon: 30px;
+      --expect-gap: var(--space-14);
+    }
+
+    .expect {
       --expect-gap: var(--space-14);
     }
 
@@ -608,8 +652,9 @@ const portrait = quote?.attorney?.portrait?.asset
   /* The attribution row runs out of width for a name, a role and a link on one
      line: the link drops under the portrait rather than squeezing the name. */
   @media (max-width: 500px) {
-    /* The blurb takes the whole row; the title and the toggle keep the top line
-       to themselves. */
+    /* The blurb takes the whole row; the icon, the title and the toggle keep
+       the top line to themselves. */
+    .expect__icon,
     .expect__toggle {
       grid-row: 1;
     }
@@ -617,6 +662,11 @@ const portrait = quote?.attorney?.portrait?.asset
     .expect__blurb {
       grid-column: 1 / -1;
       margin-block-start: var(--space-10);
+    }
+
+    /* Nothing left to line up with, so the detail runs flush too. */
+    .expect__detail {
+      margin-inline-start: 0;
     }
 
     /* The rule and the gap above it are the desktop column's work — they

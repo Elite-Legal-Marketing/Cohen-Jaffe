@@ -188,6 +188,65 @@ export type SanityImageAssetReference = {
   [internalGroqTypeReferenceTo]?: "sanity.imageAsset";
 };
 
+export type PracticeArea = {
+  _id: string;
+  _type: "practiceArea";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  slug: Slug;
+  group:
+    | "personal-injury"
+    | "medical-malpractice"
+    | "defective-medical-devices"
+    | "employment-law"
+    | "mass-torts";
+  icon?:
+    | "car"
+    | "truck"
+    | "motorcycle"
+    | "slip"
+    | "malpractice"
+    | "construction"
+    | "nursing"
+    | "dog"
+    | "premises"
+    | "wrongfuldeath";
+  image?: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt?: string;
+    _type: "image";
+  };
+  blurb?: string;
+  linkLabel?: string;
+};
+
+export type SanityImageCrop = {
+  _type: "sanity.imageCrop";
+  top: number;
+  bottom: number;
+  left: number;
+  right: number;
+};
+
+export type SanityImageHotspot = {
+  _type: "sanity.imageHotspot";
+  x: number;
+  y: number;
+  height: number;
+  width: number;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
 export type Attorney = {
   _id: string;
   _type: "attorney";
@@ -223,28 +282,6 @@ export type Attorney = {
   location?: string;
   phone?: string;
   fax?: string;
-};
-
-export type SanityImageCrop = {
-  _type: "sanity.imageCrop";
-  top: number;
-  bottom: number;
-  left: number;
-  right: number;
-};
-
-export type SanityImageHotspot = {
-  _type: "sanity.imageHotspot";
-  x: number;
-  y: number;
-  height: number;
-  width: number;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
 };
 
 export type CaseResult = {
@@ -434,10 +471,11 @@ export type AllSanitySchemaTypes =
   | Hero
   | FirmDetails
   | SanityImageAssetReference
-  | Attorney
+  | PracticeArea
   | SanityImageCrop
   | SanityImageHotspot
   | Slug
+  | Attorney
   | CaseResult
   | FeaturedCaseResult
   | HomePage
@@ -601,6 +639,16 @@ export type FIRM_DETAILS_QUERY_RESULT =
       shortName: null;
       blurb: null;
       phone: string | null;
+      sms: null;
+      offices: null;
+      advertisingLabel: null;
+      legalDisclaimer: null;
+    }
+  | {
+      name: string;
+      shortName: null;
+      blurb: string | null;
+      phone: null;
       sms: null;
       offices: null;
       advertisingLabel: null;

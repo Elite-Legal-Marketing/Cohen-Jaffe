@@ -112,6 +112,9 @@ Rendering rules, ours — the artboards only ever draw the collapsed "▾":
   drawer's open/close.
 - The card is capped at `100vh - nav-height` and scrolls: Practice Areas is 17 links plus
   three headings.
+- **A centred eyebrow has no dash.** Use `.eyebrow--center` over a centred heading: the dash
+  is drawn to the left of the text and reads as a stray mark once the text is centred.
+  `.eyebrow--bare` is the other dashless case, for a label that does not open a section.
 - **Any link or button ending in an arrow animates it.** Wrap the glyph in
   `<span class="arrow" aria-hidden="true">→</span>` and `global.css` slides it 0.25em on
   hover *and* on keyboard focus (`.arrow--back` for a `←`). Sized in `em` so it scales with
@@ -273,7 +276,14 @@ on; they exist so setup can move fast without a decision each time.
    reads it through `getFirm()`. A field with one consumer belongs on that consumer.
    Navigation is the deliberate exception — it is indexed IA, not settings.
 
-Two mechanical notes that follow from these:
+Three mechanical notes that follow from these:
+- **A slug may hold a multi-segment live path.** The WordPress practice-area pages sit at the
+  root (`/long-island-car-accident-lawyer/`) or one level down (`/birth-injury/cerebral-palsy/`),
+  so `practiceArea.slug` stores the path without its surrounding slashes, slash included, and
+  `practiceAreaHref()` in `src/lib/practiceAreas.ts` adds them back. Such a slug field gets NO
+  `options.source` — Sanity's default slugify turns the `/` into a hyphen — and the document
+  **id** replaces `/` with `-` (`practice-area-birth-injury-cerebral-palsy`), because an id
+  may contain neither a slash nor a dot.
 - Project **`_key`** on every array in a GROQ query. It is the render key and the handle
   Visual Editing uses for click-to-edit.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen stops finding the

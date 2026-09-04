@@ -5,6 +5,7 @@ import { caseResult } from "./documents/caseResult";
 import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
+import { practiceArea } from "./documents/practiceArea";
 import { aboutSection } from "./objects/aboutSection";
 import { attorneyQuote } from "./objects/attorneyQuote";
 import { caseResultsSection } from "./objects/caseResultsSection";
@@ -25,6 +26,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   featuredCaseResult,
   caseResult,
   attorney,
+  practiceArea,
   firmDetails,
   // Section objects — one per band of a page
   hero,
