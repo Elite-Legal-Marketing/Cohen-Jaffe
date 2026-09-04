@@ -48,6 +48,8 @@
   --forest-900: #222a19;
   --forest-950: #1f2617;
   --forest-1000: #1c2215;
+  /* Darker than anything else on the board — the deadlines band only. */
+  --forest-1100: #171c11;
 
   /* --- Neutrals --------------------------------------------------------- */
 
@@ -98,6 +100,11 @@
   --gradient-forest: linear-gradient(165deg, #384629 0%, #2c3620 48%, #222a19 100%);
   --gradient-forest-deep: linear-gradient(165deg, #2c3620 0%, #232b19 58%, #1c2215 100%);
   --gradient-forest-card: linear-gradient(158deg, #3b4a2a 0%, #2d3821 60%, #232b19 100%);
+  /* The deadlines band: the same 165deg fade dropped two stops darker, so the
+     one section on a light page that is telling you a clock is running does not
+     read as another forest band. The artboard opens it on #22291a; that is
+     --forest-900 off by one in two channels, so the scale keeps one value. */
+  --gradient-forest-night: linear-gradient(165deg, #222a19 0%, #1c2215 52%, #171c11 100%);
   /* Footer: a gold bloom top-left over the forest fade. */
   --gradient-footer:
     radial-gradient(900px 420px at 14% 0%, rgba(217, 185, 120, 0.12) 0%, rgba(217, 185, 120, 0) 60%),

@@ -75,6 +75,20 @@ export const homePage = defineType({
       type: "practiceAreasSection",
       options: { collapsible: true, collapsed: true },
     }),
+    /**
+     * ⚠️ THIS SECTION LEANS ON THE ONE ABOVE IT. The deadlines band carries no
+     * disclaimer of its own because the practice-areas band closes with the
+     * one that covers it, naming deadlines specifically. Reordering these two,
+     * or removing the practice-areas band, leaves a section of bare legal
+     * deadlines with no qualification on the page at all — move the line with
+     * it. See `deadlinesSection.ts`.
+     */
+    defineField({
+      name: "deadlines",
+      title: "New York deadlines",
+      type: "deadlinesSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

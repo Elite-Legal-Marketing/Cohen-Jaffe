@@ -540,6 +540,43 @@
     }
   },
   {
+    "name": "deadlineFigure",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "deadlineFigure"
+          }
+        },
+        "figure": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "unit": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "body": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
     "name": "ctaLink",
     "type": "type",
     "value": {
@@ -626,6 +663,73 @@
             "name": "attorney.reference"
           },
           "optional": false
+        }
+      }
+    }
+  },
+  {
+    "name": "deadlinesSection",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "deadlinesSection"
+          }
+        },
+        "eyebrow": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "heading": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "lead": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        },
+        "cta": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "inline",
+            "name": "ctaLink"
+          },
+          "optional": true
+        },
+        "deadlines": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "array",
+            "of": {
+              "type": "object",
+              "attributes": {
+                "_key": {
+                  "type": "objectAttribute",
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              },
+              "rest": {
+                "type": "inline",
+                "name": "deadlineFigure"
+              }
+            }
+          },
+          "optional": true
         }
       }
     }
@@ -2126,6 +2230,14 @@
         "value": {
           "type": "inline",
           "name": "practiceAreasSection"
+        },
+        "optional": true
+      },
+      "deadlines": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "deadlinesSection"
         },
         "optional": true
       }

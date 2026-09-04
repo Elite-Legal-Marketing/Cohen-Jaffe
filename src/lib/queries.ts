@@ -80,6 +80,13 @@ export const HOME_PAGE_QUERY = defineQuery(`
       allHeading,
       allLink{ label, href },
       allAreas[]->{ _id, name, "slug": slug.current }
+    },
+    deadlines{
+      eyebrow,
+      heading,
+      lead,
+      cta{ label, href },
+      deadlines[]{ _key, figure, unit, body }
     }
   }
 `);
