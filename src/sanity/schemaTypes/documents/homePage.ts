@@ -101,6 +101,12 @@ export const homePage = defineType({
       type: "attorneysSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "whyUs",
+      title: "Why Cohen & Jaffe",
+      type: "whyUsSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

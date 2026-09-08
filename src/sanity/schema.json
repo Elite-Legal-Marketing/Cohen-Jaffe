@@ -1,5 +1,35 @@
 [
   {
+    "name": "whyReason",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "whyReason"
+          }
+        },
+        "title": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "body": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        }
+      }
+    }
+  },
+  {
     "name": "videoCard",
     "type": "type",
     "value": {
@@ -663,6 +693,65 @@
             "name": "attorney.reference"
           },
           "optional": false
+        }
+      }
+    }
+  },
+  {
+    "name": "whyUsSection",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "whyUsSection"
+          }
+        },
+        "eyebrow": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "heading": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "lead": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "reasons": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "array",
+            "of": {
+              "type": "object",
+              "attributes": {
+                "_key": {
+                  "type": "objectAttribute",
+                  "value": {
+                    "type": "string"
+                  }
+                }
+              },
+              "rest": {
+                "type": "inline",
+                "name": "whyReason"
+              }
+            }
+          },
+          "optional": true
         }
       }
     }
@@ -2630,6 +2719,14 @@
         "value": {
           "type": "inline",
           "name": "attorneysSection"
+        },
+        "optional": true
+      },
+      "whyUs": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "whyUsSection"
         },
         "optional": true
       }

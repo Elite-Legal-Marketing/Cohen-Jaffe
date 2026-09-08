@@ -114,6 +114,12 @@ export const HOME_PAGE_QUERY = defineQuery(`
         wistiaId,
         portrait{ ..., alt }
       }
+    },
+    whyUs{
+      eyebrow,
+      heading,
+      lead,
+      reasons[]{ _key, title, body }
     }
   }
 `);

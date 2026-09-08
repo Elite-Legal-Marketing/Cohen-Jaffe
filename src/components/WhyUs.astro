@@ -4,9 +4,10 @@
  * held left over it, and four reasons ruled off along the foot.
  *
  * From the WHY COHEN & JAFFE band of `Cohen & Jaffe Homepage v1.dc.html`
- * (markup 579-618), built as drawn. The content's provenance — and the one
- * factual line that was corrected against the live site — is in
- * `src/data/homeWhyUs.ts`, not repeated here.
+ * (markup 579-618), built as drawn. Content comes from the `whyUs` field on the
+ * `homePage` singleton; its provenance — and the one factual line that was
+ * corrected against the live site — is in the docblock of
+ * `scripts/seed-home-why-us.ts`, not repeated here.
  *
  * ⚠️ THE ARTBOARD'S "MID CTA BAR" ABOVE THIS SECTION IS EMPTY. Line 576 of the
  * board is a section comment with no markup under it, so there is nothing to
@@ -26,17 +27,19 @@ import IconExperience from "../assets/icons/why/experience.svg";
 import IconTrial from "../assets/icons/why/trial.svg";
 import IconMedical from "../assets/icons/why/medical.svg";
 import IconAccess from "../assets/icons/why/access.svg";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["whyUs"]>;
 
 interface Props {
-  section: {
-    eyebrow: string;
-    heading: string;
-    lead: string;
-    reasons: readonly { readonly title: string; readonly body: string }[];
-  };
+  section: Section;
 }
 
 const { section } = Astro.props;
+
+// `reasons` carries no `.required()`, so an empty band would otherwise draw
+// four gold column rules over nothing.
+const reasons = section.reasons ?? [];
 
 const REASON_ICONS = [IconExperience, IconTrial, IconMedical, IconAccess];
 
@@ -105,7 +108,7 @@ const narrow = await getImage({
 
     <ul class="why__grid" role="list">
       {
-        section.reasons.map((reason, i) => {
+        reasons.map((reason, i) => {
           const Icon = REASON_ICONS[i % REASON_ICONS.length];
           return (
             <li class="why__item">
