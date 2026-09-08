@@ -2032,14 +2032,14 @@
         },
         "optional": false
       },
-      "summary": {
+      "quote": {
         "type": "objectAttribute",
         "value": {
           "type": "string"
         },
-        "optional": false
+        "optional": true
       },
-      "quote": {
+      "wistiaId": {
         "type": "objectAttribute",
         "value": {
           "type": "string"

@@ -9,10 +9,33 @@ import Fees from "../components/Fees.astro";
 import PracticeAreas from "../components/PracticeAreas.astro";
 import Deadlines from "../components/Deadlines.astro";
 import Reviews from "../components/Reviews.astro";
-import { HOME_PAGE_QUERY } from "../lib/queries";
-import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+import Attorneys from "../components/Attorneys.astro";
+import { HOME_PAGE_QUERY, HOME_ATTORNEYS_QUERY } from "../lib/queries";
+import { HOME_ATTORNEYS } from "../data/homeAttorneys";
+import type {
+  HOME_PAGE_QUERY_RESULT,
+  HOME_ATTORNEYS_QUERY_RESULT,
+} from "../sanity/sanity.types";
 
 const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
+
+/**
+ * ⚠️ TEMPORARY — the attorneys band is at the hardcoded stage, so its copy and
+ * running order come from `src/data/homeAttorneys.ts` and the six documents are
+ * fetched separately. Both go away when the section is modelled: an
+ * `attorneys[]->` projection on `HOME_PAGE_QUERY` replaces the whole block.
+ *
+ * GROQ's `in` returns matches in the dataset's own order, not the order of the
+ * array it was given, so the running order is restored here by index. An
+ * unresolved slug simply drops out.
+ */
+const attorneyBySlug = new Map(
+  (await sanityClient.fetch<HOME_ATTORNEYS_QUERY_RESULT>(HOME_ATTORNEYS_QUERY, {
+    slugs: [...HOME_ATTORNEYS.order],
+  })).map((attorney) => [attorney.slug, attorney]),
+);
+
+const attorneys = HOME_ATTORNEYS.order.flatMap((slug) => attorneyBySlug.get(slug) ?? []);
 ---
 
 <Layout
@@ -28,4 +51,16 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.practiceAreas && <PracticeAreas section={home.practiceAreas} />}
   {home?.deadlines && <Deadlines section={home.deadlines} />}
   {home?.reviews && <Reviews section={home.reviews} />}
+  {
+    attorneys.length > 0 && (
+      <Attorneys
+        section={{
+          eyebrow: HOME_ATTORNEYS.eyebrow,
+          heading: HOME_ATTORNEYS.heading,
+          attorneys,
+          cta: HOME_ATTORNEYS.cta,
+        }}
+      />
+    )
+  }
 </Layout>

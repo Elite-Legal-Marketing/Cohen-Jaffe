@@ -1,0 +1,448 @@
+---
+/**
+ * Homepage attorneys band — the three partners, as a static row of three cards.
+ *
+ * ⚠️ THIS IS A REWORK, NOT THE ARTBOARD. The ATTORNEYS band of
+ * `Cohen & Jaffe Homepage v1.dc.html` (lines 511–579) was built as drawn, shown
+ * to the client and REJECTED on 2026-09-08 — the design, not the build. What is
+ * here now is what was asked for in its place, and each change undoes something
+ * the board does, so the board is no longer a useful reference for this section.
+ * Do not "restore" any of it from the artboard:
+ *
+ *   - NO CAROUSEL. It had one briefly, four across over all six attorneys, and
+ *     it is gone with its track, its arrows and its script.
+ *   - THREE PARTNERS ONLY — Cohen, Jaffe and Tiger. Which three is a decision
+ *     in `src/data/homeAttorneys.ts`, not a flag on the documents.
+ *   - NO SIGNATURE. The board sets the attorney's name in Mrs Saint Delafield
+ *     under the quote; it is cut. `.signature` in global.css now has no consumer.
+ *     (The QUOTE itself was cut with it and later restored — see below.)
+ *   - NO CARD BLURB, and no field behind it. `attorney.summary` ("Card blurb")
+ *     was `.required()`, fed this one paragraph and nothing else on the site,
+ *     and was removed from the schema and unset on all six documents.
+ *   - THE CARD IS A PANEL. White on the sand strip with a hairline border,
+ *     which the board's borderless card is not.
+ *   - THE ROLE AND THE BIO LINK SHARE ONE LINE, held apart. The board stacks a
+ *     "Full profile →" link under a paragraph of blurb. ⚠️ The link was a
+ *     full-width ghost BUTTON for one iteration and was cut back as
+ *     "overwhelming": on a card holding nothing but a portrait, a name and a
+ *     role, a 48px bordered control outweighed everything above it.
+ *   - THE CLOSING BANNER IS ONE CENTRED BUTTON, with no rule over it. The board
+ *     holds "Meet the full team" against three circular staff portraits and a
+ *     line naming the three attorneys the row leaves out, ruled off with a
+ *     hairline. Portraits, then line, then hairline — which by then was fencing
+ *     off a single centred control.
+ *     ⚠️ It is the section's only route to `/about/attorneys/`.
+ *   - THE HEADING DROPS THE BOARD'S "three". It has been both ways twice; this
+ *     is a choice, not arithmetic.
+ *
+ * What survives the rework: a square portrait, the name, the role, a link to the
+ * bio, and a closing call to action.
+ *
+ * THE QUOTES ON THESE CARDS ARE THE ARTBOARD'S WORDING, AND THE FIRM HAS
+ * CONFIRMED THEM AS REAL (2026-09-08). That confirmation matters and is why it
+ * is written down: `scripts/seed-attorneys.ts` seeded `attorney.quote` from the
+ * live site instead, on the reasoning that the board's versions were unsourced,
+ * and all three were replaced in the Studio. The firm has since said these are
+ * the quotes they are using. **`seed-attorneys.ts` is now stale on this field —
+ * see the warning in its own docblock; do not re-run it.**
+ *
+ * ⚠️ JAFFE'S CARD AND THE "OUR GOALS" BAND CARRY THE SAME SENTENCE. That band
+ * prints "I worked ambulances before I practiced law, so I know what a serious
+ * injury does to a family. We handle these cases personally."; his card prints
+ * the same line without its last clause. Both are approved copy, so this is a
+ * repetition on one page rather than an accuracy problem — but it IS the thing
+ * `attorneyQuote.text` and `attorney.quote` are separate fields to prevent, and
+ * nothing in the model can stop the same words being typed into both. Raised
+ * 2026-09-08 and still open; one of the two bands should give it up.
+ *
+ * THE PLAY BUTTON IS CONDITIONAL. `wistiaId` is optional on `attorney`, and the
+ * badge renders only for someone who has one — Tiger has none, which is what
+ * the empty state looks like.
+ *
+ * ⚠️ COHEN'S AND JAFFE'S VIDEOS ARE PLACEHOLDERS. Both point at `c6b0eghb5r`,
+ * the firm's single Wistia upload and a general attorney explainer, added so the
+ * button and the lightbox could be seen and clicked. **Neither is their film.**
+ * The same clip is already standing in on the first case-result card, the "Our
+ * goals" video card and all four video reviews. Unset both before launch or
+ * replace them: a play button over a named attorney's portrait is a promise that
+ * the video is of that attorney, which is a stronger claim than the other four
+ * placeholders make. See `scripts/patch-attorney-portraits.ts`.
+ */
+import { urlFor } from "../lib/image";
+import type { HOME_ATTORNEYS_QUERY_RESULT } from "../sanity/sanity.types";
+
+interface Props {
+  section: {
+    eyebrow: string;
+    heading: string;
+    attorneys: HOME_ATTORNEYS_QUERY_RESULT;
+    cta: { label: string; href: string };
+  };
+}
+
+const { section } = Astro.props;
+const attorneys = section.attorneys ?? [];
+
+/**
+ * The widths the square portrait is served at. At three across the card reaches
+ * ~470px on the widest board, so 800 covers a 2x display comfortably.
+ *
+ * NOT `srcSet()` from `lib/image`, which only sets a width. A width alone
+ * leaves the CDN serving the source's own 9:16 portrait ratio, and CSS then
+ * crops two thirds of every byte away with `object-fit`. Asking for
+ * `.height(w)` as well makes the CDN do the square crop — around the HOTSPOT,
+ * which is why `attorney.portrait` asks for one — so what arrives is what is
+ * drawn.
+ */
+const CARD_WIDTHS = [480, 640, 800];
+
+const squareSrcSet = (portrait: Parameters<typeof urlFor>[0]) =>
+  CARD_WIDTHS.map((w) => `${urlFor(portrait).width(w).height(w).url()} ${w}w`).join(", ");
+---
+
+<section class="attorneys section" aria-labelledby="attorneys-heading">
+  <div class="container">
+    <header class="attorneys__head">
+      <p class="eyebrow eyebrow--center">{section.eyebrow}</p>
+      <h2 class="attorneys__heading" id="attorneys-heading">{section.heading}</h2>
+    </header>
+
+    {
+      attorneys.length > 0 && (
+        <ul class="attorneys__grid" role="list">
+          {attorneys.map((attorney) => (
+            <li class="atty">
+              <div class="atty__media">
+                <img
+                  class="atty__image"
+                  src={urlFor(attorney.portrait).width(800).height(800).url()}
+                  srcset={squareSrcSet(attorney.portrait)}
+                  sizes="(max-width: 700px) 92vw, (max-width: 1024px) 46vw, 31vw"
+                  alt={attorney.portrait.alt ?? ""}
+                  width="800"
+                  height="800"
+                  loading="lazy"
+                  decoding="async"
+                />
+
+                {attorney.wistiaId && (
+                  <button
+                    type="button"
+                    class="atty__play"
+                    data-video-id={attorney.wistiaId}
+                    aria-label={`Play video: ${attorney.name}`}
+                  >
+                    <span class="atty__play-badge" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                        <path d="M7 5v14l10-7z" />
+                      </svg>
+                    </span>
+                  </button>
+                )}
+              </div>
+
+              <div class="atty__body">
+                <h3 class="atty__name">{attorney.name}</h3>
+
+                {attorney.quote && (
+                  <blockquote class="atty__quote">
+                    <p>&ldquo;{attorney.quote}&rdquo;</p>
+                  </blockquote>
+                )}
+
+                <div class="atty__meta">
+                  <p class="atty__role">{attorney.role}</p>
+                  <a class="atty__link link-arrow" href={`/about/attorneys/${attorney.slug}/`}>
+                    View Profile
+                    <span class="arrow" aria-hidden="true">
+                      &rarr;
+                    </span>
+                  </a>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+
+    <div class="attorneys__foot">
+      <a class="btn btn--green btn--sm btn--wide" href={section.cta.href}>
+        {section.cta.label}
+        <span class="arrow" aria-hidden="true">
+          &rarr;
+        </span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<style>
+  .attorneys {
+    background-color: var(--sand);
+  }
+
+  /* --- Header: centred over the row --------------------------------------- */
+
+  .attorneys__head {
+    text-align: center;
+    margin-block-end: var(--space-44);
+  }
+
+  .attorneys__heading {
+    font-size: var(--fs-section);
+    /* The board sets this `white-space: nowrap` on a fixed 1660px board, where
+       the line happens to fit. It must wrap here — at 375px it is five lines. */
+    margin-block-end: 0;
+  }
+
+  /* --- The row -------------------------------------------------------------
+     A plain grid. There is no scroller and no script: with the band fixed at
+     three partners there is nothing a carousel could reveal, and a row of three
+     is the one case that fits at every width down to the phone breakpoint.
+
+     `minmax(0, 1fr)` rather than `1fr`: a grid track's default `min-width: auto`
+     resolves to min-content, which an unbreakable name would push the column
+     past.
+
+     The gap is wider than the reviews band's `--space-20` because these cards
+     are BORDERED. Two hairlines 20px apart read as one banded strip rather than
+     three cards; at 32 they separate. The board's own 80px was drawn for
+     borderless cards floating on the sand and is far too much for panels. */
+
+  .attorneys__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-32);
+    margin: 0;
+    list-style: none;
+  }
+
+  /* The card IS a panel, on the client's instruction — white with a hairline,
+     which the board's card is not. `overflow: hidden` is what makes the
+     portrait's top corners follow the card's radius; the portrait carries no
+     radius of its own. */
+  .atty {
+    display: flex;
+    flex-direction: column;
+    background-color: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* --- Portrait ------------------------------------------------------------ */
+
+  .atty__media {
+    position: relative;
+    /* The board's square crop, and the reason `attorney.portrait` asks for a
+       hotspot on the face — every other use of the same photograph is taller. */
+    aspect-ratio: 1 / 1;
+    /* `flex: none` so the portrait keeps its square while the body below
+       stretches to equalise card heights across the row. */
+    flex: none;
+    background-color: var(--border-strong);
+  }
+
+  /* `object-fit` is a SAFETY NET here, not the framing. The CDN is asked for a
+     square (`.width(w).height(w)`), and it crops that square around the
+     portrait's HOTSPOT — which is why `attorney.portrait` asks for one and says
+     to put it on the face. So the delivered image already matches this box and
+     `cover` has nothing to crop; it only earns its keep if a portrait is ever
+     uploaded at a ratio the CDN cannot satisfy. The board's `object-position:
+     50% 6%` is deliberately NOT carried over: it was correcting a centre crop
+     of a 9:16 source, and against a hotspot crop it would fight the hotspot. */
+  .atty__image {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* The whole frame is the hit area, not the badge alone — same as the reviews
+     band. Transparent, and it needs an explicit z-index because it would
+     otherwise paint under the image it follows. */
+  .atty__play {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .atty__play:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: -4px;
+  }
+
+  /* Bottom-right and white, which is the board's own badge — NOT the reviews
+     band's centred gold one. A portrait is a face, and the reviews badge sits
+     dead centre; over a person that is exactly where it must not go. */
+  .atty__play-badge {
+    position: absolute;
+    inset-inline-end: var(--space-20);
+    inset-block-end: var(--space-20);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px;
+    height: 52px;
+    padding-inline-start: 3px;
+    border-radius: var(--radius-full);
+    background-color: var(--white);
+    box-shadow: var(--shadow);
+    color: var(--forest-700);
+    transition:
+      background-color var(--duration) var(--ease),
+      scale var(--duration) var(--ease);
+  }
+
+  .atty__play:hover .atty__play-badge,
+  .atty__play:focus-visible .atty__play-badge {
+    background-color: var(--cream);
+    scale: 1.06;
+  }
+
+  /* --- Card body ----------------------------------------------------------- */
+
+  .atty__body {
+    display: flex;
+    flex-direction: column;
+    /* Stretches so the link can pin to the foot of the tallest card. */
+    flex: 1;
+    padding: var(--space-28);
+  }
+
+  .atty__name {
+    font-size: var(--fs-subsection);
+    line-height: var(--lh-subhead);
+    margin-block-end: var(--space-16);
+  }
+
+  /* ⚠️ 19px, NOT the board's 21px, and the card it was measured against no
+     longer exists. The board sets the quote at 21 over a 32px name, a script
+     signature and a blurb — four things sharing the card, so 21 was already the
+     junior voice. Everything but the name is gone, which would have left 21px
+     italic reading as a second heading directly under a 32px one. `--fs-19` is
+     the site's lead step and puts a clear rung between the two.
+
+     `--lh-lead` (1.5) rather than the board's 1.45: this is the only running
+     copy on the card and it runs three to four lines, where the board's had a
+     signature and a blurb under it to break the block up.
+
+     Ink rather than `--body`, which is the board's own choice — the quote is
+     the person speaking and should carry, even set small. */
+  .atty__quote {
+    font-family: var(--font-heading);
+    font-size: var(--fs-19);
+    font-style: italic;
+    line-height: var(--lh-lead);
+    color: var(--color-heading);
+    /* The FLOOR of the gap above the meta row. `.atty__meta` pins itself with
+       `margin-block-start: auto`, and auto collapses to ZERO once the copy
+       fills the column — so on the longest quote the last line would sit on the
+       role. Flex margins do not collapse, so this and the auto ADD UP: 24px is
+       the floor, free space is whatever is left over. Same pattern as
+       `.review__prose` in the reviews band. */
+    margin-block-end: var(--space-24);
+  }
+
+  .atty__role {
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    /* `--lh-label`, never `--lh-flat`: tracked uppercase micro-type wraps on a
+       narrow card, and two flat-leaded lines collide. Three of the six roles in
+       the collection are long enough to take two lines. */
+    line-height: var(--lh-label);
+    color: var(--gold-ink);
+  }
+
+  /* The role and the bio link share one line, held apart.
+
+     ⚠️ `flex-wrap` IS LOAD-BEARING, not defensive tidiness. The two together
+     want ~235px and the card is 165px of usable width at the 768 breakpoint, so
+     below roughly 900px the link WILL drop to its own line — and it lands at the
+     start of that line, because `space-between` on a single item resolves to
+     flex-start. Without the wrap the two would collide instead.
+
+     THE ROW IS PINNED TO THE FOOT, and it only became right to pin it when the
+     quote came back. While the role sat directly under the name it BELONGED to
+     it, and pinning stranded it mid-card the moment one name wrapped to two
+     lines and its neighbours did not. With a quote between them this row is a
+     FOOTER — title and action, closing the card — so pinning is what keeps every
+     link in the row on one line while three quotes of different lengths run
+     above them. */
+  .atty__meta {
+    margin-block-start: auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-8) var(--space-16);
+  }
+
+  /* --- Closing banner ------------------------------------------------------
+     One centred button, no rule over it, and the section's ONLY route to
+     `/about/attorneys/`.
+
+     The artboard's version of this row is three circular staff portraits and the
+     line "Six attorneys and a support staff of more than twenty…" held against
+     the button. The portraits went first, then the line, both on the client's
+     instruction — so what is left is centred rather than pushed to one end,
+     because a lone control held right against nothing reads as a layout that
+     lost something.
+
+     The button is `--green`, not the cards' ghost, and the two are a hierarchy
+     rather than an inconsistency: this is the band's one primary action and the
+     board sets it solid green at exactly this size. Three ghost buttons above a
+     fourth solid one reads as three peers and a conclusion.
+
+     THE HAIRLINE IS GONE TOO, on the client's instruction. The board rules this
+     row off, but that rule was drawn to separate the button from the paragraph
+     and portraits beside it — with those gone it was fencing off a single
+     centred control, which reads as heavier furniture than the control deserves.
+     Space does the same work. The gap is therefore a plain margin rather than
+     the margin-plus-padding the border used to sit between. */
+
+  .attorneys__foot {
+    display: flex;
+    justify-content: center;
+    margin-block-start: var(--space-60);
+  }
+
+  /* ---- Responsive ---------------------------------------------------------
+     Not from the designs — the artboard is a fixed 1660px board with no mobile
+     counterpart. These blocks MUST stay after the rules they override; a media
+     query carries no extra specificity, so source order is what decides. */
+
+  /* ⚠️ THERE IS NO TWO-UP STEP, AND THAT IS DELIBERATE. There was one at 1024,
+     and with exactly THREE cards it stranded the third alone on a second row
+     beside a card's worth of empty space — a worse result than the narrow
+     columns it was avoiding. Three items only ever divide by three or by one.
+
+     What makes three-up hold down to the phone is that the rework emptied the
+     card: it is a portrait, a name and a role, so at ~220px it is still
+     comfortable, where the earlier version's 21px serif quote was not. If a
+     quote or a blurb ever comes back, this breakpoint has to be re-measured —
+     and the answer will be one-up sooner, never two-up. */
+  @media (max-width: 700px) {
+    .attorneys__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-24);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .atty__play:hover .atty__play-badge,
+    .atty__play:focus-visible .atty__play-badge {
+      scale: none;
+    }
+  }
+</style>

@@ -391,8 +391,8 @@ export type Attorney = {
     alt?: string;
     _type: "image";
   };
-  summary: string;
   quote?: string;
+  wistiaId?: string;
   headline?: string;
   biography: RichText;
   pullQuote?: string;
@@ -922,11 +922,32 @@ export type FIRM_DETAILS_QUERY_RESULT =
     }
   | null;
 
+// Source: src/lib/queries.ts
+// Variable: HOME_ATTORNEYS_QUERY
+// Query: *[_type == "attorney" && slug.current in $slugs]{    _id,    name,    role,    "slug": slug.current,    quote,    wistiaId,    portrait{ ..., alt }  }
+export type HOME_ATTORNEYS_QUERY_RESULT = Array<{
+  _id: string;
+  name: string;
+  role: string;
+  slug: string;
+  quote: string | null;
+  wistiaId: string | null;
+  portrait: {
+    asset?: SanityImageAssetReference;
+    media?: unknown;
+    hotspot?: SanityImageHotspot;
+    crop?: SanityImageCrop;
+    alt: string | null;
+    _type: "image";
+  };
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
     '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
+    '\n  *[_type == "attorney" && slug.current in $slugs]{\n    _id,\n    name,\n    role,\n    "slug": slug.current,\n    quote,\n    wistiaId,\n    portrait{ ..., alt }\n  }\n': HOME_ATTORNEYS_QUERY_RESULT;
   }
 }
