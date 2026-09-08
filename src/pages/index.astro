@@ -10,7 +10,9 @@ import PracticeAreas from "../components/PracticeAreas.astro";
 import Deadlines from "../components/Deadlines.astro";
 import Reviews from "../components/Reviews.astro";
 import Attorneys from "../components/Attorneys.astro";
+import WhyUs from "../components/WhyUs.astro";
 import { HOME_PAGE_QUERY } from "../lib/queries";
+import { HOME_WHY_US } from "../data/homeWhyUs";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
 const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
@@ -30,4 +32,9 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.deadlines && <Deadlines section={home.deadlines} />}
   {home?.reviews && <Reviews section={home.reviews} />}
   {home?.attorneys && <Attorneys section={home.attorneys} />}
+  {/* ⚠️ TEMPORARY — the "Why Cohen & Jaffe" band is at the hardcoded stage
+      pending sign-off. Both this import and `src/data/homeWhyUs.ts` go away
+      when it is modelled, replaced by a `whyUs{…}` projection on
+      HOME_PAGE_QUERY. */}
+  <WhyUs section={HOME_WHY_US} />
 </Layout>

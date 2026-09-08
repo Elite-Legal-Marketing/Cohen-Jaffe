@@ -1,7 +1,7 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-08 (attorneys band MODELLED and seeded on `hp_attorneys_sanity`; uncommitted)
+Last updated: 2026-09-08 ("Why Cohen & Jaffe" band built on `hp_why_us`, awaiting sign-off; uncommitted)
 
 ## ⚠️ Read this before writing any code
 
@@ -32,19 +32,24 @@ conversation.
 
 ## Where things stand
 
-**Nine of the homepage's fifteen sections exist and ALL NINE ARE FINISHED** — hero, stats
-band, case results, "Our goals", the fee explainer, practice areas, the New York deadlines
-band, testimonials and the attorneys band, all built, modelled, seeded and wired.
+**Ten of the homepage's fifteen sections exist. NINE are finished** — hero, stats band, case
+results, "Our goals", the fee explainer, practice areas, the New York deadlines band,
+testimonials and the attorneys band, all built, modelled, seeded and wired.
+
+**The tenth, "Why Cohen & Jaffe", is BUILT AND AWAITING SIGN-OFF** — the hardcoded stage, per
+AGENTS.md → "build it, approve it, then wire it". It renders from `src/data/homeWhyUs.ts`.
+Nothing about it is in Sanity yet and nothing should be until it is approved.
 
 The attorneys band was merged to `master` (`0162890`, PR #16) still unmodelled, which was
 the one loose end left open rather than a decision. It is closed: the band reads from
 `homePage.attorneys` like every other section, and the staged constant and temporary query
 that fed it are deleted.
 
-**`hp_attorneys_sanity` branched clean off `master` (`95b165a`) and carries the modelling
-work UNCOMMITTED.** `hp_why_us` also exists, branched off the same commit and **empty** —
-it was created for the next section (the artboard's MID CTA BAR + WHY COHEN & JAFFE photo
-band) before this work was prioritised ahead of it.
+**Two branches are in flight and `hp_why_us` STACKS ON TOP OF `hp_attorneys_sanity`, not on
+master.** `hp_attorneys_sanity` (`7ad30fd`, off `95b165a`) holds the attorneys modelling,
+committed and **not pushed — there is no PR**. `hp_why_us` was re-pointed at that commit and
+carries the why-us band **uncommitted**. Merge the attorneys PR first, or the why-us diff
+will look like it contains both.
 
 Gates, all run after the seed: `npm run build` green, `npm run check:types` **0 errors (81
 files)**, `npm run typegen` **2 queries, 45 schema types**, `npx sanity documents validate
@@ -56,6 +61,148 @@ cards.
 built from `master` and from this branch differ by zero bytes. That is the proof that moving
 the copy into Sanity changed nothing on the page, and it is worth re-running as the last step
 of any wiring swap: build, stash, rebuild, `diff`.
+
+## The "Why Cohen & Jaffe" band — BUILT, NOT YET APPROVED
+
+`src/components/WhyUs.astro`, rendered after the attorneys band. A full-bleed team
+photograph on the forest ground: eyebrow, 62px heading and a one-line lead held left over it,
+then four reasons ruled off in gold along the foot.
+
+| File | What |
+| --- | --- |
+| `src/components/WhyUs.astro` | The section. No script |
+| `src/data/homeWhyUs.ts` | ⚠️ The hardcoded stage — **delete when modelled**. Holds the full provenance |
+| `src/assets/why-team-wide.png` | The board's `team-why.png`, 2048x1152. Desktop only (≥1024px) |
+| `src/assets/why-team-narrow.png` | A tighter crop of the same shoot, 1196x776. Tablet and phone |
+| `src/assets/icons/why/` | Four icons, hand-cut from the board's inline paths, `currentColor` |
+
+Built from `Cohen & Jaffe Homepage v1.dc.html` markup 579-618. **The icons are 34px against
+the board's 26**, on the client's instruction (2026-09-08) — the stroke scales with them, so
+they read heavier as well as larger.
+
+⚠️ **THE BOARD'S "MID CTA BAR" (line 576) IS AN EMPTY COMMENT.** There is no markup under it,
+so nothing was built and nothing was invented to fill it. A mid-page CTA is a new request, not
+a missing implementation. Do not "restore" one from the board.
+
+### One factual line was CORRECTED, and one is still unsourced
+
+Four of the five copy blocks make a claim of fact about the firm or a named person, so each
+was checked against the WordPress mirror. Three hold up verbatim — "six attorneys and a
+support staff of more than 20" and "more than 100 years of combined experience" are both
+`/about/`, and the 24-hour/cell-phone promise is near-verbatim from the live homepage
+(generalised to "a partner's" so it survives the day it is somebody else's number).
+
+⚠️ **The board writes that Richard Jaffe "STILL WORKS A WEEKLY SHIFT as a volunteer medic".
+Nothing supports a present tense or a frequency** — `/about/` says only "He has experience as
+a firefighter, certified EMT ... Volunteering as a medic in Brentwood, he gained firsthand
+knowledge". "Still" and "a weekly shift" are invented about a real, named person on a page
+that is legal advertising, so the line now says what the source says. Same treatment the
+deadlines band's three corrected lines got. **Do not restore the board's wording.**
+
+⚠️ **"A caseload we keep small on purpose" is UNSOURCED** and was left in as approved artboard
+copy. Nothing in the mirror says it; only the firm can confirm it. **Raised 2026-09-08.**
+
+### TWO photographs, not two crops of one
+
+The same answer the hero reaches for, and on the client's instruction (2026-09-08). A
+`<picture>` swaps them at `(min-width: 1024px)`: the wide 16:9 shot has the group small
+against the trees and is framed for a band far wider than it is tall; below 1024px the band is
+either a tall box (tablet) or a stacked strip (phone) and the wide frame loses the people. The
+narrow file is a tighter crop in which the six of them fill the frame.
+
+⚠️ **THE TWO HAVE DIFFERENT ASPECT RATIOS — 1.78 wide, 1.54 narrow — and the stacked layout's
+height is derived from the NARROW one.** Replace either file and that number is re-derived.
+
+⚠️ **The `<picture>` wrapper is sized in CSS, not just the `<img>`.** `<picture>` is
+auto-height, so `height: 100%` on the image inside has nothing to resolve against and the
+photograph stops short, leaving a bar of the section's own gradient along the bottom.
+
+⚠️ **Verifying which file the browser picked needs a CLEAN LOAD.** `<source media>` resolves
+once, so reading `img.currentSrc` after the preview pane's viewport emulation is applied
+reports the file chosen at the PREVIOUS width. It read "wide" at 768px and looked like a
+broken media query; a reload at the emulated size read "narrow" correctly.
+
+### The three layouts
+
+| Width | Photograph | Layout | Reasons |
+| --- | --- | --- | --- |
+| ≥ 1024px | wide, overlaid | copy held left over the picture | four across |
+| 640-1023px | narrow, **stacked** | picture on top, copy beneath | two across |
+| ≤ 639px | narrow, **stacked** | picture on top, copy beneath | one up |
+
+⚠️ **THE BAND STACKS BELOW 1024px, NOT BELOW 640.** The stack went in for phones first and was
+extended up to tablet on the client's instruction (2026-09-08), which is also when the second
+photograph arrived. The reason is worth keeping, because the obvious-looking alternative was
+shipped for an afternoon and was wrong: a wash heavy enough to hold copy over the picture
+buries the picture completely, so the tighter crop added *for these very widths* painted
+nothing at all. Lightening it instead puts the heading back across faces that the narrow file
+makes BIGGER than the wide one did. Stacking is the only option where both the words and the
+photograph survive.
+
+**So the overlay now exists only at 1024px and up**, and everything below it is the hero's
+arrangement at a different breakpoint.
+
+### The scrim is not a constant, and that is the whole responsive story
+
+The board's 90deg side wash clears at 54%, which is exactly where its 560px copy column ends
+on a 1660px board. Hold that stop while the viewport shrinks and the copy walks out onto the
+photograph: at 768px the heading crossed the team's faces and the lead sat over someone's
+head. So the wash **widens as the band narrows**, and goes flat below 1024px where the copy
+uses the full column and there is no clear side left to fade to.
+
+The widened wash therefore covers **1024-1279px only** — the last range in which the band
+overlays at all, and where the copy column is still narrower than the band so there is a clear
+side to fade to.
+
+Four things about the stack below 1024 are load-bearing:
+
+- **The picture is faded out with a `mask-image`, not a scrim.** A foot scrim needs an end
+  colour, and the ground here is a 165deg gradient — any fixed value is right at exactly one
+  point down the band and visibly wrong above and below it. A mask has nothing to match, so
+  the picture dissolves into the section's own gradient at any position.
+- **`height: min(65vw, 40vh)`, and 65 is derived, not chosen.** `why-team-narrow.png` is
+  1196x776 and 776/1196 = 64.9%, so at 65vw the box is the photograph's own ratio and NOTHING
+  is cropped. It read 56vw while the band had a single 16:9 photograph; the tighter crop
+  changed the number. **Re-derive it if either file is replaced** — an inherited value here
+  silently starts taking a person off one end. (56vw against the narrow file would; 64vw
+  against the wide one clipped the woman on the right, which is how this was found.)
+- **NOT `aspect-ratio` with `max-height`** — the documented trap: once the height clamps the
+  ratio pulls the width in and the picture stops being full-bleed.
+- **`object-position: center top` when stacked, against the desktop rule's `center 30%`.** On a
+  TABLET the 40vh guard makes the box wider than the photograph, so the crop turns vertical and
+  30% would shave the tops of their heads. Anchored top, the crop comes off the bottom instead
+  — cropping at the shins is fine, which is the hero's reasoning too. On a phone the box is the
+  photograph's own ratio, nothing is cropped, and the value does nothing.
+
+### Layout notes worth keeping
+
+- **The heading is `--fs-62`, not the board's 64.** 64 is not a step on the ramp and 62 is the
+  nearest; it also keeps this h2 one size BELOW the hero's 66px h1 rather than level with it.
+- **The lead and the reason bodies are both `--on-dark-80`.** `.on-dark` sets `--color-text` to
+  62% for copy on a flat dark panel, which is too faint over a photograph. The board runs the
+  lead at 0.82 and the bodies at 0.88 — the board making its BODY brighter than its LEAD is not
+  a hierarchy worth reproducing at two hundredths of an alpha.
+- **The column rule is a local `rgba(217, 185, 120, 0.42)`,** a GOLD hairline rather than the
+  neutral `--border` that `.on-dark` supplies. Same local form the deadlines and fee bands use.
+- **The dividers are `border-inline-start` with the first of each ROW switched off,** so the
+  nth-child rule changes with the column count — 4n+1 at four across, odd at two across, and
+  all of them off at one. Change the columns without changing that rule and a rule reappears
+  down the left edge.
+- **Four reasons divide by four, two and one.** Same arithmetic as the attorneys band's three:
+  a fifth would strand itself.
+- **The icons match the reasons BY POSITION**, the way the "What you can expect" glyphs do.
+  There is no icon field and a fifth reason would wrap back to the first.
+- **Height is content-driven with a floor** (`min-height: clamp(0px, 62vh, 700px)` on the
+  inner), not the board's fixed `height: 65vh; min-height: 820px` — which on a phone would
+  either crop the four reasons off or leave a chasm under them.
+
+### What modelling it will take
+
+A `whyUsSection` object — `eyebrow`, `heading`, `lead`, and `reasons[]` of a small object with
+`title` and `body`. No icon field. Then delete `src/data/homeWhyUs.ts` and fold a `whyUs{…}`
+projection into `HOME_PAGE_QUERY`. **The component's prop shape is already the shape that
+projection produces.** Check `schema.json` before predicting a typegen count — see the
+attorneys band's note on `<type>.reference`.
 
 ## The attorneys band
 
@@ -557,15 +704,21 @@ badge-less.
    plus `/personal-injury-lawyer-nassau-county/` and `/medical-device-lawyer-long-island/`.
 10. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
     allow and the practice-areas headline says the opposite. The firm should pick one.
+11. **"A caseload we keep small on purpose"** in the why-us band is unsourced — the firm's to
+    confirm. So is the corrected Jaffe medic line, which now says only what `/about/` says.
+12. **Nothing outstanding on the why-us LAYOUT** — the band is built at all three widths and
+    awaiting design sign-off. The two open items on it are the content lines above.
 
 A new Sanity CORS origin **will** be needed for the eventual custom domain — with credentials.
 
 ## What's next
 
-1. **Commit `hp_attorneys_sanity`, push, open a PR.** The work is done and green; nothing is
-   committed. Then either delete `hp_why_us` and re-branch it off the merge, or rebase it.
-2. **The MID CTA BAR and the WHY COHEN & JAFFE photo band** — homepage sections ten and
-   eleven, artboard lines 576 and 579, and what `hp_why_us` was branched for.
+1. **Push `hp_attorneys_sanity` and open its PR** — committed at `7ad30fd`, green, unpushed.
+   `hp_why_us` sits on top of it, so merge that one first.
+2. **Get the "Why Cohen & Jaffe" band approved, then model it** — `whyUsSection`, delete
+   `src/data/homeWhyUs.ts`, fold the projection into `HOME_PAGE_QUERY`. Two content answers
+   are wanted with the design: the unsourced "caseload we keep small" line, and whether the
+   firm confirms the corrected Jaffe medic line.
 3. **`/about/testimonials/`** — the "Read all reviews" destination, already in
    `navigation.ts:111` and `:241` and already indexed. `CJ - Testimonials.dc.html` is
    approved: a video-reviews band, a written-reviews band with a load-more button, and a
@@ -635,6 +788,21 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   against it is how you tell the environment from the bug. A
   `requestAnimationFrame` inside an injected script will also hang the tool for 45s. Use
   `setTimeout`, and `display: none` the other sections and screenshot what is left.
+- **A full-bleed photo band's scrim cannot be a fixed gradient.** The stop that clears the
+  copy column on a 1660px board sits in the middle of the copy at 768px, and the text ends up
+  over faces. The scrim has to widen as the band narrows — and below some width it stops being
+  a scrim problem at all and the band has to stack. `WhyUs.astro` is the worked example.
+- **A scrim heavy enough to hold copy over a photograph HIDES THE PHOTOGRAPH.** The two goals
+  are in direct opposition and there is no setting that serves both; the why-us band burned an
+  afternoon proving it, and a second, tighter photograph added for tablet painted nothing at
+  all until the band was stacked there. Stack, or accept a dark ground — there is no third
+  answer.
+- **A `<picture>` swap needs a CLEAN LOAD to verify.** `<source media>` resolves once, so
+  reading `img.currentSrc` after the preview pane changes its emulated viewport reports the
+  file chosen at the PREVIOUS width — which reads as a broken media query.
+- **To fade an image into a GRADIENT ground, mask it — do not scrim it.** A scrim needs an end
+  colour and a gradient has a different one at every point, so a fixed value is right once and
+  wrong everywhere else. `mask-image` has nothing to match.
 - **Three grid items divide by three or by one.** A two-up breakpoint on a row of three
   strands the third beside a whole empty column, which looks worse than the narrow columns
   it was avoiding. The attorneys band had one and it was removed.
