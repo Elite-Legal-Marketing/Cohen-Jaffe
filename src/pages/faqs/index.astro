@@ -1,53 +1,116 @@
 ---
 /**
- * The FAQs hub — every question, filterable by category.
+ * The FAQs hub — every question as a card, filterable by category.
  *
  * From `CJ - FAQ.dc.html`. Already in the nav at Resources → FAQ
- * (`src/data/navigation.ts:202`), where the link has been dead until now.
+ * (`src/data/navigation.ts:202`), where the link was dead until this page.
  *
- * ⚠️ THIS IS A LIST OF LINKS, NOT A PAGE OF ANSWERS, and that is the decision
+ * ⚠️ THIS IS A LIST OF LINKS, NOT A PAGE OF ANSWERS, and that decision is what
  * the whole FAQ shape turns on. Rendering all 180 answers inline was measured at
  * **895 KB uncompressed / 179 KB brotli / ~9,200 element nodes** — 3.3x the
- * homepage, on a page with no images at all. Every answer now has its own page
- * at its own indexed URL, so the hub's job is to get you to one.
+ * homepage, on a page with no images at all. Every answer has its own page at
+ * its own indexed URL, so this page's job is to get you to one.
  *
- * ── WHAT IS DRAWN AND WHAT IS DEFERRED ──────────────────────────────────────
+ * ── THE FILTER WORKS WITHOUT JAVASCRIPT, AND THAT IS DELIBERATE ─────────────
  *
- * Built: the dark hero, the section head, the category pills, the list, and the
- * sticky "Ask a lawyer" panel.
+ * There are two mechanisms here and they compose rather than compete:
  *
- * Deferred, each for a reason rather than for time:
- *   - The breadcrumb bar the board draws under the hero. Removed on the
- *     client's instruction (2026-09-08): NO BREADCRUMBS ANYWHERE ON THIS SITE.
+ *   1. CSS-ONLY FILTERING — nineteen visually-hidden radios, then the pill row,
+ *      then the grid, all siblings of one parent, so a `~` rule can hide the
+ *      cards that do not match. Generated from `FAQ_CATEGORIES` below. This is
+ *      the whole filter when scripting is off.
+ *   2. THE SCRIPT adds the sixteen-at-a-time cap, the "View more" button and the
+ *      entry animation, none of which CSS can do on its own.
+ *
+ * ⚠️ THE CAP LIVES BEHIND `data-paged`, WHICH ONLY THE SCRIPT SETS. Put the cap
+ * in plain CSS and a visitor without JavaScript sees sixteen cards with no way
+ * to reach the other 164 — and a crawler follows sixteen links instead of 180.
+ * With no script every matching card is simply shown.
+ *
+ * ⚠️ THE GENERAL SIBLING COMBINATOR is what makes the CSS-only half possible.
+ * `PracticeAreas.astro` gets away with `:checked + label + pane` because each of
+ * its tabs reveals ONE adjacent pane; a filter has to hide items scattered
+ * through a single list, which adjacency cannot reach.
+ *
+ * ── WHAT IS DEFERRED FROM THE BOARD ────────────────────────────────────────
+ *
+ *   - The breadcrumb bar. Removed on the client's instruction (2026-09-08):
+ *     NO BREADCRUMBS ANYWHERE ON THIS SITE.
  *   - The four "top question" cards — invented artboard copy with no source, and
- *     a fifth piece of hand-written content nobody asked for.
- *   - The "Prefer to watch?" card — it links to `/video-center/`, which does not
- *     exist, and there is no FAQ video.
- *   - The "Related" card — three of its four links are unbuilt pages.
- *   - The stats band — it duplicates the homepage's, with invented figures.
- *   - The quote band — a 42px quote attributed to Richard S. Jaffe that appears
- *     in no source. HANDOFF open question 4 is already this exact problem on the
- *     "Our goals" band; a second invented quote about a real, named person on a
- *     page of legal advertising is not something to add unasked.
- *   - `CJContactForm` — nothing exists for it anywhere in the repo, and on a
- *     `output: "static"` site it needs a submit endpoint, spam handling and a
- *     thank-you page. Its own task. The sidebar's "Send us your question" covers
- *     the need meanwhile.
+ *     a fifth piece of hand-written content nobody asked for. Their card shape
+ *     is reused for the questions themselves instead.
+ *   - The sidebar, and the "Prefer to watch?" and "Related" cards in it: the
+ *     page is one container now, on the client's instruction (2026-09-08).
  */
 import { sanityClient } from "sanity:client";
 import Layout from "../../layouts/Layout.astro";
-import AskPanel from "../../components/AskPanel.astro";
+import Stats from "../../components/Stats.astro";
+import QuoteBand from "../../components/QuoteBand.astro";
+import ContactForm from "../../components/ContactForm.astro";
 import { FAQ_INDEX_QUERY } from "../../lib/queries";
 import { faqHref } from "../../lib/faqs";
-import { FAQ_CATEGORIES } from "../../sanity/schemaTypes/faqCategories";
+import { FAQ_CATEGORIES, faqCategoryTitle } from "../../sanity/schemaTypes/faqCategories";
 import type { FAQ_INDEX_QUERY_RESULT } from "../../sanity/sanity.types";
 
 const faqs = (await sanityClient.fetch<FAQ_INDEX_QUERY_RESULT>(FAQ_INDEX_QUERY)) ?? [];
 
+/** How many cards show before "View more" — four full rows of the 4-across grid. */
+const BATCH = 16;
+
 /**
- * Only the categories that actually have a question. A pill that filters to an
- * empty list is a dead control, and six of the eighteen terms are thin enough
+ * The claims band under the questions, from the STATS band of `CJ - FAQ.dc.html`.
+ *
+ * ⚠️ IT REUSES THE HOMEPAGE'S `Stats.astro` RATHER THAN RESTATING IT. The two
+ * bands are the same component with different words, and the homepage version is
+ * the more considered one — it carries the divider arithmetic across three
+ * breakpoints, equalises row heights so the hairlines are not ragged, and turns
+ * the rule horizontal when it stacks. A second copy would have drifted from it
+ * the first time either changed.
+ *
+ * ⚠️ "MILLIONS / RECOVERED" IS UNSOURCED, and it is the one claim here with no
+ * figure behind it. Built as drawn on the client's instruction (2026-09-08),
+ * with the firm to confirm or replace it before launch — the case-results ledger
+ * holds 60 real recoveries, so a real number is available if they would rather
+ * print one. The other three hold up: "no fee unless we win" is the firm's
+ * standing promise, and "100 Years+" is `/about/`'s own "more than 100 years of
+ * combined experience".
+ */
+const STATS = [
+  {
+    _key: "no-fee",
+    figure: "No Fee",
+    label: "Unless we win",
+    body: "You pay nothing up front, and nothing at all unless we recover for you.",
+  },
+  {
+    _key: "we-travel",
+    figure: "We Travel",
+    label: "Home, hospital, or video",
+    body: "If you cannot come to us, we come to you — anywhere on Long Island.",
+  },
+  {
+    _key: "millions",
+    figure: "Millions",
+    label: "Recovered",
+    body: "Verdicts and settlements won for injured Long Islanders and their families.",
+  },
+  {
+    _key: "experience",
+    figure: "100 Years+",
+    label: "Of combined experience",
+    body: "A century of courtroom-tested work in serious injury and accident claims.",
+  },
+];
+
+/**
+ * Only the categories that actually hold a question. A pill that filters to an
+ * empty grid is a dead control, and six of the eighteen terms are thin enough
  * that one editorial decision could empty them.
+ *
+ * ⚠️ ALPHABETICAL, NOT BY COUNT, on the client's instruction (2026-09-08).
+ * `FAQ_CATEGORIES` is already alphabetical, so this preserves it — sorting by
+ * count would put Car Accidents first and reshuffle the rail every time the
+ * collection changed, which is the opposite of what a navigation row wants.
  */
 const counts = new Map<string, number>();
 for (const faq of faqs) {
@@ -59,33 +122,28 @@ const id = (value: string) => `fc-${value}`;
 
 /**
  * ⚠️ THE FILTER CSS IS GENERATED FROM THE TAXONOMY, and emitted `is:inline` so
- * Astro does not scope it.
- *
- * Two rules per category — hide the rows that do not match, and light that
- * category's pill. Thirty-six rules, hand-maintained, would drift from
- * `FAQ_CATEGORIES` the first time a term changed; generated, they cannot.
- *
- * The GENERAL SIBLING combinator is what makes a CSS-only filter possible at
- * all. `PracticeAreas.astro` gets away with `:checked + label + pane` because
- * each of its tabs reveals one adjacent pane; a filter has to hide items
- * scattered through a single list, which adjacency cannot reach. So the radios
- * come FIRST in the DOM, then the pills, then the list — all siblings of one
- * parent.
+ * Astro does not scope it. Two rules per category — hide the cards that do not
+ * match, and light that category's pill. Thirty-six rules hand-maintained would
+ * drift from `FAQ_CATEGORIES` the first time a term changed; generated, they
+ * cannot.
  *
  * The cost of `is:inline` is that these class names are unscoped, so they are
- * hand-namespaced (`.faq-list`, `.faq-row`, `.faq-filter`). Everything else on
+ * hand-namespaced (`.faq-grid`, `.faq-card`, `.faq-filter`). Everything else on
  * the page stays in the ordinary scoped block below.
  */
+const activePill =
+  "background: var(--green); border-color: var(--green); color: var(--cream);";
+
 const filterCss = categories
   .map(
     ({ value }) => `
-#${id(value)}:checked ~ .faq-list .faq-row:not([data-cat="${value}"]) { display: none; }
-#${id(value)}:checked ~ .faq-filter label[for="${id(value)}"] { background: var(--green); border-color: var(--green); color: var(--cream); }`,
+#${id(value)}:checked ~ .faq-grid .faq-card:not([data-cat="${value}"]) { display: none; }
+#${id(value)}:checked ~ .faq-filter label[for="${id(value)}"] { ${activePill} }`,
   )
   .join("");
 
 const allCss = `
-#fc-all:checked ~ .faq-filter label[for="fc-all"] { background: var(--green); border-color: var(--green); color: var(--cream); }`;
+#fc-all:checked ~ .faq-filter label[for="fc-all"] { ${activePill} }`;
 ---
 
 <Layout
@@ -106,60 +164,72 @@ const allCss = `
   </section>
 
   <section class="faq-index">
-    <div class="container faq-index__grid">
-      <div class="faq-index__main">
-        <header class="faq-index__head">
-          <div>
-            <p class="eyebrow">Browse by topic</p>
-            <h2 class="faq-index__heading">
-              Answers from the attorneys who handle these cases.
-            </h2>
-          </div>
-          <p class="faq-index__count">
-            {faqs.length} {faqs.length === 1 ? "question" : "questions"}
-          </p>
-        </header>
+    <div class="container faq-index__inner" data-faq-index data-batch={BATCH}>
+      {/* ⚠️ NO COUNT HERE. The board sets a "19 questions" line against this
+          heading, but every pill already carries its own count and the active
+          one is the count for what is on screen — printing it twice meant two
+          numbers to keep in step, and they disagreed for a moment on every
+          filter change. Removed on the client's instruction (2026-09-08). */}
+      <header class="faq-index__head">
+        <p class="eyebrow">Browse by topic</p>
+        <h2 class="faq-index__heading">Answers from the attorneys who handle these cases.</h2>
+      </header>
 
-        {/* The radios come first so `~` reaches both the pills and the list. */}
-        <input class="faq-radio" type="radio" name="faq-cat" id="fc-all" checked />
+      {/* The radios come first so `~` reaches both the pills and the grid. */}
+      <input class="faq-radio" type="radio" name="faq-cat" id="fc-all" value="all" checked />
+      {
+        categories.map(({ value }) => (
+          <input class="faq-radio" type="radio" name="faq-cat" id={id(value)} value={value} />
+        ))
+      }
+
+      <div class="faq-filter" role="group" aria-label="Filter questions by topic">
+        <label for="fc-all">All questions ({faqs.length})</label>
         {
-          categories.map(({ value }) => (
-            <input class="faq-radio" type="radio" name="faq-cat" id={id(value)} />
+          categories.map(({ value, title }) => (
+            <label for={id(value)}>
+              {title} ({counts.get(value)})
+            </label>
           ))
         }
-
-        <div class="faq-filter" role="group" aria-label="Filter questions by topic">
-          <label for="fc-all">All questions ({faqs.length})</label>
-          {
-            categories.map(({ value, title }) => (
-              <label for={id(value)}>
-                {title} ({counts.get(value)})
-              </label>
-            ))
-          }
-        </div>
-
-        <ul class="faq-list">
-          {
-            faqs.map((faq) => (
-              <li class="faq-row" data-cat={faq.category}>
-                <a href={faqHref(faq.slug!)}>
-                  <span class="faq-row__q">{faq.question}</span>
-                  <span class="arrow" aria-hidden="true">
-                    →
-                  </span>
-                </a>
-              </li>
-            ))
-          }
-        </ul>
       </div>
 
-      <div class="faq-index__aside">
-        <AskPanel />
+      <div class="faq-grid">
+        {
+          faqs.map((faq, i) => (
+            <a
+              class="faq-card"
+              href={faqHref(faq.slug!)}
+              data-cat={faq.category}
+              style={`--i:${i % BATCH}`}
+            >
+              <span class="faq-card__cat">{faqCategoryTitle(faq.category)}</span>
+              <span class="faq-card__q">{faq.question}</span>
+              {/* A SPAN, not an anchor. The whole card is the link — nesting one
+                  anchor inside another is invalid, and the inner one takes the
+                  click. */}
+              <span class="faq-card__more">
+                View the answer
+                <span class="arrow" aria-hidden="true">
+                  →
+                </span>
+              </span>
+            </a>
+          ))
+        }
+      </div>
+
+      {/* Hidden until the script decides there is more to show — see the note on
+          `data-paged` above. Without JavaScript every card is already visible. */}
+      <div class="faq-more" hidden data-faq-more>
+        <button class="btn btn--ghost btn--wide" type="button">View more</button>
       </div>
     </div>
   </section>
+
+  <Stats stats={STATS} />
+  <QuoteBand />
+  <ContactForm />
 </Layout>
 
 <style is:inline set:html={allCss + filterCss}></style>
@@ -170,6 +240,39 @@ const allCss = `
     align-items: center;
     min-height: 420px;
     padding-block: var(--space-xl);
+  }
+
+  /* The 420px floor and the full `--space-xl` are drawn for a 1660px board where
+     the heading sits on one line. Below tablet it wraps to two or three, so the
+     floor stops doing anything and the padding is stacked on top of copy that is
+     already tall — the hero ate most of the first screen before a question was
+     visible. */
+  @media (max-width: 1023px) {
+    .faq-hero {
+      min-height: 0;
+      /* ⚠️ HALF AGAIN ON THE STEP BELOW. Dropping straight to `--space-lg` /
+         `--space-md` was right in direction and overshot: with the 420px floor
+         gone, the step alone left the band sitting tight against the copy.
+         `* 1.5` is the measured middle — 71px at tablet, 42px on a phone —
+         rather than the next name up the scale, which is only about +25% and
+         lands short again.
+
+         ⚠️ THIS IS LARGER THAN THE DESKTOP PADDING AND THAT IS CORRECT. At
+         1023px this resolves to 75px against `--space-xl`'s 62px at 1024 — the
+         padding gets SMALLER as the screen grows, which is normally the ramp
+         inversion this repo warns about. It is not visible here because
+         `min-height: 420px` takes over at 1024, so the band still grows across
+         the boundary: 312px to 420px. Capping it to `--space-xl` would undo the
+         increase entirely, since the cap binds at every tablet width. If the
+         420px floor is ever removed, this needs revisiting. */
+      padding-block: calc(var(--space-lg) * 1.5);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .faq-hero {
+      padding-block: calc(var(--space-md) * 1.5);
+    }
   }
 
   .faq-hero__copy {
@@ -199,23 +302,8 @@ const allCss = `
     padding-block: var(--space-section);
   }
 
-  .faq-index__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 460px;
-    gap: var(--space-80);
-    align-items: start;
-  }
-
-  .faq-index__main {
-    min-width: 0;
-  }
-
   .faq-index__head {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-md);
-    margin-block-end: var(--space-44);
+    margin-block-end: var(--space-40);
   }
 
   .faq-index__heading {
@@ -226,19 +314,8 @@ const allCss = `
     letter-spacing: var(--ls-tight);
     color: var(--color-heading);
     text-wrap: balance;
+    max-width: 20ch;
     margin-block-end: 0;
-  }
-
-  .faq-index__count {
-    flex: none;
-    font-family: var(--font-label);
-    font-size: var(--fs-meta);
-    font-weight: var(--fw-bold);
-    letter-spacing: 0.14em;
-    line-height: var(--lh-label);
-    text-transform: uppercase;
-    color: var(--faint);
-    white-space: nowrap;
   }
 
   /*
@@ -246,12 +323,12 @@ const allCss = `
 
     Clicking a `<label>` focuses its input, and focusing an element scrolls it
     into view — so wherever these sit is where the page jumps. As `absolute`
-    with no offsets they all resolve to the same point at the top of the
+    with no offsets all nineteen resolve to the same point at the top of the
     container, which is what threw the practice-areas rail 440px up the page
     when its sixth tab was clicked. A fixed box is always inside the viewport,
     so there is nothing to scroll to. The offsets are not optional: with
-    `top`/`left` auto a fixed box sits at its static position, which is the same
-    off-screen point again.
+    `top`/`left` auto a fixed box sits at its static position, which is that
+    same off-screen point again.
   */
   .faq-radio {
     position: fixed;
@@ -263,17 +340,36 @@ const allCss = `
     pointer-events: none;
   }
 
+  /* ONE ROW THAT SCROLLS, on the client's instruction — nineteen pills wrap to
+     four rows otherwise and push the grid off the first screen. `nowrap` is what
+     makes it a rail.
+
+     ⚠️ IT SCROLLS INSIDE THE CONTAINER, NOT TO THE PAGE EDGE. This carried a
+     negative inline margin and matching padding so the row bled into the gutter;
+     removed on the client's instruction (2026-09-08). The rail now begins and
+     ends on the same line as the heading and the grid, so the column edge is
+     unbroken down the page.
+
+     `padding-block-end` is the gap between the last pill and the scrollbar. The
+     scrollbar sits at the bottom of the scroll box, so this is the only thing
+     holding it off the pills — without it the bar runs along their underside and
+     reads as a border on them. */
   .faq-filter {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: var(--space-12);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
     margin-block-end: var(--space-40);
+    padding-block-end: var(--space-16);
   }
 
   /* `:global` because the generated rules above are unscoped and set the ACTIVE
-     state on these same labels; without it the two blocks would be selecting
-     different things by the same name. */
+     state on these same labels; without it the two blocks select different
+     things by the same name. */
   .faq-filter :global(label) {
+    flex: none;
     display: inline-flex;
     align-items: center;
     height: 48px;
@@ -288,6 +384,7 @@ const allCss = `
     line-height: var(--lh-label);
     text-transform: uppercase;
     color: var(--body);
+    white-space: nowrap;
     cursor: pointer;
     transition:
       background var(--duration) var(--ease),
@@ -299,76 +396,238 @@ const allCss = `
     border-color: var(--border-deep);
   }
 
-  /* The keyboard has to be able to see which pill is focused, and the input it
-     belongs to is off-screen — so the focus ring is drawn on the label. */
-  .faq-radio:focus-visible + .faq-filter :global(label),
-  .faq-radio:focus-visible ~ .faq-filter :global(label[for]) {
+  /* The input is off-screen, so the focus ring has to be drawn on the label or
+     the pill rail is invisible to the keyboard. */
+  .faq-radio:focus-visible ~ .faq-filter :global(label) {
     outline: revert;
   }
 
-  .faq-list {
+  /* Four across, and 16 divides evenly by 4, 2 and 1 — which is why the folds
+     below skip three columns. A three-across fold strands one card alone on a
+     row at every batch boundary. */
+  .faq-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-28);
+  }
+
+  .faq-card {
     display: flex;
     flex-direction: column;
-    gap: var(--space-12);
-    list-style: none;
-  }
-
-  .faq-list :global(.faq-row) a {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-24);
-    padding: var(--space-24) var(--space-28);
     background: var(--white);
     border: 1px solid var(--border);
+    /* The board's own card: a gold rule across the top, which is the one thing
+       distinguishing it from every other panel on the site. */
+    border-block-start: 3px solid var(--gold);
     border-radius: var(--radius);
+    padding: var(--space-32) var(--space-30);
     color: var(--color-heading);
-    text-decoration-color: transparent;
+    text-decoration: none;
     transition:
       border-color var(--duration) var(--ease),
-      background var(--duration) var(--ease);
+      box-shadow var(--duration) var(--ease),
+      transform var(--duration) var(--ease);
   }
 
-  .faq-list :global(.faq-row) a:hover {
+  .faq-card:hover {
     border-color: var(--border-deep);
-    background: var(--white-warm);
+    border-block-start-color: var(--gold);
+    box-shadow: var(--shadow-card);
+    transform: translateY(-2px);
   }
 
-  .faq-row__q {
+  .faq-card__cat {
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.16em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin-block-end: var(--space-14);
+  }
+
+  .faq-card__q {
     font-family: var(--font-heading);
     font-weight: var(--fw-regular);
-    font-size: var(--fs-21);
-    line-height: var(--lh-snug);
+    font-size: var(--fs-card-title);
+    line-height: var(--lh-card);
     text-wrap: pretty;
+    margin-block-end: var(--space-18);
   }
 
-  .faq-list :global(.faq-row) .arrow {
-    flex: none;
+  /* Pinned to the foot so the links line up across a row whatever the questions
+     do above them. `margin-block-start: auto` on a flex child does not collapse
+     the way an ordinary margin would. */
+  .faq-card__more {
+    margin-block-start: auto;
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
     color: var(--gold-ink);
+    transition: color var(--duration) var(--ease);
   }
 
-  .faq-index__aside {
-    position: sticky;
-    top: var(--space-40);
+  .faq-card:hover .faq-card__more {
+    color: var(--ink);
   }
 
-  @media (max-width: 1023px) {
-    .faq-index__grid {
-      grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-md);
+  /* The arrow slides on CARD hover, not its own — the whole card is the link, so
+     the card is the hover target. */
+  .faq-card:hover .arrow,
+  .faq-card:focus-visible .arrow {
+    transform: translate(0.25em, var(--arrow-shift));
+  }
+
+  .faq-more {
+    display: flex;
+    justify-content: center;
+    margin-block-start: var(--space-40);
+  }
+
+  /* ⚠️ THIS IS NOT REDUNDANT, AND WITHOUT IT THE BUTTON NEVER HIDES. The reset's
+     `[hidden] { display: none }` and `.faq-more`'s own `display: flex` have the
+     SAME specificity, so source order decides — and this block comes later, so
+     the button stayed on screen with nothing left to reveal. Setting `hidden`
+     from script looked correct in the DOM the whole time, which is why the
+     property read true while the button was plainly visible. `CaseResults.astro`
+     documents the same trap. */
+  .faq-more[hidden] {
+    display: none;
+  }
+
+  /* ── The paged state — only ever set by the script ─────────────────────────
+     Everything below is inert until `data-paged` lands on the wrapper, so a
+     visitor with no JavaScript gets all 180 cards and a working CSS filter
+     rather than sixteen cards and a dead button. */
+  [data-paged] .faq-card.is-clipped {
+    display: none;
+  }
+
+  /* The filter animation: a short rise and fade, staggered by position so a
+     switch reads as the grid refilling rather than snapping. `--i` is set per
+     card and resets every batch, so the stagger never runs away over 180 items. */
+  @keyframes faq-card-in {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  [data-paged] .faq-grid.is-filtering .faq-card:not(.is-clipped) {
+    animation: faq-card-in 0.32s var(--ease) backwards;
+    animation-delay: calc(var(--i, 0) * 18ms);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-paged] .faq-grid.is-filtering .faq-card:not(.is-clipped) {
+      animation: none;
     }
 
-    .faq-index__aside {
-      position: static;
-      max-width: 460px;
+    .faq-card:hover {
+      transform: none;
+    }
+  }
+
+  @media (max-width: 1279px) {
+    .faq-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 
   @media (max-width: 767px) {
-    .faq-index__head {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-16);
+    .faq-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-20);
+    }
+
+    .faq-card {
+      padding: var(--space-26) var(--space-24);
     }
   }
 </style>
+
+<script>
+  /**
+   * The sixteen-at-a-time cap, the "View more" button and the filter animation.
+   *
+   * THE CATEGORY FILTER ITSELF IS NOT HERE — it is CSS, driven by the radio each
+   * pill is a label for, and it works with this script absent. What this adds is
+   * the two things CSS cannot do: clip past a cap, and animate a set that
+   * changes by `display`. The counts in the pills are rendered at build time and
+   * never move, so nothing here has to keep them in step.
+   *
+   * ⚠️ `data-paged` IS THE SWITCH. The rule that hides clipped cards is scoped to
+   * it, so nothing is hidden until this has run to the end. Fail before that
+   * point — or never run at all — and the page degrades to every card visible.
+   */
+  const root = document.querySelector<HTMLElement>("[data-faq-index]");
+
+  if (root) {
+    const batch = Number(root.dataset.batch) || 16;
+    const grid = root.querySelector<HTMLElement>(".faq-grid");
+    const more = root.querySelector<HTMLElement>("[data-faq-more]");
+    const button = more?.querySelector("button");
+    const radios = [...root.querySelectorAll<HTMLInputElement>(".faq-radio")];
+    const cards = [...root.querySelectorAll<HTMLElement>(".faq-card")];
+
+    if (grid && more && button) {
+      let shown = batch;
+
+      const active = () => radios.find((radio) => radio.checked)?.value ?? "all";
+
+      const matching = () => {
+        const value = active();
+        return value === "all" ? cards : cards.filter((card) => card.dataset.cat === value);
+      };
+
+      const render = () => {
+        const list = matching();
+
+        list.forEach((card, i) => {
+          card.classList.toggle("is-clipped", i >= shown);
+          // Restart the stagger every batch, or the last card of 180 waits three
+          // seconds for its turn.
+          card.style.setProperty("--i", String(i % batch));
+        });
+
+        more.hidden = list.length <= shown;
+      };
+
+      /**
+       * ⚠️ THE REFLOW IS LOAD-BEARING. Removing and re-adding a class in the same
+       * task is coalesced into no change at all, so the animation never restarts
+       * on a second filter click. Reading `offsetWidth` between the two forces
+       * the style to flush.
+       */
+      const replay = () => {
+        grid.classList.remove("is-filtering");
+        void grid.offsetWidth;
+        grid.classList.add("is-filtering");
+      };
+
+      radios.forEach((radio) =>
+        radio.addEventListener("change", () => {
+          shown = batch;
+          render();
+          replay();
+        }),
+      );
+
+      button.addEventListener("click", () => {
+        shown += batch;
+        render();
+        replay();
+      });
+
+      render();
+      root.dataset.paged = "";
+    }
+  }
+</script>

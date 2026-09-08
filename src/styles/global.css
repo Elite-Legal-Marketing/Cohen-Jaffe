@@ -1027,6 +1027,22 @@ button:focus-visible .arrow--back {
   transform: translate(-0.25em, var(--arrow-shift));
 }
 
+/* ⚠️ AN ARROW NEVER GOES INSIDE A `.btn`. Site-wide rule, set 2026-09-08.
+
+   The arrow is the affordance for a TEXT LINK — it is the thing that says "this
+   is not just words, it goes somewhere". A button already says that with its
+   whole shape, so an arrow inside one is a second signal doing the first one's
+   job, and against an edge it reads as pointing at a wall. Buttons say where
+   they go in words; links point.
+
+   This is a GUARD, not the fix. Take the arrow out of the MARKUP — a hidden
+   span is still markup somebody has to read, and it will be copied into the
+   next component. The rule is here so that when someone forgets, the button is
+   merely plain rather than wrong. */
+.btn .arrow {
+  display: none;
+}
+
 /* A text link that reads as an action — "Get directions →". */
 .link-arrow {
   /* Explicit, and load-bearing: see the flex warning on `.arrow` above. The
@@ -1204,6 +1220,18 @@ details[open]::details-content {
    -------------------------------------------------------------------------- */
 
 .field {
+  /* ⚠️ A `.field` IS A LIGHT ISLAND, and it has to say so. It keeps a white
+     ground wherever it sits — including inside a dark panel, which is where
+     every form on this site puts it. But `.on-dark` flips `--faint` to a
+     near-white cream so the copy AROUND the field reads, and the placeholder
+     below is drawn in `--faint`. The result on the first dark-panel form was
+     cream text on a white input: the placeholders were rendered, correct in the
+     DOM, and completely invisible.
+
+     Restored on the field itself rather than on `::placeholder` alone, so
+     anything else ever nested in one is covered by the same fix. Keep this in
+     step with `--faint` in `:root`. */
+  --faint: #8a8272;
   width: 100%;
   height: 60px;
   border: none;
@@ -1251,6 +1279,12 @@ textarea.field {
 .on-dark .field-label,
 .surface-forest .field-label {
   color: var(--gold);
+}
+
+/* An error slot is rendered empty and filled by script, so without this every
+   field carries an 8px margin for a message that is not there. */
+.field-error:empty {
+  display: none;
 }
 
 .field-error {

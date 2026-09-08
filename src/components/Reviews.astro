@@ -218,13 +218,11 @@ const durations = new Map(
     }
 
     <div class="reviews__foot">
+      {/* No arrow: an arrow never goes inside a `.btn` — see global.css. */}
       {
         section.cta && (
           <a class="btn btn--ghost btn--sm btn--wide" href={section.cta.href}>
             {section.cta.label}
-            <span class="arrow" aria-hidden="true">
-              &rarr;
-            </span>
           </a>
         )
       }

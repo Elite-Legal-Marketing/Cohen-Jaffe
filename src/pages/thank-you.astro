@@ -1,0 +1,397 @@
+---
+/**
+ * Where the contact form lands after a successful submission.
+ *
+ * From `CJ - Thank You.dc.html`. A real page rather than an inline confirmation
+ * because ad platforms fire a conversion on a PAGE VIEW — an in-place message
+ * gives the firm nothing to count, and this is the page their spend is measured
+ * against.
+ *
+ * ⚠️ NOT `bare`. `Layout.astro`'s `bare` prop exists for pages that drop the
+ * chrome, and a thank-you page is the usual example — but this artboard draws
+ * the nav AND the footer, and the whole point of the page below the fold is to
+ * send someone somewhere else while they wait. Stripping the nav would work
+ * against that.
+ *
+ * ⚠️ THE CHECKMARK MEDALLION IS DELIBERATELY ABSENT. The board opens with a 68px
+ * gold circle holding a ✓ above the eyebrow; removed on the client's instruction
+ * (2026-09-08). The "Request received" eyebrow already says the same thing in
+ * words.
+ *
+ * ⚠️ THIS PAGE SHOULD BE `noindex` AND IS NOT YET. A thank-you page that gets
+ * indexed turns up in search results for people who never submitted anything and
+ * quietly corrupts conversion numbers. `Layout.astro` has no robots prop and
+ * `/new-seo-setup` is the deferred command that adds them site-wide, so this is
+ * recorded rather than special-cased here — but it must not launch without it.
+ *
+ * ⚠️ THREE OF THE FOUR LINKS BELOW POINT AT PAGES THAT DO NOT EXIST YET —
+ * `/about/attorneys/`, `/blog/` and `/about/case-results/`. They are the
+ * artboard's own destinations and every one is already in the nav, so they are
+ * built as drawn and go live with those pages rather than being invented around.
+ *
+ * ⚠️ THE FOUR CARDS ARE LEGAL ADVICE, and unlike most artboard copy they hold
+ * up: "do not give a recorded statement", "photograph everything", "keep every
+ * document" and "follow your treatment" are the same four points the live site's
+ * own accident pages make. They are general and cautionary rather than specific
+ * to any case, which is what keeps them safe on a page like this.
+ */
+import { Image } from "astro:assets";
+import Layout from "../layouts/Layout.astro";
+import thankYouBg from "../assets/thankyou-partners.png";
+
+const STEPS = [
+  {
+    number: "01",
+    title: "Do not give a recorded statement",
+    body: "Be polite with the adjuster, but wait until you have spoken with a lawyer.",
+  },
+  {
+    number: "02",
+    title: "Photograph everything",
+    body: "Injuries, vehicles, the scene, and anything that will be repaired or cleaned up.",
+  },
+  {
+    number: "03",
+    title: "Keep every document",
+    body: "Bills, discharge papers, out-of-work notes, and correspondence from any insurer.",
+  },
+  {
+    number: "04",
+    title: "Follow your treatment",
+    body: "Gaps in treatment are the first thing an insurer uses to argue you were not hurt.",
+  },
+];
+---
+
+<Layout
+  title="Thank you"
+  description="We have your request. An attorney from Cohen &amp; Jaffe will reach out within one business day."
+>
+  <section class="ty-hero">
+    <div class="ty-hero__media">
+      <Image
+        class="ty-hero__image"
+        src={thankYouBg}
+        alt=""
+        widths={[1200, 1800, 2600]}
+        sizes="100vw"
+        loading="eager"
+      />
+      <div class="ty-hero__scrim"></div>
+    </div>
+
+    <div class="container ty-hero__inner">
+      <div class="ty-hero__copy">
+        <p class="eyebrow ty-hero__eyebrow">Request received</p>
+        <h1 class="ty-hero__title">Thank you. We have your request.</h1>
+        <p class="ty-hero__lead">
+          An attorney from our office will reach out within one business day — usually much
+          sooner. If it is urgent, or you would rather not wait, call us now. Someone
+          answers at any hour.
+        </p>
+        <a class="btn btn--gold btn--xwide" href="/about/attorneys/">
+          Meet our team
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <section class="ty-wait">
+    <div class="container">
+      <header class="ty-wait__head">
+        <p class="eyebrow">While you wait</p>
+        <h2 class="ty-wait__heading">Four things worth doing today.</h2>
+      </header>
+
+      <ol class="ty-wait__grid" role="list">
+        {
+          STEPS.map((step) => (
+            <li class="ty-step">
+              <p class="ty-step__number" aria-hidden="true">
+                {step.number}
+              </p>
+              <h3 class="ty-step__title">{step.title}</h3>
+              <p class="ty-step__body">{step.body}</p>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="ty-read on-dark">
+        <div class="ty-read__copy">
+          <h3>Read while you wait</h3>
+          <p>
+            Our attorneys explain the deadlines, the insurance tactics, and what your case
+            may be worth.
+          </p>
+        </div>
+        <div class="ty-read__actions">
+          <a class="btn btn--gold" href="/blog/">Read the blog</a>
+          <a class="btn btn--outline" href="/about/case-results/">See case results</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .ty-hero {
+    position: relative;
+    overflow: hidden;
+    background: var(--forest-1000);
+  }
+
+  .ty-hero__media {
+    position: absolute;
+    inset: 0;
+  }
+
+  .ty-hero__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The three of them stand on the right of the frame; the copy takes the
+       left, so the crop holds the right edge rather than the centre. */
+    object-position: right top;
+  }
+
+  /* ⚠️ A SIBLING, NOT A `::before`. A negative-z pseudo-element paints behind the
+     section's own background but in front of nothing else, so it would dim the
+     forest ground and leave the photograph untouched.
+
+     100deg rather than 90: the copy column runs to about half the board and the
+     wash has to clear it at the TOP, where the heading is, without covering the
+     men lower down on the right. */
+  .ty-hero__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      100deg,
+      rgba(18, 20, 13, 0.97) 0%,
+      rgba(18, 20, 13, 0.92) 34%,
+      rgba(18, 20, 13, 0.7) 50%,
+      rgba(18, 20, 13, 0.3) 64%,
+      rgba(18, 20, 13, 0) 82%
+    );
+  }
+
+  /* ---- Narrow -------------------------------------------------------------
+     ⚠️ THE SIDE WASH IS ONLY VALID WHILE THE COPY TAKES A FRACTION OF THE WIDTH,
+     and by tablet it does not. The board is a fixed 1660px board where the 820px
+     column is 49% and the gradient clears at 82%, leaving a clean third of
+     photograph on the right. At 375px that same column is the whole screen, the
+     wash has faded to nothing under most of it, and the heading lands on a face.
+     Measured, not guessed.
+
+     So the hero STACKS — picture on top, copy beneath — exactly as `Hero.astro`
+     does below 900px, and for the same reason: nothing is ever laid over a face.
+     A flat wash was tried first and is the worse answer, because a scrim heavy
+     enough to hold the copy hides the photograph it is sitting on. Stacking is
+     the one arrangement where both survive.
+
+     This block MUST stay after the base rules it overrides — same selectors at
+     the same specificity, so source order is what decides. */
+  @media (max-width: 1023px) {
+    .ty-hero {
+      display: block;
+    }
+
+    .ty-hero__media {
+      position: relative;
+      inset: auto;
+      width: 100%;
+      /* NOT `aspect-ratio` with `max-height`: once the height clamps, the ratio
+         pulls the WIDTH in to match and the picture stops being full-bleed.
+         Sizing the height directly is what keeps it edge to edge. */
+      height: min(70vw, 46vh);
+    }
+
+    .ty-hero__image {
+      /* The three of them stand to the right of the frame. Anchored right at
+         this height the crop keeps them; `center` would cut the far one. */
+      object-position: right top;
+    }
+
+    .ty-hero__scrim {
+      /* Only a fade at the foot now, blending the picture into the copy below.
+         It has no text left to hold up. */
+      background: var(--scrim-hero-foot);
+    }
+
+    .ty-hero__inner {
+      padding-block: var(--space-md) var(--space-lg);
+    }
+  }
+
+  @media (max-width: 559px) {
+    /* A 300px button is wider than the gutter leaves at this width. */
+    .ty-hero .btn--xwide {
+      width: 100%;
+    }
+  }
+
+  .ty-hero__inner {
+    position: relative;
+    padding-block: var(--space-section);
+  }
+
+  .ty-hero__copy {
+    max-width: 820px;
+  }
+
+  .ty-hero__eyebrow {
+    color: var(--gold);
+  }
+
+  .ty-hero__title {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-62);
+    line-height: var(--lh-display);
+    letter-spacing: var(--ls-display);
+    color: var(--on-dark);
+    text-wrap: balance;
+    margin-block-end: var(--space-24);
+  }
+
+  /* ⚠️ NO `white-space: nowrap`, which the board sets on this paragraph. The
+     artboard is a fixed 1660px board; holding two full sentences on one line
+     each would run off any real screen. */
+  .ty-hero__lead {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    color: var(--on-dark-80);
+    max-width: 62ch;
+    margin-block-end: var(--space-36);
+    text-wrap: pretty;
+  }
+
+  .ty-wait {
+    padding-block: var(--space-section);
+  }
+
+  .ty-wait__head {
+    max-width: 900px;
+    margin-block-end: var(--space-56);
+  }
+
+  .ty-wait__heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-52);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-display);
+    color: var(--color-heading);
+    text-wrap: balance;
+    margin-block-end: 0;
+  }
+
+  /* Four cards divide by four, two and one — the same arithmetic as the FAQ grid
+     and the stats band, and the same reason there is no three-across fold. */
+  .ty-wait__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--space-28);
+    list-style: none;
+  }
+
+  .ty-step {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-40) var(--space-36);
+  }
+
+  /* ⚠️ `--lh-flat` is safe on a two-digit numeral that cannot wrap. */
+  .ty-step__number {
+    font-family: var(--font-heading);
+    font-size: var(--fs-48);
+    line-height: var(--lh-flat);
+    color: var(--gold);
+    margin-block-end: var(--space-20);
+  }
+
+  .ty-step__title {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-card-title);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+    text-wrap: pretty;
+    margin-block-end: var(--space-12);
+  }
+
+  .ty-step__body {
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: var(--muted);
+    text-wrap: pretty;
+  }
+
+  .ty-read {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-40);
+    flex-wrap: wrap;
+    margin-block-start: var(--space-32);
+    padding: var(--space-44) var(--space-56);
+    border-radius: var(--radius);
+    background: var(--forest-800);
+  }
+
+  .ty-read__copy {
+    max-width: var(--container-prose);
+  }
+
+  .ty-read h3 {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-34);
+    line-height: var(--lh-card);
+    color: var(--on-dark);
+    margin-block-end: var(--space-12);
+  }
+
+  .ty-read p {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--on-dark-80);
+    text-wrap: pretty;
+  }
+
+  .ty-read__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-16);
+  }
+
+  @media (max-width: 1023px) {
+    .ty-wait__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ty-read {
+      padding: var(--space-36) var(--space-32);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .ty-wait__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-20);
+    }
+
+    .ty-step {
+      padding: var(--space-30) var(--space-26);
+    }
+
+    .ty-read__actions {
+      width: 100%;
+    }
+
+    .ty-read__actions .btn {
+      flex: 1 1 100%;
+    }
+  }
+</style>
