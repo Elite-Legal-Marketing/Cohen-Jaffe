@@ -32,10 +32,13 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.10",
+    "@portabletext/block-tools": "^6.0.0",
+    "@types/jsdom": "^30.0.0",
     "@types/node": "^26.4.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@types/react-is": "^19.2.0",
+    "jsdom": "^30.0.1",
     "typescript": "^6.0.3"
   }
 }

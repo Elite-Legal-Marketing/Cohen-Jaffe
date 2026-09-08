@@ -1565,6 +1565,177 @@
     }
   },
   {
+    "name": "faq",
+    "type": "document",
+    "attributes": {
+      "_id": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_type": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string",
+          "value": "faq"
+        }
+      },
+      "_createdAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_updatedAt": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "_rev": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        }
+      },
+      "question": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "string"
+        },
+        "optional": false
+      },
+      "slug": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "slug"
+        },
+        "optional": false
+      },
+      "category": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "union",
+          "of": [
+            {
+              "type": "string",
+              "value": "bicycle-accidents"
+            },
+            {
+              "type": "string",
+              "value": "birth-injury"
+            },
+            {
+              "type": "string",
+              "value": "brain-injuries"
+            },
+            {
+              "type": "string",
+              "value": "car-accidents"
+            },
+            {
+              "type": "string",
+              "value": "construction-accidents"
+            },
+            {
+              "type": "string",
+              "value": "cruise-ship-accidents"
+            },
+            {
+              "type": "string",
+              "value": "elevator-accidents"
+            },
+            {
+              "type": "string",
+              "value": "employment-law"
+            },
+            {
+              "type": "string",
+              "value": "medical-malpractice"
+            },
+            {
+              "type": "string",
+              "value": "motorcycle-accidents"
+            },
+            {
+              "type": "string",
+              "value": "neck-injuries"
+            },
+            {
+              "type": "string",
+              "value": "nursing-home-abuse"
+            },
+            {
+              "type": "string",
+              "value": "pedestrian-accidents"
+            },
+            {
+              "type": "string",
+              "value": "personal-injury"
+            },
+            {
+              "type": "string",
+              "value": "premises-liability"
+            },
+            {
+              "type": "string",
+              "value": "slip-and-fall-injury"
+            },
+            {
+              "type": "string",
+              "value": "truck-accidents"
+            },
+            {
+              "type": "string",
+              "value": "wrongful-death"
+            }
+          ]
+        },
+        "optional": false
+      },
+      "answer": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "richText"
+        },
+        "optional": false
+      }
+    }
+  },
+  {
+    "name": "slug",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "slug"
+          }
+        },
+        "current": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "source": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
     "type": "type",
     "name": "sanity.imageAsset.reference",
     "value": {
@@ -2068,36 +2239,6 @@
           "type": "string"
         },
         "optional": true
-      }
-    }
-  },
-  {
-    "name": "slug",
-    "type": "type",
-    "value": {
-      "type": "object",
-      "attributes": {
-        "_type": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string",
-            "value": "slug"
-          }
-        },
-        "current": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": false
-        },
-        "source": {
-          "type": "objectAttribute",
-          "value": {
-            "type": "string"
-          },
-          "optional": true
-        }
       }
     }
   },

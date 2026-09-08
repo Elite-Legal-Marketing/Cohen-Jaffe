@@ -3,6 +3,7 @@ import { CaseIcon } from "@sanity/icons/Case";
 import { CogIcon } from "@sanity/icons/Cog";
 import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
+import { HelpCircleIcon } from "@sanity/icons/HelpCircle";
 import { HomeIcon } from "@sanity/icons/Home";
 import { PlayIcon } from "@sanity/icons/Play";
 import { StarIcon } from "@sanity/icons/Star";
@@ -40,6 +41,7 @@ const LISTED = [
   "practiceArea",
   "videoReview",
   "review",
+  "faq",
 ] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
@@ -119,6 +121,12 @@ export const structure: StructureResolver = (S) =>
               // group and the path, which is enough to find one. Five per-group
               // sub-lists are a `/studio-polish` option if editors ask.
               S.documentTypeListItem("practiceArea").title("Practice Areas").icon(TagsIcon),
+
+              // Flat at a hundred and eighty, which is the largest collection on
+              // the site — the row subtitle carries the category, and the list's
+              // own search is how anyone finds one. Eighteen per-category
+              // sub-lists is the `/studio-polish` option if editors ask for it.
+              S.documentTypeListItem("faq").title("FAQs").icon(HelpCircleIcon),
             ]),
         ),
 

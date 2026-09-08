@@ -2,6 +2,7 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { attorney } from "./documents/attorney";
 import { caseResult } from "./documents/caseResult";
+import { faq } from "./documents/faq";
 import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
@@ -41,6 +42,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   practiceArea,
   review,
   videoReview,
+  faq,
   firmDetails,
   // Section objects — one per band of a page
   hero,

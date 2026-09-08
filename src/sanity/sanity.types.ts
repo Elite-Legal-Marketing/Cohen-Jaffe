@@ -311,6 +311,42 @@ export type FirmDetails = {
   legalDisclaimer: string;
 };
 
+export type Faq = {
+  _id: string;
+  _type: "faq";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  question: string;
+  slug: Slug;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+  answer: RichText;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
+};
+
 export type SanityImageAssetReference = {
   _ref: string;
   _type: "reference";
@@ -402,12 +438,6 @@ export type PracticeArea = {
   };
   blurb?: string;
   linkLabel?: string;
-};
-
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
 };
 
 export type Attorney = {
@@ -652,13 +682,14 @@ export type AllSanitySchemaTypes =
   | CaseResultsSection
   | Hero
   | FirmDetails
+  | Faq
+  | Slug
   | SanityImageAssetReference
   | VideoReview
   | SanityImageCrop
   | SanityImageHotspot
   | Review
   | PracticeArea
-  | Slug
   | Attorney
   | CaseResult
   | FeaturedCaseResult
@@ -1009,11 +1040,70 @@ export type FIRM_DETAILS_QUERY_RESULT =
     }
   | null;
 
+// Source: src/lib/queries.ts
+// Variable: FAQS_QUERY
+// Query: *[_type == "faq"] | order(question asc){    _id,    question,    "slug": slug.current,    category,    answer  }
+export type FAQS_QUERY_RESULT = Array<{
+  _id: string;
+  question: string;
+  slug: string;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+  answer: RichText;
+}>;
+
+// Source: src/lib/queries.ts
+// Variable: FAQ_INDEX_QUERY
+// Query: *[_type == "faq"] | order(question asc){    _id,    question,    "slug": slug.current,    category  }
+export type FAQ_INDEX_QUERY_RESULT = Array<{
+  _id: string;
+  question: string;
+  slug: string;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+}>;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
     '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    },\n    attorneys{\n      eyebrow,\n      heading,\n      cta{ label, href },\n      attorneys[]->{\n        _id,\n        name,\n        role,\n        "slug": slug.current,\n        quote,\n        wistiaId,\n        portrait{ ..., alt }\n      }\n    },\n    whyUs{\n      eyebrow,\n      heading,\n      lead,\n      reasons[]{ _key, title, body }\n    },\n    caseBanner{\n      heading,\n      cta{ label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
     '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
+    '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category,\n    answer\n  }\n': FAQS_QUERY_RESULT;
+    '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category\n  }\n': FAQ_INDEX_QUERY_RESULT;
   }
 }

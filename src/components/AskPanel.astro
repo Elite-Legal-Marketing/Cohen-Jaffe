@@ -1,0 +1,87 @@
+---
+/**
+ * The "Ask a lawyer" panel — the forest card that sits in the FAQ sidebar.
+ *
+ * From the sidebar of `CJ - FAQ.dc.html`, and shared by the FAQs hub and every
+ * FAQ page. On a page that can run to fifty screens of answer, a sticky route to
+ * a human is the one piece of chrome that genuinely earns its place.
+ *
+ * ⚠️ THE PHONE NUMBER IS NOT THIS COMPONENT'S CONTENT. The board writes the
+ * button as "Call 516-358-6900"; the number comes from Site Settings through
+ * `getFirm()` and the label is composed here, so it cannot disagree with the
+ * header, the drawer, the footer, the fee band or the case banner (AGENTS.md
+ * rule 9). `telHref()` derives the link — the number is stored in display form
+ * only, because storing the pair is two things that can drift and they did.
+ *
+ * The copy is hardcoded rather than modelled. It is page chrome on a page whose
+ * content is the collection, and nobody asked for it to be editable; a
+ * `faqsPage` singleton is a small change if that turns out to be wanted.
+ *
+ * ⚠️ `.on-dark` ON THE WRAPPER IS LOAD-BEARING, not decoration. It redefines
+ * `--color-text`, `--color-heading` and the border tokens for everything nested,
+ * AND it is what selects the on-dark `.btn--outline` — a light hairline that
+ * fills gold, rather than the cream-ground variant's ink one, which would all
+ * but vanish here. Removing the class breaks the second button silently.
+ *
+ * The board hovers that button to a cream fill; the site's on-dark outline fills
+ * gold. Taking the site's is deliberate — a one-off variant for one button is
+ * how a button system stops being one.
+ */
+import { getFirm } from "../lib/firm";
+import { telHref } from "../lib/phone";
+
+const firm = await getFirm();
+const phone = firm?.phone;
+---
+
+<aside class="ask on-dark">
+  <p class="eyebrow eyebrow--bare ask__kicker">Still have a question</p>
+  <h2 class="ask__heading">Ask a lawyer, not a search engine.</h2>
+  <p class="ask__lead">The call is free, and a person answers 24 hours a day.</p>
+
+  {
+    phone && (
+      <a class="btn btn--gold btn--block" href={telHref(phone)}>
+        Call {phone}
+      </a>
+    )
+  }
+  <a class="btn btn--outline btn--block" href="/contact/">Send us your question</a>
+</aside>
+
+<style>
+  .ask {
+    background: var(--gradient-forest-card);
+    border-radius: var(--radius);
+    padding: var(--space-36) var(--space-32);
+  }
+
+  /* `.eyebrow--bare`, not `.eyebrow`: the dash introduces a section, and this
+     label introduces a card. Gold on forest rather than the default. */
+  .ask__kicker {
+    color: var(--gold);
+    margin-block-end: var(--space-14);
+  }
+
+  .ask__heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-30);
+    line-height: var(--lh-subhead);
+    color: var(--on-dark);
+    margin-block-end: var(--space-14);
+  }
+
+  .ask__lead {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+    margin-block-end: var(--space-26);
+  }
+
+  /* The two buttons stack. `.btn--block` is the full-width variant, so the only
+     thing left is the gap between them. */
+  .ask .btn + .btn {
+    margin-block-start: var(--space-12);
+  }
+</style>

@@ -1,0 +1,374 @@
+---
+/**
+ * The FAQs hub — every question, filterable by category.
+ *
+ * From `CJ - FAQ.dc.html`. Already in the nav at Resources → FAQ
+ * (`src/data/navigation.ts:202`), where the link has been dead until now.
+ *
+ * ⚠️ THIS IS A LIST OF LINKS, NOT A PAGE OF ANSWERS, and that is the decision
+ * the whole FAQ shape turns on. Rendering all 180 answers inline was measured at
+ * **895 KB uncompressed / 179 KB brotli / ~9,200 element nodes** — 3.3x the
+ * homepage, on a page with no images at all. Every answer now has its own page
+ * at its own indexed URL, so the hub's job is to get you to one.
+ *
+ * ── WHAT IS DRAWN AND WHAT IS DEFERRED ──────────────────────────────────────
+ *
+ * Built: the dark hero, the section head, the category pills, the list, and the
+ * sticky "Ask a lawyer" panel.
+ *
+ * Deferred, each for a reason rather than for time:
+ *   - The breadcrumb bar the board draws under the hero. Removed on the
+ *     client's instruction (2026-09-08): NO BREADCRUMBS ANYWHERE ON THIS SITE.
+ *   - The four "top question" cards — invented artboard copy with no source, and
+ *     a fifth piece of hand-written content nobody asked for.
+ *   - The "Prefer to watch?" card — it links to `/video-center/`, which does not
+ *     exist, and there is no FAQ video.
+ *   - The "Related" card — three of its four links are unbuilt pages.
+ *   - The stats band — it duplicates the homepage's, with invented figures.
+ *   - The quote band — a 42px quote attributed to Richard S. Jaffe that appears
+ *     in no source. HANDOFF open question 4 is already this exact problem on the
+ *     "Our goals" band; a second invented quote about a real, named person on a
+ *     page of legal advertising is not something to add unasked.
+ *   - `CJContactForm` — nothing exists for it anywhere in the repo, and on a
+ *     `output: "static"` site it needs a submit endpoint, spam handling and a
+ *     thank-you page. Its own task. The sidebar's "Send us your question" covers
+ *     the need meanwhile.
+ */
+import { sanityClient } from "sanity:client";
+import Layout from "../../layouts/Layout.astro";
+import AskPanel from "../../components/AskPanel.astro";
+import { FAQ_INDEX_QUERY } from "../../lib/queries";
+import { faqHref } from "../../lib/faqs";
+import { FAQ_CATEGORIES } from "../../sanity/schemaTypes/faqCategories";
+import type { FAQ_INDEX_QUERY_RESULT } from "../../sanity/sanity.types";
+
+const faqs = (await sanityClient.fetch<FAQ_INDEX_QUERY_RESULT>(FAQ_INDEX_QUERY)) ?? [];
+
+/**
+ * Only the categories that actually have a question. A pill that filters to an
+ * empty list is a dead control, and six of the eighteen terms are thin enough
+ * that one editorial decision could empty them.
+ */
+const counts = new Map<string, number>();
+for (const faq of faqs) {
+  if (faq.category) counts.set(faq.category, (counts.get(faq.category) ?? 0) + 1);
+}
+const categories = FAQ_CATEGORIES.filter(({ value }) => (counts.get(value) ?? 0) > 0);
+
+const id = (value: string) => `fc-${value}`;
+
+/**
+ * ⚠️ THE FILTER CSS IS GENERATED FROM THE TAXONOMY, and emitted `is:inline` so
+ * Astro does not scope it.
+ *
+ * Two rules per category — hide the rows that do not match, and light that
+ * category's pill. Thirty-six rules, hand-maintained, would drift from
+ * `FAQ_CATEGORIES` the first time a term changed; generated, they cannot.
+ *
+ * The GENERAL SIBLING combinator is what makes a CSS-only filter possible at
+ * all. `PracticeAreas.astro` gets away with `:checked + label + pane` because
+ * each of its tabs reveals one adjacent pane; a filter has to hide items
+ * scattered through a single list, which adjacency cannot reach. So the radios
+ * come FIRST in the DOM, then the pills, then the list — all siblings of one
+ * parent.
+ *
+ * The cost of `is:inline` is that these class names are unscoped, so they are
+ * hand-namespaced (`.faq-list`, `.faq-row`, `.faq-filter`). Everything else on
+ * the page stays in the ordinary scoped block below.
+ */
+const filterCss = categories
+  .map(
+    ({ value }) => `
+#${id(value)}:checked ~ .faq-list .faq-row:not([data-cat="${value}"]) { display: none; }
+#${id(value)}:checked ~ .faq-filter label[for="${id(value)}"] { background: var(--green); border-color: var(--green); color: var(--cream); }`,
+  )
+  .join("");
+
+const allCss = `
+#fc-all:checked ~ .faq-filter label[for="fc-all"] { background: var(--green); border-color: var(--green); color: var(--cream); }`;
+---
+
+<Layout
+  title="Frequently Asked Questions"
+  description="Straight answers about fees, deadlines, insurance adjusters, and what actually happens to an injury case in New York. Free consultation, and no fee unless we win."
+>
+  <section class="faq-hero surface-forest-deep">
+    <div class="container">
+      <div class="faq-hero__copy">
+        <p class="eyebrow">Frequently asked questions</p>
+        <h1 class="faq-hero__title">The questions people ask us first.</h1>
+        <p class="faq-hero__lead">
+          Straight answers about fees, deadlines, insurance adjusters, and what actually
+          happens to a case in New York — no legalese, no obligation.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq-index">
+    <div class="container faq-index__grid">
+      <div class="faq-index__main">
+        <header class="faq-index__head">
+          <div>
+            <p class="eyebrow">Browse by topic</p>
+            <h2 class="faq-index__heading">
+              Answers from the attorneys who handle these cases.
+            </h2>
+          </div>
+          <p class="faq-index__count">
+            {faqs.length} {faqs.length === 1 ? "question" : "questions"}
+          </p>
+        </header>
+
+        {/* The radios come first so `~` reaches both the pills and the list. */}
+        <input class="faq-radio" type="radio" name="faq-cat" id="fc-all" checked />
+        {
+          categories.map(({ value }) => (
+            <input class="faq-radio" type="radio" name="faq-cat" id={id(value)} />
+          ))
+        }
+
+        <div class="faq-filter" role="group" aria-label="Filter questions by topic">
+          <label for="fc-all">All questions ({faqs.length})</label>
+          {
+            categories.map(({ value, title }) => (
+              <label for={id(value)}>
+                {title} ({counts.get(value)})
+              </label>
+            ))
+          }
+        </div>
+
+        <ul class="faq-list">
+          {
+            faqs.map((faq) => (
+              <li class="faq-row" data-cat={faq.category}>
+                <a href={faqHref(faq.slug!)}>
+                  <span class="faq-row__q">{faq.question}</span>
+                  <span class="arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div class="faq-index__aside">
+        <AskPanel />
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style is:inline set:html={allCss + filterCss}></style>
+
+<style>
+  .faq-hero {
+    display: flex;
+    align-items: center;
+    min-height: 420px;
+    padding-block: var(--space-xl);
+  }
+
+  .faq-hero__copy {
+    max-width: 1000px;
+  }
+
+  .faq-hero__title {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-page-title);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-display);
+    color: var(--on-dark);
+    text-wrap: balance;
+    margin-block-end: var(--space-22);
+  }
+
+  .faq-hero__lead {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    color: var(--on-dark-80);
+    max-width: var(--container-prose);
+    text-wrap: pretty;
+  }
+
+  .faq-index {
+    padding-block: var(--space-section);
+  }
+
+  .faq-index__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 460px;
+    gap: var(--space-80);
+    align-items: start;
+  }
+
+  .faq-index__main {
+    min-width: 0;
+  }
+
+  .faq-index__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--space-md);
+    margin-block-end: var(--space-44);
+  }
+
+  .faq-index__heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-section);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--ls-tight);
+    color: var(--color-heading);
+    text-wrap: balance;
+    margin-block-end: 0;
+  }
+
+  .faq-index__count {
+    flex: none;
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.14em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--faint);
+    white-space: nowrap;
+  }
+
+  /*
+    ⚠️ `position: fixed` WITH EXPLICIT OFFSETS, NEVER `absolute`.
+
+    Clicking a `<label>` focuses its input, and focusing an element scrolls it
+    into view — so wherever these sit is where the page jumps. As `absolute`
+    with no offsets they all resolve to the same point at the top of the
+    container, which is what threw the practice-areas rail 440px up the page
+    when its sixth tab was clicked. A fixed box is always inside the viewport,
+    so there is nothing to scroll to. The offsets are not optional: with
+    `top`/`left` auto a fixed box sits at its static position, which is the same
+    off-screen point again.
+  */
+  .faq-radio {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .faq-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-12);
+    margin-block-end: var(--space-40);
+  }
+
+  /* `:global` because the generated rules above are unscoped and set the ACTIVE
+     state on these same labels; without it the two blocks would be selecting
+     different things by the same name. */
+  .faq-filter :global(label) {
+    display: inline-flex;
+    align-items: center;
+    height: 48px;
+    padding-inline: var(--space-24);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.08em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--body);
+    cursor: pointer;
+    transition:
+      background var(--duration) var(--ease),
+      border-color var(--duration) var(--ease),
+      color var(--duration) var(--ease);
+  }
+
+  .faq-filter :global(label:hover) {
+    border-color: var(--border-deep);
+  }
+
+  /* The keyboard has to be able to see which pill is focused, and the input it
+     belongs to is off-screen — so the focus ring is drawn on the label. */
+  .faq-radio:focus-visible + .faq-filter :global(label),
+  .faq-radio:focus-visible ~ .faq-filter :global(label[for]) {
+    outline: revert;
+  }
+
+  .faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    list-style: none;
+  }
+
+  .faq-list :global(.faq-row) a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-24);
+    padding: var(--space-24) var(--space-28);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--color-heading);
+    text-decoration-color: transparent;
+    transition:
+      border-color var(--duration) var(--ease),
+      background var(--duration) var(--ease);
+  }
+
+  .faq-list :global(.faq-row) a:hover {
+    border-color: var(--border-deep);
+    background: var(--white-warm);
+  }
+
+  .faq-row__q {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-21);
+    line-height: var(--lh-snug);
+    text-wrap: pretty;
+  }
+
+  .faq-list :global(.faq-row) .arrow {
+    flex: none;
+    color: var(--gold-ink);
+  }
+
+  .faq-index__aside {
+    position: sticky;
+    top: var(--space-40);
+  }
+
+  @media (max-width: 1023px) {
+    .faq-index__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-md);
+    }
+
+    .faq-index__aside {
+      position: static;
+      max-width: 460px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    .faq-index__head {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: var(--space-16);
+    }
+  }
+</style>

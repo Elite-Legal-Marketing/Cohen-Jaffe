@@ -982,6 +982,22 @@ details > summary::-webkit-details-marker {
    The offset lives in a custom property because the hover state animates X
    only — writing the pair out longhand in four places is how one of them ends
    up dropping the Y and jumping on hover. */
+/* ⚠️ AN UNDERLINED LINK CONTAINING AN ARROW MUST NOT BE A FLEX CONTAINER, and
+   this is a site-wide rule rather than a preference. An underline set on the
+   <a> is PROPAGATED to its descendants and cannot be cancelled from inside —
+   `text-decoration: none` on the arrow does nothing, verified.
+
+   What saves the ordinary case is that `.arrow` is an atomic inline
+   (`display: inline-block`), and a browser does not draw an ancestor's
+   underline through one. Make the <a> a flex container and that protection is
+   gone: the arrow is blockified into a flex item, takes the propagated
+   decoration as its own, and the glyph gets a little underline of its own with
+   the flex gap showing as a break in the rule.
+
+   So: leave a `.link-arrow` inline and let `margin-inline-start` below provide
+   the gap. If you need `align-items` on a link with an arrow, you have already
+   made the mistake. `.pa__all-link--foot` and two FAQ links were each fixed by
+   dropping their `display: inline-flex`. */
 .arrow {
   --arrow-shift: -0.0625em;
   display: inline-block;
@@ -1013,6 +1029,10 @@ button:focus-visible .arrow--back {
 
 /* A text link that reads as an action — "Get directions →". */
 .link-arrow {
+  /* Explicit, and load-bearing: see the flex warning on `.arrow` above. The
+     underline this class declares would be drawn under the arrow the moment a
+     consumer made it `inline-flex`. */
+  display: inline;
   font-family: var(--font-label);
   font-size: var(--fs-meta);
   font-weight: var(--fw-bold);
@@ -1045,6 +1065,97 @@ button:focus-visible .arrow--back {
 .on-dark .link-arrow:hover,
 .surface-forest .link-arrow:hover {
   color: var(--on-dark);
+}
+
+/* --- The disclosure toggle ------------------------------------------------
+   The open/close control on every <details> on the site. Promoted here from
+   `.expect__toggle` in About.astro, which was the first one built and is still
+   the reference: one control, one behaviour, wherever a section opens.
+
+   ⚠️ TWO DRAWN BARS, NOT A "+" AND A "−" GLYPH, and the reason is the whole
+   design. `content` cannot be transitioned, so swapping one character for
+   another can only ever snap — and Roboto Condensed's plus is thin and sits
+   high in the em box, so it never looked centred in a circle. The vertical bar
+   rotating flat onto the horizontal one IS the animation.
+
+   Markup:
+     <summary>
+       …
+       <span class="toggle" aria-hidden="true">
+         <span class="toggle__bar"></span>
+         <span class="toggle__bar toggle__bar--v"></span>
+       </span>
+     </summary>
+
+   `aria-hidden` because <summary> already announces its own expanded state;
+   without it a screen reader reads a control inside a control. */
+.toggle {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgba(169, 126, 55, 0.5);
+  border-radius: var(--radius-full);
+  color: var(--gold-ink);
+  transition:
+    background-color var(--duration) var(--ease),
+    color var(--duration) var(--ease),
+    border-color var(--duration) var(--ease);
+}
+
+.toggle__bar {
+  position: absolute;
+  width: 11px;
+  height: 2px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.toggle__bar--v {
+  transform: rotate(90deg);
+  transition: transform var(--duration) var(--ease);
+}
+
+details[open] .toggle__bar--v {
+  transform: rotate(0deg);
+}
+
+/* Hover and keyboard focus are the same state: the control is inside the
+   <summary>, which is what actually takes focus. */
+summary:hover .toggle,
+summary:focus-visible .toggle {
+  background-color: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+
+/* The open/close animation, and the other half of "one accordion". A toggle
+   that animates on a panel that snaps is worse than neither.
+
+   `::details-content` is the box the UA wraps a disclosure's content in, and it
+   is the only way to animate a <details> BOTH WAYS without JavaScript. Growing
+   to `auto` needs `interpolate-size: allow-keywords`, which is set on :root at
+   the top of this file — without it the height animates from 0 to nothing.
+
+   `content-visibility` is transitioned `allow-discrete` so the content is still
+   painted on the way out; without it the panel empties instantly and only the
+   empty box collapses.
+
+   Where the pseudo-element is unsupported the whole rule is dropped and the
+   panel simply snaps, which is the behaviour it had before. */
+details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size var(--duration) var(--ease),
+    content-visibility var(--duration) var(--ease) allow-discrete;
+}
+
+details[open]::details-content {
+  block-size: auto;
 }
 
 /* --------------------------------------------------------------------------

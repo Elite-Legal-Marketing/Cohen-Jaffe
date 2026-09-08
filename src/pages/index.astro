@@ -12,10 +12,55 @@ import Reviews from "../components/Reviews.astro";
 import Attorneys from "../components/Attorneys.astro";
 import WhyUs from "../components/WhyUs.astro";
 import CaseBanner from "../components/CaseBanner.astro";
-import { HOME_PAGE_QUERY } from "../lib/queries";
-import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+import FaqSection from "../components/FaqSection.astro";
+import { HOME_PAGE_QUERY, FAQS_QUERY } from "../lib/queries";
+import type { HOME_PAGE_QUERY_RESULT, FAQS_QUERY_RESULT } from "../sanity/sanity.types";
 
 const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
+
+/**
+ * ⚠️ TEMPORARY — the FAQ band's content, hardcoded pending design approval.
+ *
+ * The house order is build it, approve it, then model it (AGENTS.md), so this
+ * constant is shaped EXACTLY as `homePage.faqs` will project, and wiring it is a
+ * swap from this to `home.faqs` rather than a rewrite. It is the only hardcoded
+ * section content on the site and the only place `FAQS_QUERY` is used outside
+ * `/faqs/[slug].astro`; both go when `faqSection` lands.
+ *
+ * THE EIGHT ARE REAL MIGRATED FAQs, chosen against the artboard's own eight
+ * intents — fees, case value, deadlines, no-fault, the insurance release, a
+ * first offer, changing lawyers, and court. Two rules were applied:
+ *   - None of the twelve titles that are not questions (`review.notQuestions` in
+ *     `scripts/faqs.json`). They read badly under a heading that says
+ *     "Frequently asked questions".
+ *   - Broadly applicable ones over practice-specific ones — "What fees are
+ *     involved with a personal injury case?" rather than the birth-injury or
+ *     motorcycle version of the same question.
+ */
+const HOMEPAGE_FAQ_SLUGS = [
+  "what-fees-are-involved-with-a-personal-injury-case",
+  "how-much-is-my-car-accident-settlement-worth-in-new-york",
+  "what-is-the-car-accident-statute-of-limitations-in-new-york",
+  "is-new-york-a-no-fault-state",
+  "should-i-sign-an-insurance-company-release",
+  "it-seems-like-the-insurance-company-is-making-a-good-offer-and-i-have-bills-now",
+  "can-you-switch-personal-injury-lawyers",
+  "do-you-have-to-go-to-court-for-a-car-accident",
+];
+
+const allFaqs = (await sanityClient.fetch<FAQS_QUERY_RESULT>(FAQS_QUERY)) ?? [];
+const faqSection = {
+  eyebrow: "Answers, upfront",
+  heading: "Frequently asked questions",
+  lead: "Pick what is on your mind. No forms and no fine print — just the answers we give people on the phone every day.",
+  faqs: HOMEPAGE_FAQ_SLUGS.map((slug) => allFaqs.find((faq) => faq.slug === slug)).filter(
+    (faq) => faq !== undefined,
+  ),
+  closingHeading: "Still have a question about your own situation?",
+  closingLead:
+    "Ask an attorney directly — free, and nothing you say obligates you to hire us.",
+  closingCta: { label: "Ask us anything", href: "/contact/" },
+};
 ---
 
 <Layout
@@ -34,4 +79,5 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.attorneys && <Attorneys section={home.attorneys} />}
   {home?.whyUs && <WhyUs section={home.whyUs} />}
   {home?.caseBanner && <CaseBanner section={home.caseBanner} />}
+  <FaqSection section={faqSection} />
 </Layout>

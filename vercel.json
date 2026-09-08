@@ -7,6 +7,24 @@
       "source": "/case-results/:slug",
       "destination": "/case-results/",
       "permanent": true
-    }
+    },
+
+    {
+      "source": "/faqs/what-to-do-after-a-bus-accident-in-new-yorkas-we-serve",
+      "destination": "/faqs/what-to-do-after-a-bus-accident-new-york/",
+      "permanent": true
+    },
+
+    { "source": "/faqs/birth-injury-faqs", "destination": "/faqs/", "permanent": true },
+    { "source": "/faqs/car-accident-faqs", "destination": "/faqs/", "permanent": true },
+    { "source": "/faqs/cruise-ship-accident-faqs", "destination": "/faqs/", "permanent": true },
+    {
+      "source": "/faqs/elevator-and-escalator-accident-faqs",
+      "destination": "/faqs/",
+      "permanent": true
+    },
+    { "source": "/faqs/employment-law-faqs", "destination": "/faqs/", "permanent": true },
+    { "source": "/faqs/medical-malpractice-faqs", "destination": "/faqs/", "permanent": true },
+    { "source": "/faqs/motorcycle-accidents-faqs", "destination": "/faqs/", "permanent": true }
   ]
 }

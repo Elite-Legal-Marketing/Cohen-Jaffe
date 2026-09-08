@@ -158,3 +158,39 @@ export const FIRM_DETAILS_QUERY = defineQuery(`
     legalDisclaimer
   }
 `);
+
+/**
+ * Every FAQ, with its answer — the source for `/faqs/[slug].astro`'s
+ * `getStaticPaths()`, which needs the whole body to render 180 static pages
+ * from one fetch.
+ *
+ * Ordered by question so the build output is stable and a diff between two
+ * builds means something.
+ */
+export const FAQS_QUERY = defineQuery(`
+  *[_type == "faq"] | order(question asc){
+    _id,
+    question,
+    "slug": slug.current,
+    category,
+    answer
+  }
+`);
+
+/**
+ * The same list WITHOUT the answers — for `/faqs/` , which is a list of links
+ * rather than a page of articles.
+ *
+ * A separate query rather than a projection of the one above on purpose: the
+ * answers are roughly 2.7 MB across the collection, and the hub renders none of
+ * them. Fetching them to throw them away is the difference between a hub build
+ * step that is instant and one that is not.
+ */
+export const FAQ_INDEX_QUERY = defineQuery(`
+  *[_type == "faq"] | order(question asc){
+    _id,
+    question,
+    "slug": slug.current,
+    category
+  }
+`);

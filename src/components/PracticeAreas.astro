@@ -678,8 +678,12 @@ const focus = (hotspot: { x: number; y: number } | null | undefined) =>
       display: none;
     }
 
+    /* ⚠️ `block`, NOT `inline-flex`. This link underlines on hover and carries a
+       trailing arrow; as a flex container the arrow becomes a flex item, takes
+       the propagated underline as its own, and gets a little rule of its own
+       under the glyph. `.arrow` in global.css carries the full note. */
     .pa__all-link--foot {
-      display: inline-flex;
+      display: block;
       margin-block-start: var(--space-24);
       padding-block-start: var(--space-22);
       border-block-start: 1px solid var(--border);
