@@ -120,6 +120,10 @@ export const HOME_PAGE_QUERY = defineQuery(`
       heading,
       lead,
       reasons[]{ _key, title, body }
+    },
+    caseBanner{
+      heading,
+      cta{ label, href }
     }
   }
 `);

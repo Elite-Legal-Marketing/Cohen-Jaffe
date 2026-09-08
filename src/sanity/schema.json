@@ -698,6 +698,37 @@
     }
   },
   {
+    "name": "caseBannerSection",
+    "type": "type",
+    "value": {
+      "type": "object",
+      "attributes": {
+        "_type": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string",
+            "value": "caseBannerSection"
+          }
+        },
+        "heading": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "string"
+          },
+          "optional": false
+        },
+        "cta": {
+          "type": "objectAttribute",
+          "value": {
+            "type": "inline",
+            "name": "ctaLink"
+          },
+          "optional": true
+        }
+      }
+    }
+  },
+  {
     "name": "whyUsSection",
     "type": "type",
     "value": {
@@ -2727,6 +2758,14 @@
         "value": {
           "type": "inline",
           "name": "whyUsSection"
+        },
+        "optional": true
+      },
+      "caseBanner": {
+        "type": "objectAttribute",
+        "value": {
+          "type": "inline",
+          "name": "caseBannerSection"
         },
         "optional": true
       }

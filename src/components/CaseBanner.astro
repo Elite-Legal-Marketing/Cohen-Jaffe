@@ -1,0 +1,192 @@
+---
+/**
+ * Homepage "Not sure if you have a case?" banner — a full-width gold strip
+ * holding one line of serif copy against two buttons.
+ *
+ * From `Cohen & Jaffe Homepage v1.dc.html` markup 621-628, the strip between
+ * the WHY COHEN & JAFFE band and the FAQ. Content comes from the `caseBanner`
+ * field on the `homePage` singleton; its provenance is in the docblock of
+ * `scripts/seed-home-case-banner.ts`, not repeated here.
+ *
+ * ⚠️ THIS IS NOT THE BOARD'S "MID CTA BAR" (line 576), which is an empty
+ * comment with no markup under it. This is a separate, fully drawn section.
+ *
+ * THE PHONE NUMBER IS NOT THIS SECTION'S CONTENT. The board writes the second
+ * button as "Call 516-358-6900"; the number comes from Site Settings through
+ * `getFirm()` and the label is composed here, so it can never disagree with the
+ * three other places it appears (AGENTS.md rule 9). `telHref()` derives the
+ * link — the number is stored in display form only.
+ */
+import { getFirm } from "../lib/firm";
+import { telHref } from "../lib/phone";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["caseBanner"]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
+const firm = await getFirm();
+const phone = firm?.phone;
+
+// `cta` is optional in the schema — the band still works without it, because
+// the call button beside it comes from Site Settings rather than this section.
+const cta = section.cta;
+---
+
+<section class="case-banner" aria-labelledby="case-banner-heading">
+  <div class="container case-banner__inner">
+    {/* A <p>, not a heading. The band is a call to action rather than a section
+        of content, so an <h2> here would put a rung in the document outline for
+        something with nothing under it. `aria-labelledby` still gives the
+        region an accessible name. */}
+    <p class="case-banner__heading" id="case-banner-heading">{section.heading}</p>
+
+    <div class="case-banner__actions">
+      {
+        cta?.href && (
+          <a class="btn btn--wide case-banner__primary" href={cta.href}>
+            {cta.label}
+          </a>
+        )
+      }
+      {
+        phone && (
+          <a class="btn btn--wide btn--outline case-banner__call" href={telHref(phone)}>
+            Call {phone}
+          </a>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* The gradient goes on the SECTION, never on `.container` — a container is
+     inset by the gutter, so a background on it stops short and the page shows
+     through in two strips down the sides. The board's 90deg gold ramp, in
+     tokens: --gold-light 0%, --gold 42%, --gold-dark 100%. */
+  .case-banner {
+    background: linear-gradient(
+      90deg,
+      var(--gold-light) 0%,
+      var(--gold) 42%,
+      var(--gold-dark) 100%
+    );
+  }
+
+  /* 36px, the board's own padding. This is a strip, not a section — `.section`
+     would give it 64-130px and turn a band into a chapter. */
+  .case-banner__inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-40);
+    padding-block: var(--space-36);
+  }
+
+  .case-banner__heading {
+    /* ⚠️ `--font-heading` is Newsreader. There is no `--font-serif`, and
+       `--font-display` is OSWALD, not the serif — an undefined custom property
+       falls back silently to the inherited body face, which is what this line
+       did on the first pass. */
+    font-family: var(--font-heading);
+    /* ⚠️ `--fs-32` WITH A RAISED FLOOR — the token's own slope, so this still
+       lands on the board's exact 32px at 1660, but it bottoms out at 28 instead
+       of 22.72.
+
+       The ramp's floors are `16 + (design - 16) x 0.42`, which compresses every
+       size toward 16 so a dense layout stays readable. This band is not dense:
+       on a phone the heading is the ONLY content above two buttons, and at
+       22.72px it read as a caption over them rather than the thing being asked.
+
+       28 IS MEASURED, NOT CHOSEN. At a 375px viewport the container is 335px
+       and this sentence sets 313px wide at 28px — the largest size that still
+       holds ONE line. 30px measures 337px and wraps. Re-measure if the copy
+       changes; a longer sentence wants a lower floor.
+
+       A flat `@media (max-width: 768px) { font-size: 28px }` was the obvious
+       alternative and it INVERTS THE RAMP: the token gives 25.6px at 768, so
+       the heading would shrink as the screen grew past the breakpoint. Raising
+       the floor keeps it monotonic — flat 28 below 1106px, then 28 to 32. */
+    font-size: clamp(28px, 1.2507rem + 0.7222vw, 32px);
+    /* The line cannot wrap at desktop and reads as one utterance, so it takes
+       the display leading rather than the body ramp. */
+    line-height: var(--lh-display);
+    color: var(--ink);
+    margin: 0;
+  }
+
+  .case-banner__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-20);
+  }
+
+  /* The board's primary: an INK fill on the gold, flipping to forest on hover.
+     Local rather than a `.btn--ink` in global.css because it has exactly one
+     consumer — the same call `PracticeAreas` made with `.pa__cta`. Promote it
+     the day a second band wants it.
+
+     A flat fill, like every button on the site: a gradient cannot cross-fade to
+     a flat hover colour, so the 0.5s curve would be thrown away. */
+  .case-banner__primary {
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .case-banner__primary:hover {
+    background: var(--forest-500);
+    color: var(--white);
+  }
+
+  /* The call button is `.btn--outline` for its hover — an ink fill, which is
+     the strong state this band wants — but its RESTING hairline is
+     `--border-deep` (#c9bfa8), a warm grey calibrated for cream. On the gold
+     ramp that is barely there. The board draws this border in ink, so the
+     resting colour is put back to the board's value and the hover is left
+     alone. */
+  .case-banner__call {
+    box-shadow: inset 0 0 0 1px var(--ink);
+  }
+
+  /* --- Responsive ----------------------------------------------------------
+     Structure only; type and spacing already ramp through clamp(). */
+
+  /* The two 250px buttons plus their gap want 520px, and the heading wants
+     ~430px at its full size — so a little over 1000px including the gap is
+     where the row stops fitting. `flex-wrap` drops the buttons to their own
+     line before that, and centring the copy is what keeps the band composed
+     once they do. */
+  @media (max-width: 1023px) {
+    .case-banner__inner {
+      gap: var(--space-28);
+    }
+
+    .case-banner__heading {
+      text-align: center;
+    }
+  }
+
+  /* `.btn--wide` relaxes to 100% at 768px in global.css, so below that the two
+     buttons stack full-width. They need a column to stack IN, and that column
+     has to be told to fill the line.
+
+     ⚠️ `align-self: stretch` DOES NOT DO IT. `.case-banner__inner` is a ROW
+     flex container, so the cross axis is vertical and `align-self` stretches
+     the box's HEIGHT. The width stayed content-sized, `.btn--wide`'s 100%
+     resolved against that, and both buttons came out 175px wide on a 375px
+     screen — reading as centred pills rather than the full-width controls every
+     other band uses at this width. `width: 100%` is the axis that matters. */
+  @media (max-width: 768px) {
+    .case-banner__actions {
+      flex-direction: column;
+      width: 100%;
+      gap: var(--space-12);
+    }
+  }
+</style>
