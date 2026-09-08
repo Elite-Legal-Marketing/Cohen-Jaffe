@@ -6,6 +6,8 @@ import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
 import { practiceArea } from "./documents/practiceArea";
+import { review } from "./documents/review";
+import { videoReview } from "./documents/videoReview";
 import { aboutSection } from "./objects/aboutSection";
 import { attorneyQuote } from "./objects/attorneyQuote";
 import { caseResultsSection } from "./objects/caseResultsSection";
@@ -15,6 +17,7 @@ import { feesSection } from "./objects/feesSection";
 import { ctaLink } from "./objects/ctaLink";
 import { deadlineFigure } from "./objects/deadlineFigure";
 import { deadlinesSection } from "./objects/deadlinesSection";
+import { reviewsSection } from "./objects/reviewsSection";
 import { hero } from "./objects/hero";
 import { office } from "./objects/office";
 import { practiceAreaTab } from "./objects/practiceAreaTab";
@@ -32,6 +35,8 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   caseResult,
   attorney,
   practiceArea,
+  review,
+  videoReview,
   firmDetails,
   // Section objects — one per band of a page
   hero,
@@ -40,6 +45,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   feesSection,
   practiceAreasSection,
   deadlinesSection,
+  reviewsSection,
   // Shared objects
   attorneyQuote,
   ctaLink,

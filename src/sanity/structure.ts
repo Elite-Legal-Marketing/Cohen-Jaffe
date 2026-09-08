@@ -4,7 +4,10 @@ import { CogIcon } from "@sanity/icons/Cog";
 import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
 import { HomeIcon } from "@sanity/icons/Home";
+import { PlayIcon } from "@sanity/icons/Play";
 import { StarIcon } from "@sanity/icons/Star";
+import { StarFilledIcon } from "@sanity/icons/StarFilled";
+import { CommentIcon } from "@sanity/icons/Comment";
 import { TagsIcon } from "@sanity/icons/Tags";
 import { UsersIcon } from "@sanity/icons/Users";
 
@@ -30,7 +33,14 @@ const SINGLETONS = ["homePage", "firmDetails"] as const;
  * Collections given their own list item above. They must be excluded from the
  * generic fallback too, or the Studio shows each of them twice.
  */
-const LISTED = ["featuredCaseResult", "caseResult", "attorney", "practiceArea"] as const;
+const LISTED = [
+  "featuredCaseResult",
+  "caseResult",
+  "attorney",
+  "practiceArea",
+  "videoReview",
+  "review",
+] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
 const singleton = (
@@ -81,6 +91,21 @@ export const structure: StructureResolver = (S) =>
                         .title("Featured Case Results")
                         .icon(StarIcon),
                       S.documentTypeListItem("caseResult").title("Case Results").icon(CaseIcon),
+                    ]),
+                ),
+
+              // Nested for the same reason Case Results is: two types that are
+              // one thing to an editor. A video review and a written review sit
+              // in the same carousel and are ordered together on the section.
+              S.listItem()
+                .title("Reviews")
+                .icon(StarFilledIcon)
+                .child(
+                  S.list()
+                    .title("Reviews")
+                    .items([
+                      S.documentTypeListItem("videoReview").title("Video Reviews").icon(PlayIcon),
+                      S.documentTypeListItem("review").title("Reviews").icon(CommentIcon),
                     ]),
                 ),
 

@@ -1,134 +1,197 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-04 (deadlines band committed on `hp_time`, not pushed, no PR)
+Last updated: 2026-09-08 (testimonials built, modelled and seeded on `hp_reviews`, uncommitted)
+
+## ⚠️ Read this before writing any code
+
+The client's standing instruction, given 2026-09-08 and now rule one under
+AGENTS.md → Conventions:
+
+> *"I'm noticing that you are trying to do too much. A lot of fields are being added that
+> are unnecessary. Simple is better than complicated. Try to just implement what I ask for.
+> If I need more I will ask for it. I'd rather ask for an extra feature than have to go
+> through Sanity and turn things off or remove items I never asked for."*
+
+**Build what was asked and nothing beside it. Suggest extras in a sentence; do not build
+them and explain afterwards.** This session shipped the reviews collection with `rating`,
+`verified`, `reviewedAt`, `sourceUrl` and `externalId` fields nobody requested — plus a ⚠️
+marker on 22 of 25 Studio rows — and every one came back out. That is the cost: real work,
+then real work undoing it, and an editor-facing form full of things to ignore in between.
+
+It outranks being thorough. A field is not free — it is permanent, visible to every editor,
+and someone has to decide what to do with it.
 
 ## Where things stand
 
-Seven of the homepage's fifteen sections are built, modelled in Sanity and wired: hero,
-stats band, case results, "Our goals", the fee explainer, practice areas, and now **the
-New York deadlines band**.
+Eight of the homepage's fifteen sections are built, modelled and wired: hero, stats band,
+case results, "Our goals", the fee explainer, practice areas, the New York deadlines band,
+and now **testimonials**.
 
-**`hp_time` is one commit ahead of `master` and has not been pushed** — no branch on the
-remote, no PR. It branched off `f3102ae` and carries the whole deadlines section in a single
-commit: four new files plus the schema, query, page, tokens and both docs. The working tree
-is clean. Note `src/data/homeDeadlines.ts` was created and deleted inside that one commit,
-so the hardcoded stage leaves no trace in the diff.
+**`hp_reviews` is level with `master` and everything is UNCOMMITTED** — ten modified files,
+nine new ones, no commit and no branch on the remote. `master` is at `ab7f3dc`.
 
-Gates: `npm run build` green, `npm run check:types` **0 errors (69 files)**, `npm run typegen`
-**2 queries, 39 schema types**, `npx sanity documents validate --yes` clean at **119 documents,
-0 errors, 0 warnings**. The section reads back through the PUBLIC API with no token — the
-only check that catches the dotted-id trap.
+Gates: `npm run build` green, `npm run check:types` **0 errors (76 files)**, `npm run typegen`
+**2 queries, 44 schema types**, `npx sanity documents validate --yes` clean at **144
+documents, 0 errors, 0 warnings**. The section reads back through the PUBLIC API with no
+token — the only check that catches the dotted-id trap.
 
-## The deadlines band
+## The testimonials band
 
-`src/components/Deadlines.astro`, rendered after practice areas. A gold-ruled dark strip
-between two light sections: kicker, heading and lead on the left with the CTA held right,
-then a hairline and three big gold figures — 30 days, 3 years, 90 days.
+`src/components/Reviews.astro`, rendered after the deadlines band. A cream strip: centred
+head, then a row of four cards of two shapes — a video review with a 16:9 cover and a serif
+pull quote, and a written review with five gold stars and the client's own prose.
 
 | File | What |
 | --- | --- |
-| `src/sanity/schemaTypes/objects/deadlinesSection.ts` | The band |
-| `src/sanity/schemaTypes/objects/deadlineFigure.ts` | One figure: `figure` + `unit` + `body`, all required |
-| `src/components/Deadlines.astro` | The section |
-| `scripts/seed-home-deadlines.ts` | The seed — **and the provenance record** |
-| `src/styles/global.css` | `--forest-1100` and `--gradient-forest-night` |
+| `src/sanity/schemaTypes/documents/review.ts` | A written review — `author`, `quote`, `location`, `caseType` |
+| `src/sanity/schemaTypes/documents/videoReview.ts` | A filmed one — plus `wistiaId` and `poster` |
+| `src/sanity/schemaTypes/objects/reviewsSection.ts` | The band |
+| `src/components/Reviews.astro` | The section, its carousel and its arrows |
+| `src/lib/wistia.ts` | Video durations, read from the video |
+| `scripts/seed-home-reviews.ts` + `scripts/reviews.json` | The seed — **and the provenance record** |
+| `src/assets/icons/reviews/` | `star.svg` (currentColor) and `google-g.svg` (stays four-colour) |
 
-`src/data/homeDeadlines.ts` was the hardcoded stage and is **deleted**. The swap to Sanity
-was verified, not assumed: `dist/index.html` was saved before the swap and diffed after, and
-the two files are **byte-identical at 229,195 bytes**. (The 30-day card was corrected after
-that diff, so `dist/` no longer matches those bytes — the diff proved the WIRING, not the
-current copy.)
+`src/data/homeReviews.ts` was the hardcoded stage and is **deleted**. The swap to Sanity was
+verified, not assumed: `dist/index.html` was saved before and diffed after, and the two
+differ **on exactly one line** — the video cover `<img>`, which had to move from a repo asset
+to the Sanity CDN. Every other byte is identical.
 
-Typegen landed at **39 schema types, exactly the predicted +2** — no `<type>.reference`
-companion this time, because nothing new references a document type.
+Typegen landed at **44 schema types, +5**: three new types plus the two auto-generated
+`<type>.reference` companions for `review` and `videoReview`.
 
-### ⚠️ The provenance lives in the seed script, and that is where it stays
+### The collection
 
-Every word of this section is a statement of New York law, and a reader who believes a
-number here and acts on it loses their claim. The statute behind each figure is in the
-docblock of `scripts/seed-home-deadlines.ts`:
+**Collections → Reviews → { Video Reviews, Reviews }**, nested exactly like Case Results.
+Both type names are in `LISTED` in `structure.ts`, or each would appear twice in the desk.
 
-- **30 days** — 11 NYCRR § 65-1.1, no-fault written notice. Most people get this wrong
-  because it was 90 days until the 2002 revision.
-- **3 years** — CPLR § 214(5).
-- **90 days** — GML § 50-e(1)(a), notice of claim against a public corporation. Transit
-  authorities come in by their own enabling acts (e.g. Public Authorities Law § 1212), which
-  is why the card names them separately. The statute runs the 90 days from when the CLAIM
-  ARISES — and in a wrongful death case from the appointment of the estate's representative.
+Two types rather than one with a flag, on rule 7 — they are different content. A written
+review is words. A video review is a film with a cover frame and a Wistia id. Neither
+type's fields are a subset of the other's.
 
-All three were re-verified against the primary source on 2026-09-04: nysenate.gov for the
-statutes, dfs.ny.gov for Regulation 68.
+**The written type is named `review`, not `googleReview`, deliberately.** `_type` is
+immutable, so a name baking in one provider would need a migration the first time a review
+comes from anywhere else.
 
-**Three** lines of the artboard were **corrected**:
+⚠️ **`caseType` is on both types and NOTHING RENDERS IT.** It is for the unbuilt
+`/about/testimonials/` page, where the mockup shows it under each review. Kept on the
+client's instruction after being offered for removal — do not "tidy" it away.
 
-- **The lead contradicted its own first card.** It read "the shortest deadline applies when
-  a bus, a town, or a school district was involved" — but 30 days is shorter, and applies to
-  every crash. Only the superlative was replaced: "the window shortens sharply". The point it
-  was reaching for is true (90 days' notice, then one year and ninety days to sue, GML § 50-i)
-  and now survives the card next to it.
-- **"Less for malpractice"** → **"medical malpractice"**. Unqualified it is wrong in the
-  client's favour: legal malpractice is three years, CPLR § 214(6). Medical malpractice is
-  two and a half, CPLR § 214-a.
-- **"To file your no-fault application"** → **"to give your insurer written notice of a
-  no-fault claim"**, caught on a re-check after the section was already seeded. The artboard
-  hangs the 30 days on the wrong document. § 65-1.1 puts it on WRITTEN NOTICE; the NF-2
-  "Application for Motor Vehicle No-Fault Benefits" is a different filing, which the insurer
-  must mail out within five business days of receiving that notice (§ 65-3.4(b)) and which
-  the claimant returns on its own clock. DFS **OGC Opinion 08-06-01** is explicit that a late
-  NF-2 does not defeat a claim where timely written notice was given some other way — an
-  MV-104 police report will do. The original misleads both ways: someone waiting for a form
-  to arrive can blow the notice deadline, and someone whose form arrives late can believe
-  they have lost a claim they still have.
+### ⚠️ 22 of the 25 seeded reviews are placeholder copy
 
-**The heading is a generalisation and was deliberately left alone.** "The clock started the
-day of your accident" is true of ordinary negligence and not of wrongful death (runs from
-death), medical malpractice (act, or end of continuous treatment) or toxic exposure
-(discovery). It is approved copy. **Do not "tighten" the figures to agree with it.**
+Seeded from `CJ - Testimonials.dc.html` on the client's instruction (2026-09-08) to populate
+the collection while real reviews are gathered. **21 written + 4 video.**
 
-### ⚠️ This section has no disclaimer, and it leans on the one above it
+**Three are real:** Howard, Menache R. and Patty R. are the reviews the live WordPress
+homepage publishes, and their text is **verbatim from the live site** — not the artboard's
+version. The artboard keeps their real names but lightly rewrites their words and adds towns
+("New Hyde Park", "Great Neck", "Mineola") that appear in no source. Those towns are dropped
+and `location` is empty on all three.
 
-`deadlinesSection` has **no `disclaimer` field**. The practice-areas band directly above
-closes with "Information on this page is general and is not legal advice about your case.
-New York deadlines and rules vary by claim type" — this section's disclaimer, one band away,
-naming deadlines specifically. A second would be the same sentence twice in a screen.
+**Everything else is illustrative**, including all four video reviews. **Nothing in the
+dataset distinguishes it** — a `verified` flag existed for exactly that job and was removed
+on the client's instruction, so this file and `scripts/seed-home-reviews.ts` are the whole
+record. Same standing problem as the four invented `featuredCaseResult` documents.
 
-**Reordering those two bands, or removing the practice-areas one, leaves a section of bare
-legal deadlines with nothing qualifying it.** The warning is on the field in `homePage.ts`
-and in `deadlinesSection.ts`; it is the single most breakable thing about this section.
+All four video reviews point at `c6b0eghb5r`, the only thing the firm has on Wistia and an
+attorney explainer rather than a client story, so every video card shows the same 2:47.
 
-### Four things in it are ours, not the artboard's
+**A review with no name is "Client", not "Anonymous"** — the client's wording, applied to 14
+of the 21.
 
-- **The heading does not `white-space: nowrap`.** Same fixed-1660px trick the fee band had —
-  it would force a horizontal scrollbar under ~1150px.
-- **The CTA is Oswald**, not the board's Roboto Condensed. The geometry is the board's
-  exactly (48 × 250 = `.btn--sm.btn--wide`); this is the only button on the board asking for a
-  third typeface, and taking it would leave the page's four gold CTAs in two voices.
-- **The head's bottom margin is `--space-section`, not the artboard's 32px.** That is the
-  SAME token `.section` uses for its own padding, and deliberately so: what sits below the
-  grid is the section's bottom padding, so borrowing the token frames the grid with equal
-  space above and below at every width instead of matching at one measured viewport. At 1440
-  it is 73px each side; the artboard's 32px left the hairline crowding the lead with 80px of
-  air under the last line. Confirmed with the user 2026-09-04 against the alternative (equal
-  air around the FIGURES rather than the grid box) — the two cannot both be equal, because
-  the hairline is the grid's own top border, so space added above the box moves the rule away
-  from the lead but not from the figures.
-- **`--gradient-forest-night` exists for this band alone.** The board's darkest fade, used
-  once. Three forest gradients already run down this page and the one section saying a clock
-  is running should not read as a fourth. Its first stop is snapped onto `--forest-900` — the
-  board's `#22291a` is off by one in two channels — so the scale keeps one value.
+### ⚠️ Reviews will eventually be pulled from Google — the schema is ready, the access is not
 
-**The figure's `line-height` is 0.8**, the only sub-`--lh-flat` value on the site, and it is
-explained both in the component and now in AGENTS.md.
+Today every review is transcribed by hand. The intent is to sync them from the firm's own
+Google Business Profile. What that needs, and why it cannot be done yet:
 
-**Below 768px the button goes full width because of a GLOBAL `.btn--wide` rule**, not
-anything this section does. A local rule duplicating it was written and then removed.
+- **The Places API cannot do it.** It returns a **maximum of five reviews**, you cannot
+  choose which, and the Maps Platform terms forbid storing them — so it can back neither a
+  curated carousel nor an all-reviews page. The firm has ~462 reviews at 4.9.
+- **The Business Profile API can.** `accounts.locations.reviews.list` returns all of them
+  with pagination. It needs the **firm's own OAuth** on their verified profile plus Google's
+  **manual approval** — base quota is zero until then, typically 3–10 business days. **This
+  is a client action and nobody has started it.**
+- **The firm already pays for Trustindex** (widget `418ef2720a76619cd906535dd85`, on the live
+  `/about/testimonials/` page). It has **no API**, but its dashboard exports CSV — the
+  fastest bridge to real content without waiting on Google.
+- **A live pull could not power this band anyway.** The section is a hand-picked, ordered mix
+  of video and written reviews; you cannot curate from a feed you do not store. Sync must
+  write INTO these documents, not replace them.
+- The place identifiers are already known, from the live homepage:
+  `cid=67117899491750775`, FID `0x89c28828d81f75af:0xee735fbd46b377`.
 
-Two things nobody has ruled on: at 1660 the lead runs to a single ~1100px line, well past the
-readable measure the design system sets elsewhere (the board draws it that way and
-`CaseResults` set the no-cap precedent, so both were followed); and the CTA label promises a
-checker that does not exist — it goes to `/contact/`, matching the hero and the fee band,
-because the only honest way to check a deadline is to have a lawyer look at the facts.
+⚠️ **A sync needs a stable per-review handle to upsert on, and there is no field for one.**
+`externalId` was built for exactly this and removed as unrequested. Adding it back is the
+first step of the sync work — mention it before building it.
+
+### Five things in it are ours, not the artboard's
+
+- **The control row has two states.** The board centres a lone "Read all 462 reviews" button
+  and has no arrows anywhere. When everything fits there is nothing to scroll, so the arrows
+  are absent and the button keeps the board's centred position; when the track overflows the
+  arrows appear right and the button steps left. **One measurement drives both**, so the
+  button can never sit off-centre with dead space beside it.
+- **No rating figure.** The board's eyebrow reads "4.9 ★ · 462 reviews" and its button "Read
+  all 462 reviews". Both numbers were dropped on the client's call — a count hardcoded into a
+  page goes stale the week after it ships. **`firmDetails` was therefore not touched.**
+- **The duration is read from the video, not typed** — see below.
+- **`.btn--ghost` is a new global variant**, gold hairline filling gold on hover, set in
+  Oswald like every other `.btn`. `.btn--outline` is NOT it — that one is a neutral ink
+  outline. ⚠️ `PracticeAreas` ships the same shape as a local `.pa__cta` in Roboto Condensed;
+  folding it onto the variant would change an approved section's output, so it is a separate
+  commit.
+- **16px body copy is `--lh-body`, not the board's 28px.** That leading was measured,
+  rejected and replaced when the design system was built. Same reason the pull quote is
+  `--fs-24` and not the board's 25px, which maps to no step.
+
+### ⚠️ There is no line-clamp, and there is a height cap. They are different things.
+
+A 12-line clamp was written as a "never fires on real copy" backstop and **fired on the
+shortest real review the firm has** — at 1440px the card is 305px and Howard's 370 characters
+need thirteen lines, cutting him at "…the staff was". It is gone. A review is a legal
+testimonial, an arbitrary cut can turn a qualified sentence into an unqualified one, and
+`line-clamp` hides text visually while leaving it in the accessible tree — a screen reader
+would hear a different advertisement from the one on screen.
+
+What replaced it: **`max-height: calc(var(--lh-body) * 13 * 1em)` with `overflow-y: auto`**,
+so a long review scrolls inside its card instead of growing the row. Thirteen lines is where
+the four approved cards already sat. Expressed in lines because `--lh-body` is unitless and
+`em` resolves against the element's own size, so it is exactly thirteen line boxes at any
+width. Verified: a 648-character review scrolls and the cards stay at 493px.
+
+⚠️ **The cap is lifted below 700px, deliberately.** At one-up there is no row to protect, and
+keeping it would nest a vertical scroller inside the page's own vertical scroll — a swipe
+over the card would scroll the review instead of the page. The horizontal track has no such
+conflict; different axis.
+
+### Video durations are read from Wistia at build time
+
+`src/lib/wistia.ts`. The public oEmbed endpoint — no key, nothing in `.env`. **This was a
+global change:** `videoCard.eyebrow` held the literal string "Watch · 2 min" and the reviews
+band had a `duration` field, both wrong about a video that runs **2:47**, with no way for
+whoever typed them to know. **There is no duration field anywhere now**, and `videoCard`
+carries a validation warning if anyone types one back in.
+
+`scripts/patch-video-card-eyebrow.ts` trimmed the seeded eyebrow to "Watch". It has run.
+
+- It **rounds** rather than floors — flooring gives 2:46, which disagrees with YouTube and
+  with the firm's own video manifest.
+- ⚠️ It **must never throw**. A build that dies because a third party timed out is far worse
+  than a card missing three characters, so every failure path returns `null`, the card
+  renders no duration, and the request carries its own 5s timeout because `fetch` has none.
+
+### ⚠️ The band has no disclaimer, and the FOOTER is what covers it
+
+NY Rule 7.1(e)(3) requires "Prior results do not guarantee a similar outcome", in those
+words, on any advertisement carrying a client testimonial. One was built here and removed on
+the client's call because the exact sentence already printed three times on the homepage.
+
+What makes that safe is the **footer** instance specifically — `site-footer__disclaimer` is
+site-wide and unconditional, so it travels with this band wherever the band is reused, which
+the case-results band's own disclaimer does not.
+
+**If the footer disclaimer is ever made conditional, shortened, or dropped from a page
+carrying reviews, this band needs its own again.**
 
 ## Case results — unchanged, and still the launch blocker
 
@@ -184,7 +247,7 @@ and all three are load-bearing:
 - **The hidden radios are `position: fixed; top: 0; left: 0`, and that is not cosmetic.** As
   `position: absolute` with no offsets they all resolved to one point at the top of the rail,
   and since clicking a label focuses its input — and focusing scrolls it into view — clicking
-  the sixth tab threw the page up by 440px. Now a gotcha in AGENTS.md.
+  the sixth tab threw the page up by 440px.
 - **Below 1024px it is an accordion**, and below 768px the pane stacks. In accordion mode
   `scrollTop` still shifts when a pane above collapses — Chrome's scroll anchoring keeping the
   tapped tab in place. Not a bug; do not "fix" it.
@@ -196,6 +259,30 @@ Do not add a `quote` field back without real, sourced quotes.
 
 **The three sub-links per tab point at pages that do not exist yet**, so each links to the
 area's own page. They become anchors when the detail pages are built — a Studio edit now.
+
+## The deadlines band
+
+`src/components/Deadlines.astro`. A gold-ruled dark strip between two light sections: kicker,
+heading and lead left with the CTA held right, then a hairline and three big gold figures —
+30 days, 3 years, 90 days.
+
+⚠️ **Every word is a statement of New York law, and the provenance lives in the docblock of
+`scripts/seed-home-deadlines.ts`.** 30 days is 11 NYCRR § 65-1.1 (no-fault WRITTEN NOTICE,
+not the NF-2 form — DFS OGC Opinion 08-06-01); 3 years is CPLR § 214(5); 90 days is GML
+§ 50-e(1)(a), with transit authorities coming in by their own enabling acts. All three
+re-verified against nysenate.gov and dfs.ny.gov on 2026-09-04.
+
+⚠️ **This band has no disclaimer and leans on the practice-areas band directly above it.**
+Reordering those two, or removing the practice-areas one, leaves bare legal deadlines with
+nothing qualifying them.
+
+**The heading is a knowing generalisation** — "The clock started the day of your accident" is
+untrue of wrongful death, medical malpractice and toxic exposure. It is approved copy. **Do
+not "tighten" the figures to agree with it.**
+
+**The figure's `line-height` is 0.8**, the only sub-`--lh-flat` value on the site.
+**`--gradient-forest-night` exists for this band alone.** The head's bottom margin is
+`--space-section`, not the artboard's 32px, so the grid is framed equally at every width.
 
 ## Site Settings, "Our goals", the fee explainer, attorneys
 
@@ -219,8 +306,9 @@ redirect/SEO pass.
 restored on the client's instruction; his real, sourced quote is on his `attorney` document.
 **Confirm or replace before launch.** The ATTORNEYS band must not print both.
 
-⚠️ **The "Our goals" video card is a placeholder** — the test id `c6b0eghb5r`, the same one on
-the first case-result card. Id, title and duration all need replacing after the Wistia uploads.
+⚠️ **The "Our goals" video card is a placeholder** — `c6b0eghb5r`, the same explainer the four
+video reviews use. Id, title and cover all need replacing after the Wistia uploads. Its
+duration is now correct because it is read from the video.
 
 **The "What you can expect" rows map their four olive glyphs BY POSITION**, with no Sanity
 field — reordering rows in the Studio moves the words, not the pictures.
@@ -231,113 +319,125 @@ field — reordering rows in the Studio moves the words, not the pictures.
 `caseResultsSection` → `results[]->` `featuredCaseResult` (capped at **four with a hard
 `.error()`**, the deliberate exception) → `CaseResults.astro`. `aboutSection` / `feesSection` →
 `About.astro` / `Fees.astro`. `practiceAreasSection` → `tabs[].area->` and `allAreas[]->`
-`practiceArea` → `PracticeAreas.astro`. **`deadlinesSection` → `deadlines[]` of
-`deadlineFigure` → `Deadlines.astro`** — no references, the only section so far with none.
-`firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`, `MobileNav`,
-`Footer`; `Fees.astro` calls `getFirm()` directly.
+`practiceArea` → `PracticeAreas.astro`. `deadlinesSection` → `deadlines[]` of `deadlineFigure`
+→ `Deadlines.astro`. **`reviewsSection` → `reviews[]->` a MIXED array of `videoReview` and
+`review` → `Reviews.astro`** — the first section whose reference array accepts two document
+types. `firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`,
+`MobileNav`, `Footer`; `Fees.astro` calls `getFirm()` directly.
 
 Desk shape: **Pages → { Homepage }**, then **Collections → { Case Results → { Featured Case
-Results, Case Results }, Attorneys, Practice Areas }**, then **Site Settings → { Firm Details }**.
-Two rules in `structure.ts` and neither fails loudly: anything listed explicitly must also be in
-`LISTED`, or the Studio shows it twice; any singleton must be in `SINGLETONS`, or the Studio
-offers a "create new" beside it.
+Results, Case Results }, Reviews → { Video Reviews, Reviews }, Attorneys, Practice Areas }**,
+then **Site Settings → { Firm Details }**. Two rules in `structure.ts` and neither fails
+loudly: anything listed explicitly must also be in `LISTED`, or the Studio shows it twice; any
+singleton must be in `SINGLETONS`, or the Studio offers a "create new" beside it.
 
-**The new section's Studio form has not been seen signed in.** `/admin/` renders its login card
-(healthy), but the desk is only visible to a signed-in session — check the collapsed "New York
-deadlines" field once.
+**The new collection's desk has not been seen signed in.** `/admin/` renders its login card
+(healthy), but the desk is only visible to a signed-in session — check that **Reviews** nests
+under Collections and appears **once**.
 
 ## Videos — pulled, not yet uploaded
 
 All 81 YouTube videos are in `~/Downloads/Cohen & Jaffe/Videos/` (3.6 GB) with a manifest and an
 empty `wistia_id` column. They are moving to **Wistia**; the `video` type will carry both ids.
-10 are 360p at source, 17 vertical, 7 square, 3 unlisted. `c6b0eghb5r` is a test id on the
-first case-result card AND the "Our goals" video card.
+10 are 360p at source, 17 vertical, 7 square, 3 unlisted.
+
+**There is no client testimonial video** — all 81 are attorney explainers, which is why all
+four `videoReview` documents are placeholders. `c6b0eghb5r` is the one thing on Wistia and it
+is an explainer, used on the first case-result card, the "Our goals" card and all four video
+reviews.
 
 ## Open questions / waiting on the user
 
-1. **The "Our goals" pull quote is invented**, credited to Jaffe. Confirm or replace.
-2. **Attorney roles** — Jaffe's is "Managing Partner" in the dataset; the live site says
+1. **Google Business Profile API access** — a client action, 3–10 business days for Google's
+   approval. Nothing has started. See the sync section above.
+2. **Real reviews** to replace the 22 placeholders, and **real client videos** to replace all
+   four video reviews.
+3. **The "Our goals" pull quote is invented**, credited to Jaffe. Confirm or replace.
+4. **Attorney roles** — Jaffe's is "Managing Partner" in the dataset; the live site says
    "Partner". Whoever edited it should confirm the firm has.
-3. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
-4. **The rewritten "What you can expect" copy** needs the firm's blessing.
-5. **The client-story videos in the artboards do not exist** on the site or the channel.
-6. **The hero's video card is deliberately not built.**
-7. **The Spanish section is deferred** — background in `navigation.ts`.
-8. **Nine practice-area URLs need confirming live** — the seven missing from the mirror above,
+5. **Case results needs REAL client names, quotes, photographs and insurer-offer figures.**
+6. **The rewritten "What you can expect" copy** needs the firm's blessing.
+7. **The hero's video card is deliberately not built.**
+8. **The Spanish section is deferred** — background in `navigation.ts`.
+9. **Nine practice-area URLs need confirming live** — the seven missing from the mirror above,
    plus `/personal-injury-lawyer-nassau-county/` and `/medical-device-lawyer-long-island/`.
-9. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
-   allow and the practice-areas headline says the opposite. The firm should pick one.
-10. **The deadlines lead's measure**, and whether "Check my deadline" should keep pointing at
-    `/contact/` or get a real deadline page. Both flagged above.
+10. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
+    allow and the practice-areas headline says the opposite. The firm should pick one.
 
 A new Sanity CORS origin **will** be needed for the eventual custom domain — with credentials.
 
 ## What's next
 
-1. **Push `hp_time` and open a PR.** One commit, nothing on the remote yet.
-2. **Testimonials** — the next band down the artboard (line 440).
-3. **The homepage attorneys section** — "The three people who will actually work your case."
+1. **Commit `hp_reviews`, push, open a PR.** Nothing is committed.
+2. **The homepage attorneys section** — "The three people who will actually work your case."
    **Do not let it repeat whichever quote "Our goals" is using.**
+3. **`/about/testimonials/`** — the "Read all reviews" destination, already in
+   `navigation.ts:111` and `:241` and already indexed. `CJ - Testimonials.dc.html` is
+   approved: a video-reviews band, a written-reviews band with a load-more button, and a
+   "leave a review" panel. `caseType` exists for it. Its Google button uses
+   `https://www.google.com/maps?cid=67117899491750775`.
 4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both artboards approved. The bio
    sidebar can now `reference` `practiceArea`.
 5. **`/practice-areas/`** — `CJ - Practice Areas.dc.html`: featured six cards, then five group
-   cards from `PRACTICE_AREA_GROUPS`. Per-group order is a section decision, not a document field.
+   cards from `PRACTICE_AREA_GROUPS`.
 6. **`/case-results/`** — the 60 ledger entries have no page yet.
 7. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
    `astro.config.mjs`** so `Layout.astro` emits a canonical link.
 
 ## Things that would surprise someone
 
+- **`reviews[]->[filter]` is NOT an array filter in GROQ.** It returns `[null, null, …]` and
+  the build dies on `Cannot read properties of null`. So does `reviews[]->{…}[filter]`. Filter
+  the REFERENCE array before dereferencing: `reviews[@->rating == 5]->{…}`. This cost a build
+  failure; the fix is one character of syntax and no error points at it.
+- **`--measure` NO LONGER EXISTS.** The 600px `.prose` cap was removed on the client's call.
+  AGENTS.md still describes it. Use `--container-prose` (790px) for a single column of text.
+- **A typed duration is always wrong eventually.** Read it from the video.
 - **`--lh-flat: 1` is the token ramp's floor, not the site's.** A display numeral
-  baseline-aligned beside a small label goes under it; the deadlines figure is `0.8` and says
-  why. Do not make it a token.
+  baseline-aligned beside a small label goes under it; the deadlines figure is `0.8`.
 - **A visually-hidden radio must be `position: fixed` with explicit offsets.** Focusing an
   input scrolls it into view, so wherever it sits is where the page jumps.
 - **A nested type's validation cannot be overridden per usage** — which is why `ctaLink`
   (button, 28) and `textLink` (text, 48) are two types sharing one `validateHref`.
 - **Typegen counts an auto-generated `<type>.reference` per referenced document type**, so
-  adding two object types can raise the count by three — or, as here, by exactly two when the
-  new types reference nothing.
+  adding three types raised the count by five.
 - **Astro's scoped styles do not reach a class you pass INTO a child component** — including
   an SVG component. Own a wrapper element and use `:global()`.
 - **A `cd` in one Bash call leaks into parallel calls in the same shell.** Use absolute paths.
 - **GROQ `match "*/*"` matches everything** — `match` tokenises on non-word characters.
 - **`sips -Z 2400` writes ~400–1100 KB JPEGs at quality 82** from 5–20 MB camera originals.
 - **The vendor icon SVGs carry `<defs>` with full-canvas clipPaths and `id`s on every group.**
-  Inlined seven times on one page those ids collide; strip both.
+  Inlined repeatedly on one page those ids collide; strip both. The Google "G" is the
+  exception — it is a four-colour brand mark and must NOT be given `currentColor`.
 - **`interpolate-size: allow-keywords` is set on `:root`** — the "What you can expect"
   disclosures depend on it.
 - **A running dev server can serve a STALE scoped-CSS module** while `curl` shows the new
   rule. `touch` the component and reload. **`npm run check:types` re-optimises Vite's deps
   under a running dev server, leaving `504 (Outdated Optimize Dep)` in the browser console.**
-  The one that survives a cache wipe and a restart is
-  `astro/runtime/client/dev-toolbar/entrypoint.js` — Astro's own dev toolbar, dev-only, and it
-  touches neither the site nor the build. A Studio that renders its login card is healthy; a
-  BLANK one is not.
+  A Studio that renders its login card is healthy; a BLANK one is not.
 - **Every hover underline on the site is declared at rest in `transparent`** and fades by
   animating `text-decoration-color`.
-- **The published design canvas has moved on from the local `.dc.html` copies** — it stamps
-  `data-om-id` now. Ask for the section by name, or for a fresh export.
 - **The design files live outside the repo** in `~/Downloads/Cohen & Jaffe/`. An `EPERM` is
   macOS blocking `~/Downloads`; Full Disk Access fixes it after an app restart.
-- **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.** The desk is only visible
-  signed in, so a desk change is verified from the user's own session.
+  `seed-home-reviews.ts` reads its four cover images from there rather than committing 4.8 MB
+  of placeholder photographs to `src/assets`.
+- **`localhost:4321/admin` 404s — use `localhost:4321/admin/`.**
 - **A dev server is usually already running on port 4321 and it is the user's.** Only 4321 and
-  the Vercel URL are registered Sanity CORS origins.
-- **In a hidden browser pane the page cannot scroll at all** — `scrollTop` reads back 0 and
-  real input times out. The way round it is to `display: none` the other sections and
-  screenshot what is left; that is how this band was checked at every breakpoint. Transitions
-  also do not advance and `rAF` never fires.
-- **The recovered figure is sized by a CONTAINER query**; **a carousel dot is a PAGE**;
-  **`.arrow` is a site-wide convention**; **the lightbox tears down synchronously**;
-  **`Layout.astro` has a `videoEmbed` prop** without which every `[data-video-id]` is inert.
+  the Vercel URL are registered Sanity CORS origins, so do NOT move the port to free it.
+- **In a hidden browser pane the page cannot scroll, `requestAnimationFrame` never fires and
+  `ResizeObserver` never delivers** — both measured this session, both silent. Anything driven
+  by them reads as broken when it is fine. `display: none` the other sections and screenshot
+  what is left; that is how this band was checked at every breakpoint.
 - **`_type` is immutable**; a strong reference blocks a delete.
 - **A Sanity document id must NEVER contain a dot** (non-public) **or a slash** (invalid).
 - **`options: { collapsible }` does not exist on array fields** — use a fieldset.
 - **The Sanity CLI has no `patch`**; `client.patch(id).set({…})` through `npx sanity exec` is
   how a section is added to the homepage singleton without disturbing the others.
+  `sanity documents delete` needs `--dataset production` before the id.
 - **`unset(["path.array[].field"])` silently matches nothing** — use an explicit `_key` path.
+  To DROP a field from existing documents, re-run a `createOrReplace` seed; it replaces the
+  whole document.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen currently reports
-  **2 queries and 39 schema types**; if the query count drops, this is why.
+  **2 queries and 44 schema types**; if the query count drops, this is why.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
 - `/new-seo-setup`, `/studio-polish ux` and `/page-speed` remain **deliberately deferred**.

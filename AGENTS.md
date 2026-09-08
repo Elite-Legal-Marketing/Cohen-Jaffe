@@ -465,6 +465,15 @@ only. Confirm mobile layout decisions with the user rather than inferring them.
 
 ## Conventions
 
+- **Build what was asked, and nothing beside it.** The client's standing instruction
+  (2026-09-08): *"Simple is better than complicated. I'd rather ask for an extra feature
+  than have to go through Sanity and turn things off or remove items I never asked for."*
+  A field, a flag or a section that was not requested is not a free extra — it is work
+  someone has to review, understand and then undo, and in Sanity it is a field every
+  editor sees forever. **Suggest it in a sentence and let them say yes**; do not build it
+  and explain afterwards. The reviews collection shipped with `rating`, `verified`,
+  `reviewedAt`, `sourceUrl` and `externalId` that nobody asked for, and all five came
+  straight back out. This outranks any inclination to be thorough.
 - **Start blank, add on request.** No example schema types, no extra pages until asked.
 - **Every page wraps `Layout.astro`** — props `title`, optional `description`, optional
   `bare` to drop the chrome (thank-you and landing pages). Content lands inside

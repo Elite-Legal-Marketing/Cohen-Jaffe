@@ -1,0 +1,847 @@
+---
+/**
+ * Homepage testimonials band — a carousel mixing video and Google reviews.
+ *
+ * Design: the TESTIMONIALS band of `Cohen & Jaffe Homepage v1.dc.html`
+ * (lines 440–512). A cream strip between the dark deadlines band and the sand
+ * attorneys band: a centred head, then cards of two shapes in one row — a video
+ * review with a 16:9 cover and a pull quote, and a Google review with five stars
+ * and the client's own prose.
+ *
+ * Content comes from the `reviews` field on the `homePage` singleton. The words
+ * are REAL CLIENTS' — see `scripts/seed-home-reviews.ts` for the provenance of
+ * every one, and for why the artboard's rewritten versions were rejected.
+ *
+ * ⚠️ THIS BAND CARRIES NO DISCLAIMER OF ITS OWN, AND THAT IS A DECISION.
+ * NY Rule 7.1(e)(3) requires the sentence "Prior results do not guarantee a
+ * similar outcome", in those words, on any advertisement carrying a client
+ * testimonial — and a band of client testimonials is squarely that. One was
+ * built here and removed on the client's call (2026-09-08), because the exact
+ * sentence was already printing three times on this page: the case results band
+ * above, this band, and `site-footer__disclaimer`.
+ *
+ * What makes the removal safe is the FOOTER instance specifically — it is
+ * site-wide and unconditional, so it travels with this band wherever the band
+ * is reused, which the case-results one does not. `reviewsSection` therefore
+ * gets NO disclaimer field when it is modelled.
+ *
+ * ⚠️ If the footer disclaimer is ever made conditional, shortened, or moved off
+ * a page that carries reviews, this band needs its own again. That is the single
+ * thing standing between these testimonials and Rule 7.1(e)(3).
+ *
+ * Five things are ours rather than the artboard's:
+ *
+ *   - THE CONTROL ROW IS NET-NEW, AND IT HAS TWO STATES. The board centres a
+ *     lone "Read all 462 reviews" button and has no arrows anywhere on the page.
+ *     When every review already fits there is nothing to scroll, so the arrows
+ *     are absent and the button keeps the board's centred position; as soon as
+ *     the track overflows the arrows appear right and the button steps left to
+ *     balance them. One measurement drives both, so the button can never sit
+ *     off-centre with dead space beside it. Note `.results__head-row` on the case
+ *     results band uses `baseline` and says why; this row is two controls of the
+ *     same height, so it centres.
+ *
+ *   - THE DURATION IS READ FROM THE VIDEO, NOT TYPED. It sits in the label over
+ *     the cover — "VIDEO REVIEW · 2:47" — rather than as a separate eyebrow in
+ *     the body, and there is no `duration` field anywhere. See `src/lib/wistia.ts`:
+ *     the hand-typed "2 min" was simply wrong about a video that runs 2:47, and
+ *     nobody typing it had any way to know. It is exact (`M:SS`) rather than the
+ *     board's rounded "2 min", because rounding 2:47 to "3 min" is no more
+ *     honest than rounding it down.
+ *
+ *   - NO RATING FIGURE. The board's eyebrow reads "4.9 ★ · 462 reviews" and its
+ *     button "Read all 462 reviews". Both numbers are dropped: a review count
+ *     hardcoded into a page goes stale the week after it ships, and a stale
+ *     count on a law firm's homepage is a small credibility problem for no gain.
+ *     The eyebrow is plain editorial copy over `.eyebrow--center`, which already
+ *     drops the dash site-wide. The Google mark stays on the CARDS, where it
+ *     identifies one review's source; over a heading introducing a MIX of video
+ *     and Google reviews it would misdescribe the band.
+ *
+ *   - THE HEADING AND LEAD DO NOT `white-space: nowrap`. The board sets both,
+ *     the same fixed-1660px trick the fee and deadlines bands carry, and at 42px
+ *     the heading would force a horizontal scrollbar well above 1150px.
+ *
+ *   - 16px BODY COPY IS SET AT `--lh-body`, NOT THE BOARD'S 28px. The artboards'
+ *     16/28, 15/26 and 19/32 leading was measured, rejected and replaced when the
+ *     design system was built — it was nearly flat across the body range and
+ *     INVERTED at the small end. Reintroducing 28px here would reopen it for one
+ *     card. Same reason the pull quote is `--fs-24` and not the board's 25px,
+ *     which maps to no step: the case results band already dropped its quote from
+ *     26 to 23 after 26 crowded a narrower card than this one gets.
+ *
+ *   - THE BUTTON IS OSWALD, via the new global `.btn--ghost`. The board draws the
+ *     gold-hairline ghost in Roboto Condensed at 54px; the typeface is the call
+ *     the deadlines band already made and recorded, and 54px maps to no step, so
+ *     it takes `.btn--sm` (48px) — which also makes it exactly as tall as the two
+ *     arrow circles beside it, so the three controls read as one family.
+ *
+ * ⚠️ A REVIEW IS NEVER TRUNCATED, AND THERE IS DELIBERATELY NO `line-clamp`.
+ * One was written — twelve lines, meant as a runaway backstop that real copy
+ * would never reach — and measurement killed it. At 1440px the four-up card is
+ * 305px and Howard's 370-character review needs THIRTEEN lines, so the clamp
+ * fired on the shortest real review the firm has, cutting it mid-sentence at
+ * "…the staff was". The narrowest four-up card is narrower still (~272px just
+ * above the 1280 breakpoint), where the same review wants about fifteen.
+ *
+ * Two reasons not to simply raise the number. A review is a legal testimonial
+ * under Rule 7.1(e)(1), and an arbitrary machine cut can turn a qualified
+ * sentence into an unqualified one — the very misrepresentation the rule is
+ * about. And `line-clamp` hides text VISUALLY ONLY: the full review stays in
+ * the accessible tree and the index, so a screen reader would be read a
+ * different advertisement from the one a sighted visitor sees.
+ *
+ * So the card holds the whole review, the equal-height row is set by the
+ * longest one, and the cap on length belongs in the SCHEMA as a
+ * `.max(N).warning()` on `quote` — a signal the editor can see and act on,
+ * rather than a silent cut nobody notices. Same house rule as every other
+ * design-coupled length: warn, never error, because publishing fires the
+ * deploy hook.
+ */
+import Star from "../assets/icons/reviews/star.svg";
+import GoogleG from "../assets/icons/reviews/google-g.svg";
+import { videoDuration } from "../lib/wistia";
+import { urlFor, srcSet } from "../lib/image";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["reviews"]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+
+// An empty array would otherwise draw a bare control row under nothing.
+const reviews = section.reviews ?? [];
+
+const STARS = [0, 1, 2, 3, 4];
+
+/** The widths the 16:9 cover is served at — the card caps at 400px. */
+const CARD_WIDTHS = [400, 600, 800];
+
+/**
+ * Every video's real running time, read from Wistia once per build and keyed by
+ * card id. Resolved here rather than inside the map because the template cannot
+ * await, and in parallel because they are independent requests. A video Wistia
+ * cannot reach resolves to `null` and its card simply shows no duration.
+ */
+const durations = new Map(
+  await Promise.all(
+    reviews
+      .filter((review) => review._type === "videoReview")
+      .map(async (review) => [review._id, await videoDuration(review.wistiaId)] as const),
+  ),
+);
+---
+
+<section class="reviews section" aria-labelledby="reviews-heading">
+  <div class="container">
+    <header class="reviews__head">
+      <p class="eyebrow eyebrow--center">{section.eyebrow}</p>
+      <h2 class="reviews__heading" id="reviews-heading">{section.heading}</h2>
+      <p class="reviews__lead">{section.lead}</p>
+    </header>
+
+    {
+      reviews.length > 0 && (
+        <ul class="reviews__track" id="reviews-track" role="list">
+          {reviews.map((review) =>
+            review._type === "videoReview" ? (
+              <li class="review review--video">
+                <div class="review__media">
+                  <button
+                    type="button"
+                    class="review__play"
+                    data-video-id={review.wistiaId}
+                    aria-label={`Play video review: ${review.clientName}`}
+                  >
+                    <span class="review__play-badge" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                        <path d="M7 5v14l10-7z" />
+                      </svg>
+                    </span>
+                  </button>
+                  <img
+                    class="review__image"
+                    src={urlFor(review.poster).width(800).url()}
+                    srcset={srcSet(review.poster, CARD_WIDTHS)}
+                    sizes="(max-width: 700px) 86vw, (max-width: 1024px) 50vw, (max-width: 1280px) 33vw, 25vw"
+                    alt={review.poster.alt ?? ""}
+                    width="800"
+                    height="450"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                  <span class="review__scrim" aria-hidden="true" />
+                  <span class="review__kind">
+                    {["Video review", durations.get(review._id)].filter(Boolean).join(" \u00b7 ")}
+                  </span>
+                </div>
+
+                <figure class="review__body">
+                  <blockquote class="review__quote">
+                    <p>{review.headline}</p>
+                  </blockquote>
+                  <figcaption class="review__who">
+                    {[review.clientName, review.location].filter(Boolean).join(" · ")}
+                  </figcaption>
+                </figure>
+              </li>
+            ) : (
+              <li class="review review--google">
+                <div class="review__head">
+                  <span class="review__stars" role="img" aria-label="Five out of five stars">
+                    {STARS.map(() => (
+                      <Star class="review__star" aria-hidden="true" focusable="false" />
+                    ))}
+                  </span>
+                  <span class="review__source" role="img" aria-label="Google review">
+                    <GoogleG class="review__g" width="20" height="20" />
+                    <span class="review__source-label">Review</span>
+                  </span>
+                </div>
+
+                <figure class="review__body">
+                  <blockquote class="review__prose">
+                    <p>{review.quote}</p>
+                  </blockquote>
+                  <figcaption class="review__who">
+                    {[review.author, review.location].filter(Boolean).join(" · ")}
+                  </figcaption>
+                </figure>
+              </li>
+            ),
+          )}
+        </ul>
+      )
+    }
+
+    <div class="reviews__foot">
+      {
+        section.cta && (
+          <a class="btn btn--ghost btn--sm btn--wide" href={section.cta.href}>
+            {section.cta.label}
+            <span class="arrow" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        )
+      }
+
+      <div class="reviews__arrows" role="group" aria-label="Reviews carousel">
+        <button
+          type="button"
+          class="reviews__arrow reviews__arrow--prev"
+          aria-label="Previous review"
+          aria-controls="reviews-track"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <path
+              d="M15 4 7 12l8 8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </button>
+        <button
+          type="button"
+          class="reviews__arrow reviews__arrow--next"
+          aria-label="Next review"
+          aria-controls="reviews-track"
+        >
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false">
+            <path
+              d="M9 4l8 8-8 8"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .reviews {
+    background-color: var(--cream);
+  }
+
+  /* --- Header: centred over the row --------------------------------------- */
+
+  .reviews__head {
+    text-align: center;
+    margin-block-end: var(--space-44);
+  }
+
+  .reviews__heading {
+    font-size: var(--fs-section);
+    margin-block-end: var(--space-18);
+  }
+
+  .reviews__lead {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--muted);
+    /* The board runs this on one ~1100px line because it is a fixed board, and
+       a centred line that long is hard to return from. `--container-prose` is
+       what global.css points at for a single column of running text — there is
+       no `--measure` token any more, the 600px `.prose` cap having been removed
+       on the client's call when it left copy stopping short of its column. */
+    max-width: var(--container-prose);
+    margin-inline: auto;
+  }
+
+  /* --- The track ----------------------------------------------------------
+     ONE layout at every width, unlike the case results band, which is a static
+     grid above 1280 and a scroller below it. Two reasons it has to be:
+     the arrows are visible at desktop, so the scroller has to be live there;
+     and there may be more than four reviews, which a `repeat(4, …)` grid would
+     wrap onto a second row instead of scrolling. `overflow-x` on a track that
+     does not overflow is inert, so desktop pays nothing for it.
+
+     The flex basis reproduces the board's grid exactly: `repeat(4, minmax(0,
+     400px))` with a 20px gap inside a 1660px container resolves to 400px
+     columns, and `(100% - 3 * 20px) / 4` is the same 400px at that width. */
+
+  .reviews__track {
+    display: flex;
+    gap: var(--space-20);
+    overflow-x: auto;
+    /* `mandatory`, not `proximity`, and it is load-bearing: the browser has to
+       rest on a snap position, so it corrects the integer rounding in the
+       measured step rather than letting it accumulate over eight clicks. */
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    margin: 0 0 var(--space-32);
+    /* `overflow-x: auto` forces `overflow-y` to compute to `auto` too, so a
+       focus ring on a card would be clipped or would raise a phantom vertical
+       scrollbar. The same tax the case results scroller pays. */
+    padding: 0 0 var(--space-8);
+    list-style: none;
+  }
+
+  .reviews__track::-webkit-scrollbar {
+    display: none;
+  }
+
+  .review {
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 calc((100% - 3 * var(--space-20)) / 4);
+    /* A flex item's `min-width: auto` resolves to min-content and can push the
+       card past its basis on an unbreakable string — the attribution line is
+       the exposed case, since the reset's `overflow-wrap` covers p and li but
+       not figcaption. This is the flex counterpart of grid's `minmax(0, …)`. */
+    min-width: 0;
+    scroll-snap-align: start;
+    background-color: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  /* --- Card media (video reviews only) ------------------------------------ */
+
+  .review__media {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    /* `flex: none` so the cover keeps its ratio while the body stretches to
+       equalise heights across the row. */
+    flex: none;
+    background-color: var(--border-strong);
+    overflow: hidden;
+  }
+
+  .review__media :global(.review__image) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 22%;
+  }
+
+  .review__scrim {
+    position: absolute;
+    inset: 0;
+    /* The board's own scrim for this card, which is what `--scrim-bottom` was
+       taken from — it carries the "VIDEO REVIEW" label at the foot. */
+    background: var(--scrim-bottom);
+  }
+
+  /* The whole frame is the hit area, not the badge alone. Transparent, so the
+     scrim and label still show through, and it needs an explicit z-index
+     because it comes first in the DOM and would otherwise paint under the
+     image. */
+  .review__play {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    display: block;
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+
+  .review__play:focus-visible {
+    outline: 2px solid var(--gold);
+    /* Inset, because the track clips vertical overflow. */
+    outline-offset: -4px;
+  }
+
+  .review__play-badge {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    translate: -50% -50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    padding-inline-start: 4px;
+    border-radius: var(--radius-full);
+    background-color: var(--gold);
+    color: var(--ink);
+    transition:
+      background-color var(--duration) var(--ease),
+      scale var(--duration) var(--ease);
+  }
+
+  .review__play:hover .review__play-badge,
+  .review__play:focus-visible .review__play-badge {
+    background-color: var(--gold-light);
+    scale: 1.06;
+  }
+
+  .review__kind {
+    position: absolute;
+    inset-inline-start: var(--space-18);
+    inset-block-end: var(--space-14);
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow-wide);
+    text-transform: uppercase;
+    /* `--lh-label`, never `--lh-flat`: tracked uppercase micro-type wraps on a
+       narrow card, and two flat-leaded lines collide. */
+    line-height: var(--lh-label);
+    color: var(--cream);
+  }
+
+  /* --- Card head (google reviews only) ------------------------------------ */
+
+  .review__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+    padding: var(--space-28) var(--space-28) 0;
+  }
+
+  .review__stars {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    color: var(--gold);
+  }
+
+  .review__stars :global(.review__star) {
+    width: 18px;
+    height: 18px;
+    flex: none;
+  }
+
+  .review__source {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-8);
+    white-space: nowrap;
+  }
+
+  .review__source :global(.review__g) {
+    flex: none;
+  }
+
+  .review__source-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-semibold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--faint);
+  }
+
+  /* --- Card body ----------------------------------------------------------- */
+
+  .review__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    margin: 0;
+    padding: var(--space-26) var(--space-28) var(--space-28);
+  }
+
+  .review--google .review__body {
+    padding-block-start: var(--space-20);
+  }
+
+  .review__quote {
+    /* Same floor above the attribution's rule as the prose gets. The pull quote
+       is short by design and capped in the schema, so it needs no scroll. */
+    margin: 0 0 var(--space-22);
+    font-family: var(--font-heading);
+    /* The board's 25px maps to no step. 24 rather than 26 because this card is
+       narrower than the case results card, which itself dropped from 26 to 23. */
+    font-size: var(--fs-24);
+    font-weight: var(--fw-regular);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+  }
+
+  .review__prose {
+    /* The gap the attribution's rule needs above it. `.review__who` pins itself
+       to the foot with `margin-block-start: auto`, and auto collapses to ZERO
+       once the copy fills the column — so on the longest review the last line
+       sat directly on the rule. Flex margins do not collapse, so this and the
+       auto add up: 22px is the floor, free space is whatever is left over. */
+    margin: 0 0 var(--space-22);
+    font-size: var(--fs-16);
+    /* `--lh-body`, NOT the board's 28px — see the docblock. */
+    line-height: var(--lh-body);
+    color: var(--body);
+
+    /* ⚠️ THE CARD'S HEIGHT IS CAPPED HERE, AND THIS IS THE ONLY THING CAPPING
+       IT. The row equalises to its tallest card, so one long review would grow
+       all four — and the band sits above the fold on a page whose other cards
+       are already sized. Thirteen lines is the height the four approved cards
+       settled at, so a longer review scrolls inside its card instead of
+       resizing the row.
+
+       Expressed in lines rather than pixels: `--lh-body` is unitless (1.6) and
+       `em` resolves against this element's own font-size, so `1.6 × 13em` is
+       exactly thirteen line boxes at any card width and stays correct if the
+       body size ever moves. A pixel value would drift from both. */
+    max-height: calc(var(--lh-body) * 13 * 1em);
+    overflow-y: auto;
+    /* Left VISIBLE, unlike the track's, which is hidden because its arrows and
+       snap points say what it does. Here the bar is the only sign that there is
+       more review below the fold of the card.
+       ⚠️ macOS draws overlay scrollbars that stay hidden until a scroll starts,
+       so on a Mac the cue is the clipped line of text, not the bar. */
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-deep) transparent;
+  }
+
+  .review__who {
+    /* Pinned to the foot of the stretched column, so every attribution in the
+       row sits on the same line whatever the copy above it does. */
+    margin-block-start: auto;
+    padding-block-start: var(--space-22);
+    border-block-start: 1px solid var(--border-strong);
+    font-family: var(--font-label);
+    font-size: var(--fs-13);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-eyebrow);
+    text-transform: uppercase;
+    line-height: var(--lh-label);
+    color: var(--gold-ink);
+  }
+
+  /* A scrollable region with nothing focusable inside it is unreachable by
+     keyboard, so the script gives it a tab stop — but only while it actually
+     overflows, so it is never a pointless one. */
+  .review__prose:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: 4px;
+  }
+
+  /* --- Control row: button left, arrows right ------------------------------ */
+
+  .reviews__foot {
+    display: flex;
+    /* Centre, not the case results band's baseline: those are a 42px heading
+       beside a 16px link, and these are two controls of identical height. */
+    align-items: center;
+    /* Centred while the button is alone, which is the artboard's own layout and
+       what a visitor with JS off always sees. `.is-ready` is set by the same
+       measurement that reveals the arrows, so the button steps left at exactly
+       the moment something appears on the right to balance it — it never sits
+       off-centre with empty space beside it. */
+    justify-content: center;
+    gap: var(--space-24);
+  }
+
+  .reviews__foot.is-ready {
+    justify-content: space-between;
+  }
+
+  /* Hidden until the script marks itself ready, which it only does when the
+     track actually overflows. With four short cards at 1660px nothing scrolls
+     and the arrows are ABSENT rather than dead — and with JS off they never
+     appear, while the track itself still swipes. */
+  .reviews__arrows {
+    display: none;
+    gap: var(--space-12);
+  }
+
+  .reviews__arrows.is-ready {
+    display: flex;
+  }
+
+  .reviews__arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    /* Same 48px as `.btn--sm` beside it, so the row reads as one family. */
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background-color: transparent;
+    box-shadow: inset 0 0 0 1px var(--gold);
+    color: var(--gold-ink);
+    cursor: pointer;
+    transition:
+      background-color var(--duration) var(--ease),
+      color var(--duration) var(--ease),
+      opacity var(--duration) var(--ease);
+  }
+
+  .reviews__arrow:hover {
+    background-color: var(--gold);
+    color: var(--ink);
+  }
+
+  .reviews__arrow:focus-visible {
+    outline: 2px solid var(--gold-ink);
+    outline-offset: 2px;
+  }
+
+  /* `aria-disabled`, not the `disabled` attribute, and never
+     `pointer-events: none`. An arrow steps ONE card, so the last press is the
+     one that disables it — a real `disabled` drops the button out of the tab
+     order at that instant and strands a keyboard user on <body>. This keeps it
+     focusable and announced; the handler early-returns. */
+  .reviews__arrow[aria-disabled="true"] {
+    opacity: 0.34;
+    cursor: default;
+  }
+
+  .reviews__arrow[aria-disabled="true"]:hover {
+    background-color: transparent;
+    color: var(--gold-ink);
+  }
+
+  /* ---- Responsive --------------------------------------------------------
+     Not from the designs — the artboard is a fixed 1660px board with no mobile
+     counterpart. These blocks MUST stay after the rules they override; a media
+     query carries no extra specificity, so source order is what decides. With
+     four basis breakpoints this file is the one most exposed to that. */
+
+  /* Four up would put the cards at ~272px here, too narrow for a 24px serif
+     quote sitting over 16px prose. */
+  @media (max-width: 1280px) {
+    .review {
+      flex-basis: calc((100% - 2 * var(--space-20)) / 3);
+    }
+  }
+
+  @media (max-width: 1024px) {
+    .review {
+      flex-basis: calc((100% - var(--space-20)) / 2);
+    }
+  }
+
+  /* The button goes full width at 768 via the global `.btn--wide` rule, so the
+     row has to stack before the arrows are pushed off the end of it. */
+  @media (max-width: 768px) {
+    .reviews__foot {
+      flex-direction: column;
+      align-items: stretch;
+      gap: var(--space-20);
+    }
+
+    .reviews__arrows {
+      justify-content: center;
+    }
+  }
+
+  /* One up with a sliver of the next — the same 86% the case results scroller
+     uses, so the two bands swipe identically. */
+  @media (max-width: 700px) {
+    .review {
+      flex-basis: 86%;
+    }
+
+    /* ⚠️ THE HEIGHT CAP IS LIFTED HERE, DELIBERATELY. It exists to stop one long
+       review growing a ROW of four, and at one-up there is no row to protect —
+       each card is alone on screen. Keeping it would buy nothing and cost a
+       nested vertical scroller inside the page's own vertical scroll, which is
+       the classic trap: a swipe up over the card scrolls the review instead of
+       the page, and the page only moves once the review runs out. The
+       horizontal track has no such conflict — different axis. */
+    .review__prose {
+      max-height: none;
+      overflow-y: visible;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .review__play:hover .review__play-badge,
+    .review__play:focus-visible .review__play-badge {
+      scale: none;
+    }
+  }
+</style>
+
+<script>
+  /**
+   * Reviews carousel arrows.
+   *
+   * The scroller is pure CSS scroll-snap; this only steps it and mirrors the
+   * scroll extent into the two arrows. With the script absent the band still
+   * swipes and the arrows never appear — `.is-ready` is what reveals them, and
+   * it is only set when the track genuinely overflows, so the arrows are never
+   * dead controls.
+   *
+   * An arrow advances ONE CARD, and its state is keyed on the SCROLL EXTENT
+   * rather than a card index. That is what makes the last step work: at an 86%
+   * basis the final card can never reach the start edge, so an index-based "at
+   * the end" test would be permanently false. `scrollLeft >= max - 1` is not.
+   *
+   * SCOPED TO EACH `.reviews` ROOT. An Astro <script> is bundled once per page
+   * however many times its component renders, so the bare
+   * `document.querySelector` this file could have used would wire exactly one
+   * instance — which is what the case results band does, and why a second
+   * results band on one page would silently have inert dots.
+   */
+  for (const root of document.querySelectorAll<HTMLElement>(".reviews")) {
+    const track = root.querySelector<HTMLUListElement>(".reviews__track");
+    const arrows = root.querySelector<HTMLDivElement>(".reviews__arrows");
+    const foot = root.querySelector<HTMLDivElement>(".reviews__foot");
+    const prev = root.querySelector<HTMLButtonElement>(".reviews__arrow--prev");
+    const next = root.querySelector<HTMLButtonElement>(".reviews__arrow--next");
+    if (!track || !arrows || !prev || !next) continue;
+
+    const cards = [...track.querySelectorAll<HTMLLIElement>(".review")];
+    if (cards.length === 0) continue;
+
+    const proses = [...track.querySelectorAll<HTMLElement>(".review__prose")];
+
+    // Held in a variable: an unreferenced MediaQueryList can be garbage
+    // collected along with its listener.
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    let step = 0;
+    const maxScroll = () => track.scrollWidth - track.clientWidth;
+
+    // The PITCH — one card plus one gap — measured rather than reconstructed.
+    // `offsetWidth` is integer-rounded while the basis is fractional, and
+    // rebuilding it as width + gap would mean reading the gap back out of
+    // getComputedStyle at every breakpoint. The delta between two `offsetLeft`
+    // values IS the pitch, and since both share an offsetParent it cancels.
+    const measure = () => {
+      step =
+        cards.length > 1 ? cards[1].offsetLeft - cards[0].offsetLeft : cards[0].offsetWidth;
+
+      // A capped review scrolls inside its card, and a scroll box holding no
+      // focusable element cannot be reached by keyboard at all. Give it a tab
+      // stop only while it overflows — below 700px the cap is lifted and none
+      // of them do, so the tab order stays exactly as long as it needs to be.
+      for (const prose of proses) {
+        if (prose.scrollHeight - prose.clientHeight > 1) {
+          prose.setAttribute("tabindex", "0");
+          prose.setAttribute("role", "region");
+          prose.setAttribute("aria-label", "Review, scrollable");
+        } else {
+          prose.removeAttribute("tabindex");
+          prose.removeAttribute("role");
+          prose.removeAttribute("aria-label");
+        }
+      }
+    };
+
+    // Only write when the value actually changes — this runs once per frame,
+    // and a repeated aria-disabled write makes some screen readers re-announce.
+    const set = (el: Element, name: string, value: string) => {
+      if (el.getAttribute(name) !== value) el.setAttribute(name, value);
+    };
+
+    // Takes a position rather than reading one, so a click can paint the end
+    // state immediately instead of waiting out the smooth scroll.
+    const paint = (at: number) => {
+      const max = maxScroll();
+      // `> 1`, not `> 0`: a fractional flex basis leaves sub-pixel slop.
+      const scrollable = max > 1;
+      arrows.classList.toggle("is-ready", scrollable);
+      // The button is centred while it stands alone and steps left once the
+      // arrows join it, so the row is never lopsided.
+      foot?.classList.toggle("is-ready", scrollable);
+      // A scroll container whose children hold nothing focusable — which a row
+      // of Google cards is — cannot otherwise be reached by keyboard at all.
+      // Only while it can actually scroll, so it is never a pointless tab stop.
+      if (scrollable) set(track, "tabindex", "0");
+      else track.removeAttribute("tabindex");
+      set(prev, "aria-disabled", String(!scrollable || at <= 1));
+      set(next, "aria-disabled", String(!scrollable || at >= max - 1));
+    };
+
+    const sync = () => paint(track.scrollLeft);
+
+    const go = (direction: 1 | -1) => {
+      if (!step) measure();
+      if (!step) return;
+      const target = Math.max(0, Math.min(track.scrollLeft + direction * step, maxScroll()));
+      paint(target);
+      track.scrollTo({
+        left: target,
+        // Read here rather than left to CSS. The global reduced-motion block
+        // sets `scroll-behavior: auto !important`, but an explicit `behavior`
+        // in the options bag beats the CSS property, so the global rule does
+        // not cover a programmatic scroll.
+        behavior: reduceMotion.matches ? "auto" : "smooth",
+      });
+    };
+
+    // `aria-disabled` does not block activation the way `disabled` does, so the
+    // handler has to.
+    prev.addEventListener("click", () => {
+      if (prev.getAttribute("aria-disabled") !== "true") go(-1);
+    });
+    next.addEventListener("click", () => {
+      if (next.getAttribute("aria-disabled") !== "true") go(1);
+    });
+
+    let frame = 0;
+    track.addEventListener(
+      "scroll",
+      () => {
+        // Scroll fires far faster than paint; coalesce to one read per frame.
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(sync);
+      },
+      { passive: true },
+    );
+
+    // A ResizeObserver rather than a `resize` listener: it fires once on
+    // observe, so it is also the initial measure; it catches the reflow when
+    // the webfonts land, which `display=swap` guarantees happens after first
+    // paint; and it catches container changes a window resize never reports.
+    // `paint` only touches a SIBLING of the observed element, so it cannot loop.
+    new ResizeObserver(() => {
+      measure();
+      sync();
+    }).observe(track);
+  }
+</script>
