@@ -12,7 +12,9 @@
  *   - NO CAROUSEL. It had one briefly, four across over all six attorneys, and
  *     it is gone with its track, its arrows and its script.
  *   - THREE PARTNERS ONLY — Cohen, Jaffe and Tiger. Which three is a decision
- *     in `src/data/homeAttorneys.ts`, not a flag on the documents.
+ *     of the SECTION — `homePage.attorneys.attorneys[]` — not a flag on the
+ *     documents. There is no `featured` field on `attorney` and there must not
+ *     be one; all six still belong on `/about/attorneys/`.
  *   - NO SIGNATURE. The board sets the attorney's name in Mrs Saint Delafield
  *     under the quote; it is cut. `.signature` in global.css now has no consumer.
  *     (The QUOTE itself was cut with it and later restored — see below.)
@@ -69,15 +71,12 @@
  * placeholders make. See `scripts/patch-attorney-portraits.ts`.
  */
 import { urlFor } from "../lib/image";
-import type { HOME_ATTORNEYS_QUERY_RESULT } from "../sanity/sanity.types";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["attorneys"]>;
 
 interface Props {
-  section: {
-    eyebrow: string;
-    heading: string;
-    attorneys: HOME_ATTORNEYS_QUERY_RESULT;
-    cta: { label: string; href: string };
-  };
+  section: Section;
 }
 
 const { section } = Astro.props;
@@ -166,14 +165,18 @@ const squareSrcSet = (portrait: Parameters<typeof urlFor>[0]) =>
       )
     }
 
-    <div class="attorneys__foot">
-      <a class="btn btn--green btn--sm btn--wide" href={section.cta.href}>
-        {section.cta.label}
-        <span class="arrow" aria-hidden="true">
-          &rarr;
-        </span>
-      </a>
-    </div>
+    {
+      section.cta && (
+        <div class="attorneys__foot">
+          <a class="btn btn--green btn--sm btn--wide" href={section.cta.href}>
+            {section.cta.label}
+            <span class="arrow" aria-hidden="true">
+              &rarr;
+            </span>
+          </a>
+        </div>
+      )
+    }
   </div>
 </section>
 

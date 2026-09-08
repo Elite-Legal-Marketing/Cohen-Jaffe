@@ -1,7 +1,7 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-08 (attorneys band approved and committed on `hp_attorneys`; not yet pushed, not yet modelled)
+Last updated: 2026-09-08 (attorneys band MODELLED and seeded on `hp_attorneys_sanity`; uncommitted)
 
 ## ⚠️ Read this before writing any code
 
@@ -32,36 +32,44 @@ conversation.
 
 ## Where things stand
 
-**Nine of the homepage's fifteen sections exist. EIGHT are finished** — hero, stats band,
-case results, "Our goals", the fee explainer, practice areas, the New York deadlines band
-and testimonials, all built, modelled, seeded and wired.
+**Nine of the homepage's fifteen sections exist and ALL NINE ARE FINISHED** — hero, stats
+band, case results, "Our goals", the fee explainer, practice areas, the New York deadlines
+band, testimonials and the attorneys band, all built, modelled, seeded and wired.
 
-**The ninth, the attorneys band, is APPROVED BUT NOT MODELLED**, which is the process
-working rather than a gap: AGENTS.md → "build it, approve it, then wire it". It was built as
-the artboard draws it, rejected on the design, and rebuilt over three rounds — all before a
-single field went into Sanity, which is exactly the cost the order exists to avoid. It still
-renders from `src/data/homeAttorneys.ts` plus a temporary query. **Modelling it is the next
-task.**
+The attorneys band was merged to `master` (`0162890`, PR #16) still unmodelled, which was
+the one loose end left open rather than a decision. It is closed: the band reads from
+`homePage.attorneys` like every other section, and the staged constant and temporary query
+that fed it are deleted.
 
-`hp_attorneys` branched clean off `master` (`d3b1cfb`, PR #15) and carries **one commit**.
-**It has not been pushed and there is no PR.**
+**`hp_attorneys_sanity` branched clean off `master` (`95b165a`) and carries the modelling
+work UNCOMMITTED.** `hp_why_us` also exists, branched off the same commit and **empty** —
+it was created for the next section (the artboard's MID CTA BAR + WHY COHEN & JAFFE photo
+band) before this work was prioritised ahead of it.
 
-Gates: `npm run build` green, `npm run check:types` **0 errors (79 files)**, `npm run
-typegen` **3 queries, 44 schema types** (the third is the temporary one), `npx sanity
-documents validate --yes` clean at **144 documents, 0 errors, 0 warnings**. All six
-attorneys read back through the PUBLIC API with no token.
+Gates, all run after the seed: `npm run build` green, `npm run check:types` **0 errors (81
+files)**, `npm run typegen` **2 queries, 45 schema types**, `npx sanity documents validate
+--yes` clean at **145 documents, 0 errors, 0 warnings**. The band reads back through the
+PUBLIC API with no token — the build uses the unauthenticated client and renders all three
+cards.
+
+**The rendered homepage is BYTE-IDENTICAL before and after the modelling** — `dist/index.html`
+built from `master` and from this branch differ by zero bytes. That is the proof that moving
+the copy into Sanity changed nothing on the page, and it is worth re-running as the last step
+of any wiring swap: build, stash, rebuild, `diff`.
 
 ## The attorneys band
 
-`src/components/Attorneys.astro`, rendered after testimonials. A sand strip: centred head,
-then a static row of three white cards — square portrait, name, role, "Full profile →".
-That is the whole card.
+`src/components/Attorneys.astro`, rendered after testimonials, wired to
+`homePage.attorneys`. A sand strip: centred head, then a static row of three white cards —
+square portrait, name, quote, and a footer row holding the role against "View Profile →" —
+closed by one centred button to the full team.
 
 | File | What |
 | --- | --- |
 | `src/components/Attorneys.astro` | The section. No script — there is nothing to script |
-| `src/data/homeAttorneys.ts` | ⚠️ The hardcoded stage — **delete when modelled** |
-| `src/lib/queries.ts` → `HOME_ATTORNEYS_QUERY` | ⚠️ Temporary — **delete when modelled** |
+| `src/sanity/schemaTypes/objects/attorneysSection.ts` | The model — `eyebrow`, `heading`, `cta`, `attorneys[]->` |
+| `src/lib/queries.ts` → `HOME_PAGE_QUERY` | The `attorneys{…}` projection, folded in with the rest |
+| `scripts/seed-home-attorneys.ts` | Seeds the section, **has run**, guarded against re-running |
 | `src/sanity/schemaTypes/documents/attorney.ts` | `summary` removed, `wistiaId` added |
 | `scripts/unset-attorney-summary.ts` | One-shot, **has run**, idempotent |
 | `scripts/patch-attorney-portraits.ts` | Portrait framing + the DEMO video, **has run** |
@@ -105,9 +113,9 @@ Four things are ours rather than the board's, all on the client's instruction:
 
 McNaughton, Sawicki and Parnell are simply not selected. **There is no `featured` flag on
 `attorney` and there must not be one** — which people a section shows is a property of the
-SECTION (rule 7), so the choice lives in `HOME_ATTORNEYS.order` and moves into
-`attorneysSection.attorneys[]` when the section is modelled. All six still appear on
-`/about/attorneys/` when that page is built.
+SECTION (rule 7), so the choice lives in `homePage.attorneys.attorneys[]` — an ordered array
+of references an editor can reorder or swap. All six still appear on `/about/attorneys/` when
+that page is built.
 
 ### The roles are settled, and they were settled in the Studio
 
@@ -242,14 +250,51 @@ this card's ratio into the document breaks the others.
   than the framing, and the board's `object-position: 50% 6%` is deliberately **not**
   carried over: against a hotspot crop it would fight the hotspot.
 
-### What modelling it will take
+### How it is modelled
 
-An `attorneysSection` object — `eyebrow`, `heading`, and `attorneys[]->` an ordered array of
-`attorney` references. Then delete `src/data/homeAttorneys.ts` and `HOME_ATTORNEYS_QUERY`,
-and fold the projection into `HOME_PAGE_QUERY`. **The component's prop shape is already the
-shape that projection produces**, so wiring is a swap, not a rewrite. Expect typegen to
-report **+2** schema types — the object plus the auto-generated `attorney.reference`, which
-does not exist yet because nothing references `attorney` as an array member today.
+`attorneysSection` holds **four fields and no more** — `eyebrow`, `heading`, `cta`
+(a `ctaLink`) and `attorneys[]->`. Three things are deliberately absent, and each is a field
+somebody will otherwise propose adding back:
+
+- **No `summary` / card blurb.** It was on `attorney`, was `.required()`, fed that one
+  paragraph and nothing else on the site, and is gone from the schema and unset on all six.
+- **No `footNote`.** The board's "Six attorneys and a support staff of more than twenty,
+  including…" went with the staff portraits beside it.
+- **No quote field.** The card quote is `attorney.quote` — the line that represents that
+  person site-wide — not copy this section owns. That is rule 8, and it is also why
+  `attorneyQuote` is NOT used here: this band quotes three people in passing rather than
+  putting one person's words in the section's mouth.
+
+`cta` is OPTIONAL, matching `reviewsSection` and `deadlinesSection`, and the component guards
+it. ⚠️ **That means an editor can delete the band's only route to `/about/attorneys/` and see
+no error** — the field description says so in the Studio, and that description is the whole
+safeguard. Make it `.required()` if that ever proves not to be enough.
+
+⚠️ **`attorneys[]` is `.required().length(3)` AT ERROR SEVERITY — exactly three, no more
+and no less**, on the client's instruction (2026-09-08: *"No more no less. We can adjust
+later if needed"*). This is the second deliberate exception to AGENTS.md's "use `.warning()`,
+never `.error()`", alongside `caseResultsSection.results`; that rule is about design-coupled
+string LENGTHS, and three here is structural — the grid is `repeat(3, …)` down to 700px and
+one-up below, with no two-up breakpoint. `.required()` is what makes it "no less": a rule
+does not fire on an absent value, so `.length(3)` alone would pass on an empty band.
+
+**The rule earned itself within the minute.** A FOURTH reference — Katherine Sawicki — had
+been added in the Studio after the seed, and the homepage was building four cards with the
+fourth stranded alone on a second row beside two empty columns. Nothing had reported it. The
+fourth was removed by a targeted `unset` on the client's instruction and the band is back to
+Cohen · Jaffe · Tiger. ⚠️ **Removing an ARRAY ITEM needs an explicit `_key` in the unset
+path** — `unset(['attorneys.attorneys[_key=="…"]'])`; the bare `[]` form silently matches
+nothing.
+
+References are STRONG, matching `reviewsSection` and `practiceAreasSection`; the cost is the
+usual one, that an attorney document cannot be deleted while the homepage points at it.
+
+⚠️ **Typegen reported +1 schema type, not the +2 the previous handoff predicted**, and the
+reason is worth keeping: `attorney.reference` ALREADY EXISTED, emitted for `attorneyQuote.attorney`,
+which the "Our goals" and fee bands both use. The auto-generated `<type>.reference` appears
+once per referenced document type, not once per reference — so before predicting a count,
+check `schema.json` for the `.reference` entry rather than assuming a new array reference
+mints one.
 
 ## The testimonials band
 
@@ -463,10 +508,13 @@ field — reordering rows in the Studio moves the words, not the pictures.
 `practiceArea` → `PracticeAreas.astro`. `deadlinesSection` → `deadlines[]` of `deadlineFigure`
 → `Deadlines.astro`. `reviewsSection` → `reviews[]->` a MIXED array of `videoReview` and
 `review` → `Reviews.astro` — the only reference array accepting two document types.
+`attorneysSection` → `attorneys[]->` `attorney` (an ordered array of three) → `Attorneys.astro`.
 `firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`, `MobileNav`,
 `Footer`; `Fees.astro` calls `getFirm()` directly.
 
-**`Attorneys.astro` is the exception and is NOT wired to `homePage`** — see above.
+**Every homepage section now reads from `homePage` through `HOME_PAGE_QUERY`. There are no
+exceptions and no temporary queries left** — `HOME_PAGE_QUERY` and `FIRM_DETAILS_QUERY` are
+the site's only two.
 
 Desk shape: **Pages → { Homepage }**, then **Collections → { Case Results → { Featured Case
 Results, Case Results }, Reviews → { Video Reviews, Reviews }, Attorneys, Practice Areas }**,
@@ -493,11 +541,9 @@ badge-less.
 
 ## Open questions / waiting on the user
 
-1. **The attorneys band is approved and committed; it still needs MODELLING.** It went
-   through one design rejection and three rounds of revision, and the roles, the missing
-   listing link and the card quotes are all now settled. Two content items remain before
-   launch: **Jaffe's card repeats the "Our goals" pull quote**, and the **placeholder video
-   sits on Cohen and Jaffe**.
+1. **The attorneys band is finished — two CONTENT items on it remain before launch.**
+   **Jaffe's card repeats the "Our goals" pull quote** (one of the two bands should give it
+   up), and the **placeholder video sits on Cohen and Jaffe**. Neither is a code change.
 2. **Google Business Profile API access** — a client action, 3–10 business days. Nothing has
    started.
 3. **Real reviews** to replace the 22 placeholders, and **real client videos** to replace all
@@ -516,21 +562,22 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
 
 ## What's next
 
-1. **Get the reworked attorneys band approved, then model it** — `attorneysSection`, delete
-   the two temporary files, fold the projection into `HOME_PAGE_QUERY`. Then commit
-   `hp_attorneys`, push, open a PR. Nothing is committed.
-2. **`/about/testimonials/`** — the "Read all reviews" destination, already in
+1. **Commit `hp_attorneys_sanity`, push, open a PR.** The work is done and green; nothing is
+   committed. Then either delete `hp_why_us` and re-branch it off the merge, or rebase it.
+2. **The MID CTA BAR and the WHY COHEN & JAFFE photo band** — homepage sections ten and
+   eleven, artboard lines 576 and 579, and what `hp_why_us` was branched for.
+3. **`/about/testimonials/`** — the "Read all reviews" destination, already in
    `navigation.ts:111` and `:241` and already indexed. `CJ - Testimonials.dc.html` is
    approved: a video-reviews band, a written-reviews band with a load-more button, and a
    "leave a review" panel. `caseType` exists for it. Its Google button uses
    `https://www.google.com/maps?cid=67117899491750775`.
-3. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both artboards approved, and
-   the homepage band's "Full profile →" links already point at the second. The bio sidebar
+4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both artboards approved, and
+   the homepage band's "View Profile →" links already point at the second. The bio sidebar
    can now `reference` `practiceArea`.
-4. **`/practice-areas/`** — `CJ - Practice Areas.dc.html`: featured six cards, then five
+5. **`/practice-areas/`** — `CJ - Practice Areas.dc.html`: featured six cards, then five
    group cards from `PRACTICE_AREA_GROUPS`.
-5. **`/case-results/`** — the 60 ledger entries have no page yet.
-6. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
+6. **`/case-results/`** — the 60 ledger entries have no page yet.
+7. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
    `astro.config.mjs`** so `Layout.astro` emits a canonical link.
 
 ## Things that would surprise someone
@@ -541,15 +588,19 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   patch — `scripts/unset-attorney-summary.ts` is the worked example.
 - **`unset` takes a TOP-LEVEL field name fine**; it is the array form
   `unset(["path.array[].field"])` that silently matches nothing and needs an explicit `_key`.
+  To drop a whole array ITEM the same applies: `unset(['a.b[_key=="…"]'])`.
 - **`srcSet()` in `lib/image` sets a WIDTH ONLY.** For anything drawn in a fixed aspect
   ratio that ships the source's own frame and lets CSS discard the difference — and ignores
   the hotspot. Ask the CDN for both dimensions; `Attorneys.astro` has the local helper.
 - **`reviews[]->[filter]` is NOT an array filter in GROQ.** It returns `[null, null, …]` and
   the build dies on `Cannot read properties of null`. Filter the REFERENCE array before
   dereferencing: `reviews[@->rating == 5]->{…}`.
-- **GROQ's `in` returns dataset order, not the order of the array you gave it.** A
-  caller-supplied running order has to be restored after the fetch — `index.astro` does it
-  by index for the attorneys band.
+- **GROQ's `in` returns dataset order, not the order of the array you gave it**, so a
+  caller-supplied running order has to be restored after the fetch. **A dereferenced
+  reference array (`refs[]->`) does NOT have this problem** — it comes back in the array's own
+  order, which is why modelling the attorneys band deleted the by-index restore that used to
+  sit in `index.astro`. Reach for a reference array rather than an `in` whenever the order
+  matters.
 - **`--measure` NO LONGER EXISTS.** The 600px `.prose` cap was removed on the client's call.
   AGENTS.md still describes it. Use `--container-prose` (790px).
 - **A typed duration is always wrong eventually.** Read it from the video.
@@ -599,6 +650,10 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   how a section is added to the homepage singleton without disturbing the others.
   `sanity documents delete` needs `--dataset production` before the id.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen currently reports
-  **3 queries and 44 schema types**; if the query count drops, this is why.
+  **2 queries and 45 schema types**; if the query count drops, this is why.
+- **Typegen's `<type>.reference` is emitted once per REFERENCED DOCUMENT TYPE, not once per
+  reference.** Adding the attorneys band's `attorney[]->` array raised the count by one, not
+  two, because `attorney.reference` already existed for `attorneyQuote.attorney`. Check
+  `schema.json` before predicting a count.
 - `CLAUDE.md` is a **symlink to `AGENTS.md`** — writing through the symlink is refused.
 - `/new-seo-setup`, `/studio-polish ux` and `/page-speed` remain **deliberately deferred**.

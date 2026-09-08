@@ -95,6 +95,12 @@ export const homePage = defineType({
       type: "reviewsSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "attorneys",
+      title: "Attorneys",
+      type: "attorneysSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),
