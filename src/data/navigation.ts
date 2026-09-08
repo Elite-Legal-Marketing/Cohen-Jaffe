@@ -199,7 +199,7 @@ export const PRIMARY_NAV: NavItem[] = [
     href: "/resources/",
     children: [
       { label: "Blog", href: "/blog/" },
-      { label: "FAQ", href: "/faqs/" },
+      { label: "FAQ's", href: "/faqs/" },
       { label: "Video Library", href: "/video-center/" },
       { label: "Scholarship Essay Contest", href: "/about/community-scholarship/" },
     ],

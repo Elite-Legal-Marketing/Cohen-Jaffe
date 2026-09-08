@@ -124,6 +124,15 @@ export const HOME_PAGE_QUERY = defineQuery(`
     caseBanner{
       heading,
       cta{ label, href }
+    },
+    faqs{
+      eyebrow,
+      heading,
+      lead,
+      faqs[]->{ _id, question, "slug": slug.current, category, answer },
+      closingHeading,
+      closingLead,
+      closingCta{ label, href }
     }
   }
 `);
@@ -156,5 +165,106 @@ export const FIRM_DETAILS_QUERY = defineQuery(`
     },
     advertisingLabel,
     legalDisclaimer
+  }
+`);
+
+/**
+ * Every FAQ, with its answer — the source for `/faqs/[slug].astro`'s
+ * `getStaticPaths()`, which needs the whole body to render 180 static pages
+ * from one fetch.
+ *
+ * Ordered by question so the build output is stable and a diff between two
+ * builds means something.
+ */
+export const FAQS_QUERY = defineQuery(`
+  *[_type == "faq"] | order(question asc){
+    _id,
+    question,
+    "slug": slug.current,
+    category,
+    answer
+  }
+`);
+
+/**
+ * The same list WITHOUT the answers — for `/faqs/` , which is a list of links
+ * rather than a page of articles.
+ *
+ * A separate query rather than a projection of the one above on purpose: the
+ * answers are roughly 2.7 MB across the collection, and the hub renders none of
+ * them. Fetching them to throw them away is the difference between a hub build
+ * step that is instant and one that is not.
+ */
+export const FAQ_INDEX_QUERY = defineQuery(`
+  *[_type == "faq"] | order(question asc){
+    _id,
+    question,
+    "slug": slug.current,
+    category
+  }
+`);
+
+/**
+ * The `/faqs/` hub's own chrome — hero, list head, claims band and quote.
+ *
+ * NOT the questions: those are `FAQ_INDEX_QUERY`, because the page renders every
+ * one of them rather than a curated set. Two queries because they are two
+ * different things, and the hub would otherwise fetch 180 documents to read four
+ * strings off a singleton.
+ */
+export const FAQS_PAGE_QUERY = defineQuery(`
+  *[_id == "faqsPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    listEyebrow,
+    listHeading,
+    stats[]{ _key, figure, label, body },
+    quote{
+      text,
+      attorney->{ name, role }
+    }
+  }
+`);
+
+/**
+ * The contact band, shared by every page that carries it.
+ *
+ * Fetched through `getContact()` in `src/lib/contact.ts`, which memoises it for
+ * the build the way `getFirm()` does — the band appears on several pages and
+ * each one would otherwise be another round trip for the same document.
+ */
+export const CONTACT_SECTION_QUERY = defineQuery(`
+  *[_id == "contactSection"][0]{
+    eyebrow,
+    heading,
+    lead,
+    callLabel,
+    textLabel,
+    travelLabel,
+    travelText,
+    noteLabel,
+    disclaimer,
+    badge,
+    formHeading,
+    submitLabel,
+    spanishLabel
+  }
+`);
+
+/** The `/thank-you/` page. */
+export const THANK_YOU_PAGE_QUERY = defineQuery(`
+  *[_id == "thankYouPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    cta{ label, href },
+    waitEyebrow,
+    waitHeading,
+    steps[]{ _key, title, body },
+    readHeading,
+    readLead,
+    readPrimary{ label, href },
+    readSecondary{ label, href }
   }
 `);

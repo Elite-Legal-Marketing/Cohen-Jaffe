@@ -27,6 +27,12 @@ export type WhyReason = {
   body: string;
 };
 
+export type WaitStep = {
+  _type: "waitStep";
+  title: string;
+  body: string;
+};
+
 export type VideoCard = {
   _type: "videoCard";
   eyebrow?: string;
@@ -142,6 +148,28 @@ export type AttorneyQuote = {
   _type: "attorneyQuote";
   text: string;
   attorney: AttorneyReference;
+};
+
+export type FaqReference = {
+  _ref: string;
+  _type: "reference";
+  _weak?: boolean;
+  [internalGroqTypeReferenceTo]?: "faq";
+};
+
+export type FaqSection = {
+  _type: "faqSection";
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  faqs: Array<
+    {
+      _key: string;
+    } & FaqReference
+  >;
+  closingHeading: string;
+  closingLead: string;
+  closingCta?: CtaLink;
 };
 
 export type CaseBannerSection = {
@@ -291,6 +319,27 @@ export type Hero = {
   >;
 };
 
+export type ContactSection = {
+  _id: string;
+  _type: "contactSection";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  callLabel: string;
+  textLabel: string;
+  travelLabel: string;
+  travelText: string;
+  noteLabel: string;
+  disclaimer: string;
+  badge: string;
+  formHeading: string;
+  submitLabel: string;
+  spanishLabel: string;
+};
+
 export type FirmDetails = {
   _id: string;
   _type: "firmDetails";
@@ -309,6 +358,42 @@ export type FirmDetails = {
   >;
   advertisingLabel: string;
   legalDisclaimer: string;
+};
+
+export type Faq = {
+  _id: string;
+  _type: "faq";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  question: string;
+  slug: Slug;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+  answer: RichText;
+};
+
+export type Slug = {
+  _type: "slug";
+  current: string;
+  source?: string;
 };
 
 export type SanityImageAssetReference = {
@@ -404,12 +489,6 @@ export type PracticeArea = {
   linkLabel?: string;
 };
 
-export type Slug = {
-  _type: "slug";
-  current: string;
-  source?: string;
-};
-
 export type Attorney = {
   _id: string;
   _type: "attorney";
@@ -502,6 +581,48 @@ export type FeaturedCaseResult = {
   wistiaId?: string;
 };
 
+export type ThankYouPage = {
+  _id: string;
+  _type: "thankYouPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  cta?: CtaLink;
+  waitEyebrow: string;
+  waitHeading: string;
+  steps?: Array<
+    {
+      _key: string;
+    } & WaitStep
+  >;
+  readHeading: string;
+  readLead: string;
+  readPrimary?: CtaLink;
+  readSecondary?: CtaLink;
+};
+
+export type FaqsPage = {
+  _id: string;
+  _type: "faqsPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  listEyebrow: string;
+  listHeading: string;
+  stats?: Array<
+    {
+      _key: string;
+    } & Stat
+  >;
+  quote?: AttorneyQuote;
+};
+
 export type HomePage = {
   _id: string;
   _type: "homePage";
@@ -523,6 +644,7 @@ export type HomePage = {
   attorneys?: AttorneysSection;
   whyUs?: WhyUsSection;
   caseBanner?: CaseBannerSection;
+  faqs?: FaqSection;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -624,6 +746,7 @@ export type Geopoint = {
 
 export type AllSanitySchemaTypes =
   | WhyReason
+  | WaitStep
   | VideoCard
   | TextLink
   | Stat
@@ -638,6 +761,8 @@ export type AllSanitySchemaTypes =
   | CtaLink
   | AttorneyReference
   | AttorneyQuote
+  | FaqReference
+  | FaqSection
   | CaseBannerSection
   | WhyUsSection
   | AttorneysSection
@@ -651,17 +776,21 @@ export type AllSanitySchemaTypes =
   | FeaturedCaseResultReference
   | CaseResultsSection
   | Hero
+  | ContactSection
   | FirmDetails
+  | Faq
+  | Slug
   | SanityImageAssetReference
   | VideoReview
   | SanityImageCrop
   | SanityImageHotspot
   | Review
   | PracticeArea
-  | Slug
   | Attorney
   | CaseResult
   | FeaturedCaseResult
+  | ThankYouPage
+  | FaqsPage
   | HomePage
   | SanityImagePaletteSwatch
   | SanityImagePalette
@@ -674,7 +803,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    },    practiceAreas{      eyebrow,      heading,      subheading,      tabs[]{        _key,        headline,        callout,        links[]{ _key, label, href },        area->{          _id,          name,          "slug": slug.current,          icon,          linkLabel,          image{ ..., alt }        }      },      disclaimer,      allHeading,      allLink{ label, href },      allAreas[]->{ _id, name, "slug": slug.current }    },    deadlines{      eyebrow,      heading,      lead,      cta{ label, href },      deadlines[]{ _key, figure, unit, body }    },    reviews{      eyebrow,      heading,      lead,      cta{ label, href },      reviews[]->{        _id,        _type,        location,        _type == "review" => { author, quote },        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }      }    },    attorneys{      eyebrow,      heading,      cta{ label, href },      attorneys[]->{        _id,        name,        role,        "slug": slug.current,        quote,        wistiaId,        portrait{ ..., alt }      }    },    whyUs{      eyebrow,      heading,      lead,      reasons[]{ _key, title, body }    },    caseBanner{      heading,      cta{ label, href }    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    },    practiceAreas{      eyebrow,      heading,      subheading,      tabs[]{        _key,        headline,        callout,        links[]{ _key, label, href },        area->{          _id,          name,          "slug": slug.current,          icon,          linkLabel,          image{ ..., alt }        }      },      disclaimer,      allHeading,      allLink{ label, href },      allAreas[]->{ _id, name, "slug": slug.current }    },    deadlines{      eyebrow,      heading,      lead,      cta{ label, href },      deadlines[]{ _key, figure, unit, body }    },    reviews{      eyebrow,      heading,      lead,      cta{ label, href },      reviews[]->{        _id,        _type,        location,        _type == "review" => { author, quote },        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }      }    },    attorneys{      eyebrow,      heading,      cta{ label, href },      attorneys[]->{        _id,        name,        role,        "slug": slug.current,        quote,        wistiaId,        portrait{ ..., alt }      }    },    whyUs{      eyebrow,      heading,      lead,      reasons[]{ _key, title, body }    },    caseBanner{      heading,      cta{ label, href }    },    faqs{      eyebrow,      heading,      lead,      faqs[]->{ _id, question, "slug": slug.current, category, answer },      closingHeading,      closingLead,      closingCta{ label, href }    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
@@ -688,6 +817,26 @@ export type HOME_PAGE_QUERY_RESULT =
       attorneys: null;
       whyUs: null;
       caseBanner: null;
+      faqs: null;
+    }
+  | {
+      hero: null;
+      stats: Array<{
+        _key: string;
+        figure: string;
+        label: string;
+        body: string;
+      }> | null;
+      caseResults: null;
+      about: null;
+      fees: null;
+      practiceAreas: null;
+      deadlines: null;
+      reviews: null;
+      attorneys: null;
+      whyUs: null;
+      caseBanner: null;
+      faqs: null;
     }
   | {
       hero: {
@@ -949,6 +1098,42 @@ export type HOME_PAGE_QUERY_RESULT =
           href: string;
         } | null;
       } | null;
+      faqs: {
+        eyebrow: string;
+        heading: string;
+        lead: string;
+        faqs: Array<{
+          _id: string;
+          question: string;
+          slug: string;
+          category:
+            | "bicycle-accidents"
+            | "birth-injury"
+            | "brain-injuries"
+            | "car-accidents"
+            | "construction-accidents"
+            | "cruise-ship-accidents"
+            | "elevator-accidents"
+            | "employment-law"
+            | "medical-malpractice"
+            | "motorcycle-accidents"
+            | "neck-injuries"
+            | "nursing-home-abuse"
+            | "pedestrian-accidents"
+            | "personal-injury"
+            | "premises-liability"
+            | "slip-and-fall-injury"
+            | "truck-accidents"
+            | "wrongful-death";
+          answer: RichText;
+        }>;
+        closingHeading: string;
+        closingLead: string;
+        closingCta: {
+          label: string;
+          href: string;
+        } | null;
+      } | null;
     }
   | null;
 
@@ -1009,11 +1194,240 @@ export type FIRM_DETAILS_QUERY_RESULT =
     }
   | null;
 
+// Source: src/lib/queries.ts
+// Variable: FAQS_QUERY
+// Query: *[_type == "faq"] | order(question asc){    _id,    question,    "slug": slug.current,    category,    answer  }
+export type FAQS_QUERY_RESULT = Array<{
+  _id: string;
+  question: string;
+  slug: string;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+  answer: RichText;
+}>;
+
+// Source: src/lib/queries.ts
+// Variable: FAQ_INDEX_QUERY
+// Query: *[_type == "faq"] | order(question asc){    _id,    question,    "slug": slug.current,    category  }
+export type FAQ_INDEX_QUERY_RESULT = Array<{
+  _id: string;
+  question: string;
+  slug: string;
+  category:
+    | "bicycle-accidents"
+    | "birth-injury"
+    | "brain-injuries"
+    | "car-accidents"
+    | "construction-accidents"
+    | "cruise-ship-accidents"
+    | "elevator-accidents"
+    | "employment-law"
+    | "medical-malpractice"
+    | "motorcycle-accidents"
+    | "neck-injuries"
+    | "nursing-home-abuse"
+    | "pedestrian-accidents"
+    | "personal-injury"
+    | "premises-liability"
+    | "slip-and-fall-injury"
+    | "truck-accidents"
+    | "wrongful-death";
+}>;
+
+// Source: src/lib/queries.ts
+// Variable: FAQS_PAGE_QUERY
+// Query: *[_id == "faqsPage"][0]{    eyebrow,    heading,    lead,    listEyebrow,    listHeading,    stats[]{ _key, figure, label, body },    quote{      text,      attorney->{ name, role }    }  }
+export type FAQS_PAGE_QUERY_RESULT =
+  | {
+      eyebrow: null;
+      heading: null;
+      lead: null;
+      listEyebrow: null;
+      listHeading: null;
+      stats: null;
+      quote: null;
+    }
+  | {
+      eyebrow: null;
+      heading: null;
+      lead: null;
+      listEyebrow: null;
+      listHeading: null;
+      stats: Array<{
+        _key: string;
+        figure: string;
+        label: string;
+        body: string;
+      }> | null;
+      quote: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      listEyebrow: null;
+      listHeading: null;
+      stats: null;
+      quote: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      listEyebrow: string;
+      listHeading: string;
+      stats: Array<{
+        _key: string;
+        figure: string;
+        label: string;
+        body: string;
+      }> | null;
+      quote: {
+        text: string;
+        attorney: {
+          name: string;
+          role: string;
+        };
+      } | null;
+    }
+  | null;
+
+// Source: src/lib/queries.ts
+// Variable: CONTACT_SECTION_QUERY
+// Query: *[_id == "contactSection"][0]{    eyebrow,    heading,    lead,    callLabel,    textLabel,    travelLabel,    travelText,    noteLabel,    disclaimer,    badge,    formHeading,    submitLabel,    spanishLabel  }
+export type CONTACT_SECTION_QUERY_RESULT =
+  | {
+      eyebrow: null;
+      heading: null;
+      lead: null;
+      callLabel: null;
+      textLabel: null;
+      travelLabel: null;
+      travelText: null;
+      noteLabel: null;
+      disclaimer: null;
+      badge: null;
+      formHeading: null;
+      submitLabel: null;
+      spanishLabel: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      callLabel: null;
+      textLabel: null;
+      travelLabel: null;
+      travelText: null;
+      noteLabel: null;
+      disclaimer: null;
+      badge: null;
+      formHeading: null;
+      submitLabel: null;
+      spanishLabel: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      callLabel: string;
+      textLabel: string;
+      travelLabel: string;
+      travelText: string;
+      noteLabel: string;
+      disclaimer: string;
+      badge: string;
+      formHeading: string;
+      submitLabel: string;
+      spanishLabel: string;
+    }
+  | null;
+
+// Source: src/lib/queries.ts
+// Variable: THANK_YOU_PAGE_QUERY
+// Query: *[_id == "thankYouPage"][0]{    eyebrow,    heading,    lead,    cta{ label, href },    waitEyebrow,    waitHeading,    steps[]{ _key, title, body },    readHeading,    readLead,    readPrimary{ label, href },    readSecondary{ label, href }  }
+export type THANK_YOU_PAGE_QUERY_RESULT =
+  | {
+      eyebrow: null;
+      heading: null;
+      lead: null;
+      cta: null;
+      waitEyebrow: null;
+      waitHeading: null;
+      steps: null;
+      readHeading: null;
+      readLead: null;
+      readPrimary: null;
+      readSecondary: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      cta: null;
+      waitEyebrow: null;
+      waitHeading: null;
+      steps: null;
+      readHeading: null;
+      readLead: null;
+      readPrimary: null;
+      readSecondary: null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      cta: {
+        label: string;
+        href: string;
+      } | null;
+      waitEyebrow: string;
+      waitHeading: string;
+      steps: Array<{
+        _key: string;
+        title: string;
+        body: string;
+      }> | null;
+      readHeading: string;
+      readLead: string;
+      readPrimary: {
+        label: string;
+        href: string;
+      } | null;
+      readSecondary: {
+        label: string;
+        href: string;
+      } | null;
+    }
+  | null;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    },\n    attorneys{\n      eyebrow,\n      heading,\n      cta{ label, href },\n      attorneys[]->{\n        _id,\n        name,\n        role,\n        "slug": slug.current,\n        quote,\n        wistiaId,\n        portrait{ ..., alt }\n      }\n    },\n    whyUs{\n      eyebrow,\n      heading,\n      lead,\n      reasons[]{ _key, title, body }\n    },\n    caseBanner{\n      heading,\n      cta{ label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    },\n    attorneys{\n      eyebrow,\n      heading,\n      cta{ label, href },\n      attorneys[]->{\n        _id,\n        name,\n        role,\n        "slug": slug.current,\n        quote,\n        wistiaId,\n        portrait{ ..., alt }\n      }\n    },\n    whyUs{\n      eyebrow,\n      heading,\n      lead,\n      reasons[]{ _key, title, body }\n    },\n    caseBanner{\n      heading,\n      cta{ label, href }\n    },\n    faqs{\n      eyebrow,\n      heading,\n      lead,\n      faqs[]->{ _id, question, "slug": slug.current, category, answer },\n      closingHeading,\n      closingLead,\n      closingCta{ label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
     '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
+    '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category,\n    answer\n  }\n': FAQS_QUERY_RESULT;
+    '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category\n  }\n': FAQ_INDEX_QUERY_RESULT;
+    '\n  *[_id == "faqsPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    listEyebrow,\n    listHeading,\n    stats[]{ _key, figure, label, body },\n    quote{\n      text,\n      attorney->{ name, role }\n    }\n  }\n': FAQS_PAGE_QUERY_RESULT;
+    '\n  *[_id == "contactSection"][0]{\n    eyebrow,\n    heading,\n    lead,\n    callLabel,\n    textLabel,\n    travelLabel,\n    travelText,\n    noteLabel,\n    disclaimer,\n    badge,\n    formHeading,\n    submitLabel,\n    spanishLabel\n  }\n': CONTACT_SECTION_QUERY_RESULT;
+    '\n  *[_id == "thankYouPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    cta{ label, href },\n    waitEyebrow,\n    waitHeading,\n    steps[]{ _key, title, body },\n    readHeading,\n    readLead,\n    readPrimary{ label, href },\n    readSecondary{ label, href }\n  }\n': THANK_YOU_PAGE_QUERY_RESULT;
   }
 }

@@ -1,0 +1,321 @@
+---
+/**
+ * The homepage FAQ band — eight questions, each opening to the start of its
+ * answer and a link to its own page.
+ *
+ * From `Cohen & Jaffe Homepage v1.dc.html` markup 629-676. ⚠️ The gold band the
+ * board draws at 621-628, inside the same `#faq` wrapper, is ALREADY BUILT as
+ * `CaseBanner.astro` — it is not part of this section and must not be rebuilt.
+ *
+ * ── FOUR DEPARTURES FROM THE BOARD, ALL DELIBERATE ──────────────────────────
+ *
+ * 1. NO CATEGORY PILLS. The board filters fifteen invented FAQs across five
+ *    invented categories ("Cost & fees", "My case"). The real taxonomy is the
+ *    eighteen live terms, and the eight shown here are hand-picked — so a pill
+ *    row would be six or seven pills that each filter to one or two rows, next
+ *    to an "All" pill that is the default. It is a control that does nothing.
+ *    The filter belongs on `/faqs/`, where there are 180 rows, and that is
+ *    where it is built.
+ *
+ * 2. NO COUNT LINE. "Showing 8 of 15 questions" counts a filter that no longer
+ *    exists. ⚠️ Note what this costs: the band's only outbound links are now the
+ *    eight rows themselves. The closing button goes to the contact page, so
+ *    there is NO route from this section to the FAQs hub. A "See all 180
+ *    questions →" link where the count line was would fix it — raised, not
+ *    built, because nobody asked for it.
+ *
+ * 3. NO VIDEO CARD, and no two-column answer grid. Two independent reasons and
+ *    either is enough. There is no FAQ video and never has been: all 81 pulled
+ *    videos are attorney explainers, Wistia holds exactly one upload
+ *    (`c6b0eghb5r`), and it already stands in on the first case-result card, the
+ *    "Our goals" card and all four video reviews. Eight rows each showing it
+ *    under the label "Video answer · Answered by a partner" would be eight false
+ *    claims on a page that is legal advertising. And the board pairs its 340px
+ *    card with ONE SENTENCE, where the real answers run to a median of sixteen
+ *    paragraphs.
+ *
+ * 4. THE ROW OPENS TO AN EXCERPT, NOT THE WHOLE ANSWER. The migrated answers are
+ *    articles — median ~5,000 characters — so eight of them inline would add
+ *    roughly 60 KB to the homepage and put a sixteen-paragraph piece inside a
+ *    homepage accordion. Each row shows the answer's opening and links to the
+ *    page that has all of it.
+ *
+ * ── ONE THING TO RAISE AT REVIEW ────────────────────────────────────────────
+ *
+ * ⚠️ `CaseBanner.astro` SITS DIRECTLY ABOVE THIS SECTION and says "Not sure if
+ * you have a case? / Free case review / Call…". The closing panel below says
+ * "Still have a question about your own situation? / Ask an attorney directly".
+ * Two calls to action about 900px apart making the same offer. Both are on the
+ * approved board and both are built as drawn — but they should be looked at side
+ * by side, because this is exactly the case the build-then-approve order exists
+ * to surface.
+ */
+import RichText from "./RichText.astro";
+import { faqHref } from "../lib/faqs";
+import { faqCategoryTitle } from "../sanity/schemaTypes/faqCategories";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["faqs"]>;
+type Faq = NonNullable<NonNullable<Section["faqs"]>[number]>;
+
+interface Props {
+  section: Section;
+}
+
+const { section } = Astro.props;
+const faqs = section.faqs ?? [];
+
+/**
+ * The opening of an answer: its first two ordinary paragraphs.
+ *
+ * ⚠️ HEADINGS AND LIST ITEMS BOTH HAVE TO BE SKIPPED, and both bite on real
+ * content. The four pages recovered by the extractor's fallback path begin with
+ * an `<h2>`, so `answer[0]` would open the row with a section title. And a list
+ * item is a `normal` block WITH a `listItem` — without that second test,
+ * `is-new-york-a-no-fault-state` opens on the first bullet of its "Key
+ * Takeaways" box rather than on its first sentence.
+ */
+const excerpt = (faq: Faq) =>
+  (faq.answer ?? [])
+    .filter(
+      (block) =>
+        block._type === "block" &&
+        (block.style ?? "normal") === "normal" &&
+        !("listItem" in block && block.listItem),
+    )
+    .slice(0, 2);
+
+const cta = section.closingCta;
+---
+
+<section class="faq-band" aria-labelledby="faq-band-heading">
+  <div class="container">
+    <header class="faq-band__head">
+      {section.eyebrow && <p class="eyebrow eyebrow--center">{section.eyebrow}</p>}
+      <h2 class="faq-band__heading" id="faq-band-heading">{section.heading}</h2>
+      {section.lead && <p class="faq-band__lead">{section.lead}</p>}
+    </header>
+
+    <div class="faq-band__list">
+      {
+        faqs.map((faq) => (
+          <details class="faq-band__row">
+            <summary>
+              <span class="faq-band__text">
+                {faq.category && (
+                  <span class="faq-band__cat">{faqCategoryTitle(faq.category)}</span>
+                )}
+                <span class="faq-band__q">{faq.question}</span>
+              </span>
+              <span class="toggle" aria-hidden="true">
+                <span class="toggle__bar" />
+                <span class="toggle__bar toggle__bar--v" />
+              </span>
+            </summary>
+            <div class="faq-band__body">
+              <RichText value={excerpt(faq)} />
+              {faq.slug && (
+                <a class="link-arrow faq-band__more" href={faqHref(faq.slug)}>
+                  Read the full answer
+                  <span class="arrow" aria-hidden="true">
+                    →
+                  </span>
+                </a>
+              )}
+            </div>
+          </details>
+        ))
+      }
+    </div>
+
+    {
+      (section.closingHeading || cta?.href) && (
+        <div class="faq-band__panel on-dark">
+          <div class="faq-band__panel-copy">
+            {section.closingHeading && <h3>{section.closingHeading}</h3>}
+            {section.closingLead && <p>{section.closingLead}</p>}
+          </div>
+          {cta?.href && cta?.label && (
+            <a class="btn btn--gold btn--wide" href={cta.href}>
+              {cta.label}
+            </a>
+          )}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  .faq-band {
+    background: var(--color-bg);
+    padding-block: var(--space-section);
+  }
+
+  .faq-band__head {
+    text-align: center;
+    margin-block-end: var(--space-44);
+  }
+
+  .faq-band__heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-section);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--ls-tight);
+    color: var(--color-heading);
+    text-wrap: balance;
+    margin-block-end: var(--space-18);
+  }
+
+  .faq-band__lead {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--muted);
+    max-width: var(--container-prose);
+    margin-inline: auto;
+    text-wrap: pretty;
+  }
+
+  /* The board's own 1080px column, centred in the 1660px container. */
+  .faq-band__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-12);
+    max-width: 1080px;
+    margin-inline: auto;
+  }
+
+  .faq-band__row {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-28) var(--space-32);
+    transition: border-color var(--duration) var(--ease);
+  }
+
+  .faq-band__row:hover {
+    border-color: var(--border-deep);
+  }
+
+  /* Both are needed: `list-style` covers Firefox and modern Chrome, the
+     pseudo-element covers older WebKit. Without them a native triangle sits
+     beside the gold `+`. */
+  .faq-band__row summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-24);
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq-band__row summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-band__text {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    min-width: 0;
+  }
+
+  .faq-band__cat {
+    font-family: var(--font-label);
+    font-size: var(--fs-12);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.14em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+  }
+
+  .faq-band__q {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-26);
+    line-height: var(--lh-snug);
+    color: var(--color-heading);
+    text-wrap: pretty;
+  }
+
+  .faq-band__body {
+    padding-block-start: var(--space-20);
+  }
+
+  /* ⚠️ `.prose` is emitted INSIDE `RichText.astro`, so a scoped selector here
+     cannot reach it — Astro's scoping does not cross into a child component.
+     Styling the excerpt's paragraphs has to go through this wrapper. */
+  .faq-band__body :global(.prose) {
+    color: var(--muted);
+    font-size: var(--fs-body-lg);
+    /* ⚠️ THE GAP TO "READ THE FULL ANSWER" LIVES HERE, not on the link. The link
+       is `display: inline` — it has to be, or its hover underline is drawn under
+       the arrow too (see `.arrow` in global.css) — and vertical margins do not
+       apply to an inline box. A `margin-block-start` on the link is silently
+       inert; it sat there doing nothing and the two ran together at 7px of
+       leading. The block above it is the only side of the gap that can own it. */
+    margin-block-end: var(--space-10);
+  }
+
+  /* ⚠️ INLINE, NOT `inline-flex`. This link underlines on hover, and an
+     underline set on the <a> is propagated to its descendants and cannot be
+     cancelled from inside — as a flex container it draws a little rule under
+     the arrow glyph too. `.arrow` in global.css carries the full note; the
+     arrow's own `margin-inline-start` is the gap. */
+  .faq-band__more {
+    display: inline;
+  }
+
+  .faq-band__panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-40);
+    flex-wrap: wrap;
+    max-width: 1080px;
+    margin-inline: auto;
+    margin-block-start: var(--space-24);
+    padding: var(--space-40);
+    border: 1px solid var(--gold-wash);
+    border-radius: var(--radius);
+    background: var(--gradient-forest-card);
+  }
+
+  .faq-band__panel-copy {
+    max-width: var(--container-prose);
+  }
+
+  .faq-band__panel h3 {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-28);
+    line-height: var(--lh-card);
+    color: var(--on-dark);
+    margin-block-end: var(--space-8);
+  }
+
+  .faq-band__panel p {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+  }
+
+  @media (max-width: 767px) {
+    .faq-band__row {
+      padding: var(--space-22) var(--space-20);
+    }
+
+    .faq-band__panel {
+      padding: var(--space-28) var(--space-24);
+    }
+
+    /* The button is `--wide` (a fixed 250px), which global.css already relaxes
+       to 100% at this breakpoint — so it fills the panel rather than sitting
+       stranded at a fixed width in a narrow column. */
+    .faq-band__panel .btn {
+      width: 100%;
+    }
+  }
+</style>

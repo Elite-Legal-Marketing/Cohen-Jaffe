@@ -1,0 +1,721 @@
+---
+/**
+ * The site-wide contact band: the firm's three ways in on the left, and a
+ * consultation request form on the right.
+ *
+ * From `CJContactForm.dc.html`. The artboard imports this on the FAQ page, the
+ * blog post and elsewhere, so it is a shared component from the start rather
+ * than markup that gets extracted later.
+ *
+ * ⚠️⚠️ THE FORM DOES NOT SUBMIT ANYWHERE YET, BY DECISION (2026-09-08). The
+ * client asked for the UI now and the wiring later, so `ENDPOINT` below is
+ * `null` and the submit handler says so out loud instead of pretending. It
+ * validates, and on a valid submission it tells the visitor to call and puts the
+ * number in front of them — which is honest, and safe if this ships before it is
+ * wired. **A form that silently swallows an injured person's case details is the
+ * one outcome that must never happen**, which is why there is no optimistic
+ * success state here.
+ *
+ * ── WHAT WIRING IT NEEDS ───────────────────────────────────────────────────
+ *
+ * Three things, none of them decided:
+ *
+ *   1. A DESTINATION. The live site posts to Gravity Forms; the new one has no
+ *      equivalent. On this static build (`output: "static"`, no adapter) the
+ *      route is a Vercel Function at `/api/contact`, which works alongside a
+ *      static build without adding `@astrojs/vercel`. Where it forwards to — the
+ *      firm's intake CRM, or an email provider — is the client's call.
+ *   2. SPAM HANDLING. Deliberately not built: a honeypot alone is not a plan,
+ *      and the right answer depends on the destination. Whoever wires this adds
+ *      it in the same change.
+ *   3. THE THANK-YOU REDIRECT. `/thank-you/` exists and is built; the handler
+ *      below already points at it. Ad platforms fire conversions on a page view,
+ *      which is why it is a page rather than an inline message.
+ *
+ * ⚠️ THE PHONE AND TEXT NUMBERS ARE NOT THIS COMPONENT'S CONTENT. The board
+ * hardcodes `tel:5163586900` and `sms:5164004967`; both come from Site Settings
+ * through `getFirm()`, with `telHref()` / `smsHref()` deriving the links. Numbers
+ * are stored in display form only, because storing the pair is two things that
+ * can disagree and they did (AGENTS.md rule 9).
+ *
+ * The band's COPY is `contactSection`, a Site Settings singleton — the same band
+ * appears on several pages, which is rule 9's bar. What stays in code is the
+ * structure, the icons and the validation.
+ *
+ * ⚠️ THE "CONTACT ME IN SPANISH" CHECKBOX IS NOT THE DEFERRED SPANISH SECTION.
+ * The artboard's "En Español" nav control was cut on request and `/es/` is
+ * deferred pending a client decision on its IA. This is a contact PREFERENCE on
+ * a form — a different thing, and it is the half of Spanish support the firm can
+ * honour today, since the intake staff answer in Spanish. It does presume
+ * someone acts on it, which is worth confirming when the form is wired.
+ */
+import { Image } from "astro:assets";
+import formPartners from "../assets/form-three-partners.png";
+import { getFirm } from "../lib/firm";
+import { getContact } from "../lib/contact";
+import { telHref, smsHref } from "../lib/phone";
+
+/**
+ * ⚠️ SET THIS TO WIRE THE FORM, and read the block above first. While it is
+ * `null` the form validates and then refuses, naming the phone number instead.
+ */
+const ENDPOINT: string | null = null;
+
+const firm = await getFirm();
+const phone = firm?.phone;
+const sms = firm?.sms;
+
+/**
+ * The band's copy, from Site Settings → Contact Form. Memoised for the build the
+ * way `getFirm()` is, because this band appears on several pages.
+ */
+const copy = await getContact();
+---
+
+<section class="contact surface-sand" id="contact">
+  <div class="container contact__grid">
+    <div class="contact__intro">
+      {copy?.eyebrow && <p class="eyebrow">{copy.eyebrow}</p>}
+      <h2 class="contact__heading">{copy?.heading}</h2>
+      {copy?.lead && <p class="contact__lead">{copy.lead}</p>}
+
+      <ul class="contact__ways" role="list">
+        {
+          phone && (
+            <li>
+              <svg
+                class="contact__icon"
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M6.5 4h3l1.5 4-2 1.4a10 10 0 0 0 5.6 5.6l1.4-2 4 1.5v3a1.6 1.6 0 0 1-1.8 1.6C11.9 18.3 5.7 12.1 4.9 5.8A1.6 1.6 0 0 1 6.5 4z" />
+              </svg>
+              <span class="contact__way">
+                <span class="contact__way-label">{copy?.callLabel}</span>
+                <a class="contact__number" href={telHref(phone)}>
+                  {phone}
+                </a>
+              </span>
+            </li>
+          )
+        }
+        {
+          sms && (
+            <li>
+              <svg
+                class="contact__icon"
+                width="26"
+                height="26"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.7"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M4.5 5.5h15v10h-9l-4 3.5z" />
+              </svg>
+              <span class="contact__way">
+                <span class="contact__way-label">{copy?.textLabel}</span>
+                <a class="contact__number" href={smsHref(sms)}>
+                  {sms}
+                </a>
+              </span>
+            </li>
+          )
+        }
+        <li>
+          <svg
+            class="contact__icon"
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 11l9-6.5 9 6.5" />
+            <path d="M5.5 9.8V19h13V9.8" />
+          </svg>
+          <span class="contact__way">
+            <span class="contact__way-label">{copy?.travelLabel}</span>
+            <span class="contact__way-text">{copy?.travelText}</span>
+          </span>
+        </li>
+      </ul>
+
+      <div class="contact__note">
+        {copy?.noteLabel && <p class="contact__note-label">{copy.noteLabel}</p>}
+        {copy?.disclaimer && <p class="contact__note-body">{copy.disclaimer}</p>}
+      </div>
+    </div>
+
+    <div class="contact__panel on-dark">
+      <div class="contact__figure">
+        <Image
+          class="contact__figure-image"
+          src={formPartners}
+          alt="The partners of Cohen &amp; Jaffe"
+          widths={[800, 1200, 2059]}
+          sizes="(max-width: 1023px) 100vw, 790px"
+          loading="lazy"
+        />
+        <div class="contact__figure-scrim"></div>
+        {copy?.badge && <p class="contact__figure-badge">{copy.badge}</p>}
+      </div>
+
+      <div class="contact__form-body">
+        <h3 class="contact__form-heading">{copy?.formHeading}</h3>
+
+        <form class="contact__form" novalidate data-contact-form>
+          <div class="contact__fields">
+            <div class="contact__field">
+              <label class="field-label" for="cf-first">First name</label>
+              <input
+                class="field"
+                id="cf-first"
+                name="first"
+                type="text"
+                autocomplete="given-name"
+                placeholder="First name"
+                aria-describedby="cf-first-error"
+              />
+              <span class="field-error" id="cf-first-error" data-error-for="first"></span>
+            </div>
+
+            <div class="contact__field">
+              <label class="field-label" for="cf-last">Last name</label>
+              <input
+                class="field"
+                id="cf-last"
+                name="last"
+                type="text"
+                autocomplete="family-name"
+                placeholder="Last name"
+                aria-describedby="cf-last-error"
+              />
+              <span class="field-error" id="cf-last-error" data-error-for="last"></span>
+            </div>
+
+            <div class="contact__field">
+              <label class="field-label" for="cf-phone">Phone</label>
+              {/* ⚠️ `type="tel"` CONSTRAINS NOTHING on its own — the spec leaves
+                  the format open because international numbering varies, so
+                  "17736" validates happily. The pattern accepts one shape, the
+                  placeholder's, and `data-phone-mask` types that shape as the
+                  visitor goes. The mask is what makes a strict pattern
+                  reasonable rather than hostile: without it, entering
+                  "5163586900" would be rejected with no hint of what was wanted.
+
+                  No `maxlength`: it would truncate a pasted "+1 (516) 358-6900"
+                  before the mask ever saw it, mangling the digits. The mask caps
+                  the length instead. */}
+              <input
+                class="field"
+                id="cf-phone"
+                name="phone"
+                type="tel"
+                autocomplete="tel"
+                inputmode="tel"
+                placeholder="(516) 000-0000"
+                pattern="\(\d{3}\) \d{3}-\d{4}"
+                title="Enter a phone number as (516) 000-0000"
+                data-phone-mask
+                aria-describedby="cf-phone-error"
+              />
+              <span class="field-error" id="cf-phone-error" data-error-for="phone"></span>
+            </div>
+
+            <div class="contact__field">
+              <label class="field-label" for="cf-email">Email</label>
+              {/* ⚠️ `type="email"` ACCEPTS "jane@email" — it does not require a
+                  dotted domain. The pattern adds that, which catches the common
+                  typo of leaving off the .com. 254 is the RFC's maximum length
+                  for an address. */}
+              <input
+                class="field"
+                id="cf-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                placeholder="you@email.com"
+                pattern="[^@\s]+@[^@\s]+\.[A-Za-z]{2,}"
+                title="Enter a full email address, e.g. you@email.com"
+                maxlength="254"
+                aria-describedby="cf-email-error"
+              />
+              <span class="field-error" id="cf-email-error" data-error-for="email"></span>
+            </div>
+          </div>
+
+          <div class="contact__field contact__summary">
+            <label class="field-label" for="cf-summary">What happened?</label>
+            <textarea
+              class="field"
+              id="cf-summary"
+              name="summary"
+              rows="5"
+              placeholder="A sentence or two is plenty. We will call you back with questions."
+              aria-describedby="cf-summary-error"></textarea>
+            <span class="field-error" id="cf-summary-error" data-error-for="summary"></span>
+          </div>
+
+          <label class="contact__spanish">
+            <input type="checkbox" name="spanish" value="yes" />
+            <span class="contact__check" aria-hidden="true"></span>
+            <span>{copy?.spanishLabel}</span>
+          </label>
+
+          {/* ⚠️ HONEYPOT. Hidden from sight, from assistive tech and from Tab, so
+              a person never fills it — anything non-empty is a bot and the
+              endpoint drops the submission. `hidden` is deliberately NOT used:
+              some bots skip hidden inputs, which is exactly the ones we want to
+              catch. `autocomplete="off"` stops a password manager helpfully
+              filling it in and getting a real person rejected.
+
+              ⚠️ THIS IS HALF A SPAM PLAN, and the half that costs nothing. It
+              catches naive bots only. Whoever wires `ENDPOINT` has to check this
+              field server-side — the check does not exist yet, because there is
+              no server yet — and decide whether it needs a rate limit or a
+              challenge beside it. */}
+          <div class="contact__trap" aria-hidden="true">
+            <label>
+              Company
+              <input type="text" name="company" tabindex="-1" autocomplete="off" />
+            </label>
+          </div>
+
+          <button class="btn btn--gold btn--block" type="submit">
+            {copy?.submitLabel}
+          </button>
+
+          {/* Assertive: it is the answer to an action the visitor just took, and
+              on failure it carries the phone number they need instead. */}
+          <p class="contact__status" role="alert" data-form-status></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script is:inline define:vars={{ ENDPOINT, phone }}>
+  window.__cjContact = { endpoint: ENDPOINT, phone };
+</script>
+
+<script>
+  import "../scripts/phoneMask";
+
+  /**
+   * Client-side validation, matching the artboard's own rules.
+   *
+   * ⚠️ THERE IS NO SUCCESS PATH WHILE `endpoint` IS NULL. See the component's
+   * docblock: this form has no destination yet, and the one behaviour that must
+   * never ship is silently accepting a case description and dropping it.
+   */
+  interface ContactConfig {
+    endpoint: string | null;
+    phone: string | null;
+  }
+
+  const config: ContactConfig = (window as unknown as { __cjContact?: ContactConfig })
+    .__cjContact ?? { endpoint: null, phone: null };
+
+  const form = document.querySelector<HTMLFormElement>("[data-contact-form]");
+
+  if (form) {
+    const status = form.querySelector<HTMLElement>("[data-form-status]");
+
+    const RULES: Record<string, (value: string) => string | null> = {
+      first: (v) => (v.trim() ? null : "Required."),
+      last: (v) => (v.trim() ? null : "Required."),
+      // ⚠️ THESE MUST MATCH THE `pattern` ATTRIBUTES ON THE FIELDS. The form is
+      // `novalidate`, so the browser never enforces those and this is what
+      // actually runs — but the two disagreeing would mean a number the mask
+      // just typed being rejected as malformed.
+      phone: (v) =>
+        /^\(\d{3}\) \d{3}-\d{4}$/.test(v.trim())
+          ? null
+          : "Enter a 10-digit number, like (516) 000-0000.",
+      email: (v) =>
+        /^[^@\s]+@[^@\s]+\.[A-Za-z]{2,}$/.test(v.trim())
+          ? null
+          : "Enter a full email address, like you@email.com.",
+      summary: (v) =>
+        v.trim().length >= 12
+          ? null
+          : "A sentence or two helps us point you in the right direction.",
+    };
+
+    const fieldOf = (name: string) =>
+      form.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[name="${name}"]`);
+
+    const setError = (name: string, message: string | null) => {
+      const field = fieldOf(name);
+      const slot = form.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      if (!field || !slot) return;
+      slot.textContent = message ?? "";
+      // `aria-invalid` does double duty: it is what a screen reader announces,
+      // AND what `.field[aria-invalid="true"]` in global.css paints the ring
+      // from. There is no separate state class to keep in step.
+      field.setAttribute("aria-invalid", message ? "true" : "false");
+    };
+
+    const validate = () => {
+      const failed: string[] = [];
+      for (const [name, rule] of Object.entries(RULES)) {
+        const field = fieldOf(name);
+        const message = rule(field?.value ?? "");
+        setError(name, message);
+        if (message) failed.push(name);
+      }
+      return failed;
+    };
+
+    // Clear a field's error as soon as it is being corrected, rather than making
+    // the visitor submit again to find out.
+    for (const name of Object.keys(RULES)) {
+      fieldOf(name)?.addEventListener("input", () => setError(name, null));
+    }
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      const failed = validate();
+
+      if (failed.length > 0) {
+        fieldOf(failed[0]!)?.focus();
+        if (status) {
+          status.textContent = "Please check the highlighted fields.";
+          status.dataset.state = "error";
+        }
+        return;
+      }
+
+      // A filled honeypot is a bot. Say nothing and do nothing — an error would
+      // tell a scripted submitter which field gave it away.
+      const trap = form.querySelector<HTMLInputElement>('[name="company"]');
+      if (trap?.value) return;
+
+      if (!config.endpoint) {
+        // ⚠️ NOT A SUCCESS STATE. See the component docblock — the form has no
+        // destination yet, so it says so and hands over the phone number.
+        if (status) {
+          status.textContent = config.phone
+            ? `This form is not connected yet. Please call ${config.phone} — someone answers at any hour.`
+            : "This form is not connected yet. Please call the office.";
+          status.dataset.state = "error";
+        }
+        return;
+      }
+
+      form.setAttribute("action", config.endpoint);
+      form.setAttribute("method", "post");
+      form.submit();
+    });
+  }
+</script>
+
+<style>
+  .contact {
+    padding-block: var(--space-section);
+  }
+
+  /* The board's two 790px columns held apart, rather than a plain 1fr 1fr: at
+     1660px they are exactly the artboard's, and below it they shrink together. */
+  .contact__grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 790px));
+    justify-content: space-between;
+    gap: var(--space-80);
+    align-items: start;
+  }
+
+  .contact__heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-section);
+    line-height: var(--lh-heading);
+    letter-spacing: var(--ls-tight);
+    color: var(--color-heading);
+    text-wrap: balance;
+    margin-block-end: var(--space-24);
+  }
+
+  .contact__lead {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--color-text);
+    margin-block-end: var(--space-36);
+    text-wrap: pretty;
+  }
+
+  /* Rules between the three ways in, with one closing the set. A top border on
+     every row plus a bottom on the last is what fences them without doubling. */
+  .contact__ways {
+    list-style: none;
+    margin-block-end: var(--space-36);
+  }
+
+  .contact__ways li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-20);
+    padding-block: var(--space-24);
+    border-block-start: 1px solid var(--border-strong);
+  }
+
+  .contact__ways li:last-child {
+    border-block-end: 1px solid var(--border-strong);
+  }
+
+  .contact__icon {
+    flex: none;
+    color: var(--gold);
+  }
+
+  .contact__way {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .contact__way-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.14em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .contact__number {
+    font-family: var(--font-display);
+    font-size: var(--fs-30);
+    font-weight: var(--fw-semibold);
+    line-height: var(--lh-label);
+    color: var(--ink);
+    /* Declared at rest in transparent so the colour animates rather than the
+       line popping in — `text-decoration-line` cannot be transitioned. */
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: transparent;
+    transition:
+      color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .contact__number:hover {
+    color: var(--gold-ink);
+    text-decoration-color: currentColor;
+  }
+
+  .contact__way-text {
+    font-family: var(--font-heading);
+    font-size: var(--fs-23);
+    line-height: var(--lh-snug);
+    color: var(--ink);
+  }
+
+  .contact__note {
+    background: var(--cream);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: var(--space-32);
+  }
+
+  .contact__note-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.14em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    margin-block-end: var(--space-12);
+  }
+
+  .contact__note-body {
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  /* ── The form panel ─────────────────────────────────────────────────────── */
+
+  .contact__panel {
+    background: var(--gradient-forest-card);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .contact__figure {
+    position: relative;
+    height: 240px;
+  }
+
+  /* ⚠️ The `<img>` is sized here AND the wrapper has a height. A picture given
+     `height: 100%` inside an auto-height box has nothing to resolve against and
+     stops short, leaving a band of the panel's own gradient under it. */
+  .contact__figure-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% top;
+  }
+
+  /* Falls to nearly opaque at the foot so the panel's gradient and the
+     photograph meet without a seam. */
+  .contact__figure-scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(28, 34, 20, 0.1) 0%,
+      rgba(28, 34, 20, 0.35) 58%,
+      rgba(35, 43, 25, 0.96) 100%
+    );
+  }
+
+  .contact__figure-badge {
+    position: absolute;
+    left: var(--space-60);
+    bottom: var(--space-22);
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: 0.16em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .contact__form-body {
+    padding: var(--space-44) var(--space-60) var(--space-60);
+  }
+
+  .contact__form-heading {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-32);
+    line-height: var(--lh-subhead);
+    color: var(--on-dark);
+    margin-block-end: var(--space-32);
+  }
+
+  .contact__fields {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-20);
+    align-items: start;
+    margin-block-end: var(--space-20);
+  }
+
+  .contact__summary {
+    margin-block-end: var(--space-20);
+  }
+
+  /* The real checkbox is hidden but still focusable and still the thing that
+     holds state — the square below is drawn from it, never instead of it. */
+  .contact__spanish {
+    display: flex;
+    align-items: center;
+    gap: var(--space-14);
+    margin-block-end: var(--space-28);
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+    cursor: pointer;
+  }
+
+  .contact__spanish input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .contact__check {
+    flex: none;
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-sm);
+    background: var(--white);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--green);
+    font-weight: var(--fw-bold);
+    font-size: var(--fs-15);
+    line-height: var(--lh-flat);
+  }
+
+  .contact__spanish input:checked + .contact__check::after {
+    content: "✓";
+  }
+
+  .contact__spanish input:focus-visible + .contact__check {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+  }
+
+  /* Not `display: none` and not `hidden`: both are skipped by the bots worth
+     catching. Clipped to a pixel instead, which is invisible to a person and
+     present to a script. */
+  .contact__trap {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .contact__status:empty {
+    display: none;
+  }
+
+  .contact__status {
+    margin-block-start: var(--space-18);
+    font-size: var(--fs-15);
+    line-height: var(--lh-small);
+    color: var(--error-on-dark);
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 1023px) {
+    .contact__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-xl);
+    }
+
+    .contact__form-body {
+      padding: var(--space-36) var(--space-32) var(--space-40);
+    }
+
+    .contact__figure-badge {
+      left: var(--space-32);
+    }
+  }
+
+  @media (max-width: 559px) {
+    /* Two 50% columns leave no room for "First name" plus its field at this
+       width; the pair stacks rather than squeezing. */
+    .contact__fields {
+      grid-template-columns: minmax(0, 1fr);
+    }
+  }
+</style>

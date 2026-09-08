@@ -1,0 +1,183 @@
+---
+/**
+ * One FAQ, at the URL it already has.
+ *
+ * ⚠️ THESE 180 PATHS ARE NOT OURS TO CHOOSE. 120 of them are live, indexed
+ * WordPress URLs that the new site continues to serve — the alternative
+ * considered and rejected was collapsing every answer onto `/faqs/` and
+ * redirecting all of them, which would have thrown away the long-tail ranking of
+ * 127 pages each carrying about five thousand characters of legal content, and
+ * broken the 30 links the answers make to each other. The remaining 60 are new
+ * paths for questions split out of the seven round-up pages, which had no page
+ * of their own before.
+ *
+ * ── THERE IS NO ARTBOARD FOR THIS PAGE ──────────────────────────────────────
+ *
+ * `CJ - FAQ.dc.html` draws the HUB only; no board draws a single FAQ. This is
+ * built from **`CJ - Blog Post.dc.html`**, which is the approved treatment for a
+ * long-form article on this site and is the same shape: a meta row, a serif
+ * title, a column of body copy, and a 460px sidebar at a 90px gap. What is taken
+ * from it is the LAYOUT; its author card, lead-capture form, table of contents
+ * and related-posts rail are all out of scope here, and the sidebar carries the
+ * FAQ hub's own "Ask a lawyer" panel instead.
+ *
+ * **Confirm that derivation at design review before anything is built on top of
+ * it.** It is a reasoned choice between two approved boards, not a board.
+ *
+ * ── NOTES ───────────────────────────────────────────────────────────────────
+ *
+ * - The question is the `<h1>`, so the answer's own H2s sit correctly beneath it
+ *   and nothing needs its heading levels shifted.
+ * - `description` is derived from the answer's first paragraph. `/new-seo-setup`
+ *   is the deferred command that adds real per-page meta fields site-wide; a
+ *   per-type version now would only be undone by it.
+ * - No "related FAQs" rail. Nobody asked for one, and every candidate source for
+ *   it — same category, same practice area — is a ranking decision dressed up as
+ *   a component.
+ */
+import { sanityClient } from "sanity:client";
+import Layout from "../../layouts/Layout.astro";
+import RichText from "../../components/RichText.astro";
+import AskPanel from "../../components/AskPanel.astro";
+import { FAQS_QUERY } from "../../lib/queries";
+import { faqCategoryTitle } from "../../sanity/schemaTypes/faqCategories";
+import type { FAQS_QUERY_RESULT } from "../../sanity/sanity.types";
+
+export async function getStaticPaths() {
+  const faqs = await sanityClient.fetch<FAQS_QUERY_RESULT>(FAQS_QUERY);
+  return (faqs ?? [])
+    .filter((faq) => faq.slug)
+    .map((faq) => ({ params: { slug: faq.slug! }, props: { faq } }));
+}
+
+type Faq = FAQS_QUERY_RESULT[number];
+
+const { faq } = Astro.props as { faq: Faq };
+
+const category = faqCategoryTitle(faq.category);
+
+/**
+ * The meta description: the answer's opening paragraph, trimmed at a word
+ * boundary.
+ *
+ * ⚠️ TWO KINDS OF BLOCK HAVE TO BE SKIPPED, and both bite on real content:
+ *   - HEADINGS, because the four pages recovered by the extractor's fallback
+ *     path begin with an `<h2>` — `answer[0]` would describe them by a section
+ *     title.
+ *   - LIST ITEMS, because a list item is a `normal` block WITH a `listItem`.
+ *     Without this, `is-new-york-a-no-fault-state` was described by the first
+ *     bullet of its "Key Takeaways" box rather than by its opening sentence.
+ */
+const firstParagraph = (faq.answer ?? []).find(
+  (block) =>
+    block._type === "block" &&
+    (block.style ?? "normal") === "normal" &&
+    !("listItem" in block && block.listItem),
+);
+const summary =
+  firstParagraph && "children" in firstParagraph
+    ? (firstParagraph.children ?? [])
+        .map((child) => ("text" in child ? (child.text ?? "") : ""))
+        .join("")
+    : "";
+const description =
+  summary.length > 158 ? `${summary.slice(0, 155).replace(/\s+\S*$/, "")}…` : summary;
+---
+
+<Layout title={faq.question} description={description || undefined}>
+  <article class="faq-page">
+    <div class="container faq-page__grid">
+      <div class="faq-page__main">
+        {category && <p class="eyebrow eyebrow--bare faq-page__cat">{category}</p>}
+
+        <h1 class="faq-page__title">{faq.question}</h1>
+
+        {faq.answer && <RichText value={faq.answer} class="faq-page__answer" />}
+
+        <a class="link-arrow faq-page__back" href="/faqs/">
+          <span class="arrow arrow--back" aria-hidden="true">←</span>
+          All frequently asked questions
+        </a>
+      </div>
+
+      <div class="faq-page__aside">
+        <AskPanel />
+      </div>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .faq-page {
+    background: var(--color-bg);
+    padding-block: var(--space-lg) var(--space-section);
+  }
+
+  /* The blog-post board's own grid: content column against a 460px rail at a
+     90px gap, with the copy itself capped well short of the column so the
+     measure stays readable at 1660px. */
+  .faq-page__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 460px;
+    gap: var(--space-80);
+    align-items: start;
+  }
+
+  .faq-page__main {
+    min-width: 0;
+    max-width: var(--container-narrow);
+  }
+
+  /* The category, as a kicker over the question. ⚠️ THIS IS NOT A BREADCRUMB —
+     the site has none, anywhere, by decision (2026-09-08). `.eyebrow--bare`
+     because it labels the heading under it rather than opening a section, so it
+     takes the eyebrow's type without its gold dash. */
+  .faq-page__cat {
+    font-size: var(--fs-meta);
+    margin-block-end: var(--space-14);
+  }
+
+  .faq-page__title {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-page-title);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-display);
+    color: var(--color-heading);
+    text-wrap: balance;
+    margin-block-end: var(--space-32);
+  }
+
+  /* ⚠️ `.prose` is emitted INSIDE `RichText.astro`, so a scoped selector here
+     cannot reach it — Astro's scoping does not cross into a child component.
+     Anything that needs to style the answer's own elements has to go through
+     this wrapper's descendants, which `:global` below does deliberately. */
+  .faq-page__answer {
+    font-size: var(--fs-18);
+  }
+
+  /* ⚠️ INLINE, NOT `inline-flex` — see the note on `.arrow` in global.css. As a
+     flex container this link draws its hover underline under the ← as well. */
+  .faq-page__back {
+    display: inline-block;
+    margin-block-start: var(--space-40);
+  }
+
+  .faq-page__aside {
+    max-width: 460px;
+  }
+
+  /* Below 1024 the rail moves under the answer. It is a call to action, and a
+     call to action at the foot of the answer is where it belongs on a phone —
+     a sticky card over a fifty-screen article is not. */
+  @media (max-width: 1023px) {
+    .faq-page__grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-md);
+    }
+
+    .faq-page__aside {
+      max-width: 460px;
+    }
+  }
+</style>

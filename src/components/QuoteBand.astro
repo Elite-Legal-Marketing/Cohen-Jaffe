@@ -1,0 +1,200 @@
+---
+/**
+ * The full-bleed quote band — a line from an attorney over a photograph.
+ *
+ * From the FAQ QUOTE band of `CJ - FAQ.dc.html` (markup 189-208).
+ *
+ * ⚠️ THE QUOTE IS THE ARTBOARD'S INVENTION, ATTRIBUTED TO A REAL NAMED PERSON,
+ * ON A PAGE THAT IS LEGAL ADVERTISING. Nothing in the WordPress mirror contains
+ * this sentence, and Richard Jaffe has not been recorded saying it. It is built
+ * as drawn on the client's instruction (2026-09-08), and it goes on the list the
+ * firm has to confirm or replace before launch — beside the homepage's "Our
+ * goals" pull quote, which is the same problem and already open.
+ *
+ * ⚠️ THE ATTRIBUTION IS NOT A REFERENCE, and that is a deliberate exception.
+ * House rule 8 says a quote attributed to a person is a `reference` to that
+ * person so the name and role cannot drift from their bio. That rule is for
+ * MODELLED content; this band is hardcoded page chrome. The moment it is
+ * modelled it takes an `attorneyQuote`, and the role below stops being a string
+ * that can go stale.
+ *
+ * ⚠️ THE QUOTE IS ONE COLOUR NOW, and the board's gold middle clause is gone.
+ * `attorneyQuote` carried a second `accent` field for exactly that effect and it
+ * was removed on the client's call — it costs an editor a decision about where a
+ * sentence ends every time they write a quote, and the words belong to the quote
+ * either way. Reusing the shared type inherits that decision, which is the point
+ * of reusing it rather than inventing a second quote object.
+ *
+ * ⚠️ NOT THE BOARD'S `quote-bg-partners-walk.png`. That is the same shoot, the
+ * same three men and the same tree-lined setting as the contact form's
+ * photograph — which on the FAQs page sits a few hundred pixels below this band,
+ * so the two read as one picture printed twice.
+ *
+ * This is the whole team on the street (2119x1054), chosen from seven candidates
+ * rendered under this exact scrim (2026-09-08). What ruled the others out is
+ * worth keeping, because the obvious picks are the wrong ones: `partners-park`
+ * and `partners-sidewalk-team` are more tree-lined shots and repeat the very
+ * problem being fixed; `attorneys-hero-team` is so wide (3.37:1) that a 420px
+ * band crops it to a black strip; and `partners-harbor` is nearly square, so it
+ * loses most of the frame to the crop. A band this shallow wants a ratio near
+ * 2:1 and a subject spread across the frame rather than gathered in it.
+ */
+import { Image } from "astro:assets";
+import quoteBg from "../assets/quote-team-street.png";
+import type { FAQS_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+interface Props {
+  quote: NonNullable<NonNullable<FAQS_PAGE_QUERY_RESULT>["quote"]>;
+}
+
+const { quote } = Astro.props;
+const attorney = quote.attorney;
+
+/**
+ * ⚠️ THE PHOTOGRAPH IS NOT A FIELD. It is large decorative art with no editorial
+ * decision in it, so it lives in `src/assets/` and goes through Astro's pipeline
+ * — which fingerprints it, converts to WebP and builds the srcset at build time
+ * (AGENTS.md rule 5). The frame is also chosen for this band's shallow ratio;
+ * an editor swapping it for a squarer one would silently crop the group out.
+ */
+---
+
+<section class="quote-band">
+  <Image
+    class="quote-band__image"
+    src={quoteBg}
+    alt=""
+    widths={[900, 1400, 2119]}
+    sizes="100vw"
+    loading="lazy"
+  />
+  <div class="quote-band__scrim"></div>
+
+  <div class="container quote-band__inner">
+    <figure>
+      <blockquote class="quote-band__quote">{quote.text}</blockquote>
+      {
+        attorney && (
+          <figcaption class="quote-band__by">
+            {[attorney.name, attorney.role].filter(Boolean).join(" · ")}
+          </figcaption>
+        )
+      }
+    </figure>
+  </div>
+</section>
+
+<style>
+  .quote-band {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 420px;
+    overflow: hidden;
+    /* The ground behind the photograph, for the moment before it decodes and for
+       the strip either side of it on a very wide screen. */
+    background: var(--forest-1000);
+  }
+
+  .quote-band__image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The three of them are walking toward camera in the upper half of the
+       frame; anchored centre the band crops their heads on a short viewport. */
+    object-position: center top;
+  }
+
+  /* ⚠️ A SIBLING, NOT A `::before` ON THE SECTION. Painting order inside a
+     stacking context puts a negative-z pseudo-element BEHIND the element's own
+     background but in front of nothing else — it would dim the forest ground and
+     leave the photograph untouched. */
+  .quote-band__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(21, 26, 17, 0.9) 0%,
+      rgba(21, 26, 17, 0.82) 50%,
+      rgba(21, 26, 17, 0.93) 100%
+    );
+  }
+
+  /* Heavy on purpose, and heavier than a scrim over a photograph usually wants:
+     42px italic serif has to hold against a busy frame. The photograph reads as
+     texture here rather than as a picture of three people, which is the trade
+     the board makes and the one the why-us band spent an afternoon proving is
+     unavoidable — a wash light enough to show the picture cannot hold the copy. */
+
+  .quote-band__inner {
+    position: relative;
+    text-align: center;
+    padding-block: var(--space-xl);
+  }
+
+  /* The 420px floor and the full `--space-xl` assume a 42px quote on two lines.
+     It wraps to four or five below tablet, so the floor is already exceeded by
+     the copy and the padding is just dead height on top of it. */
+  @media (max-width: 1023px) {
+    .quote-band {
+      min-height: 0;
+    }
+
+    .quote-band__inner {
+      /* ⚠️ HALF AGAIN ON THE STEP BELOW. Dropping straight to `--space-lg` /
+         `--space-md` was right in direction and overshot: with the 420px floor
+         gone, the step alone left the band sitting tight against the copy.
+         `* 1.5` is the measured middle — 71px at tablet, 42px on a phone —
+         rather than the next name up the scale, which is only about +25% and
+         lands short again.
+
+         ⚠️ THIS IS LARGER THAN THE DESKTOP PADDING AND THAT IS CORRECT. At
+         1023px this resolves to 75px against `--space-xl`'s 62px at 1024 — the
+         padding gets SMALLER as the screen grows, which is normally the ramp
+         inversion this repo warns about. It is not visible here because
+         `min-height: 420px` takes over at 1024, so the band still grows across
+         the boundary: 312px to 420px. Capping it to `--space-xl` would undo the
+         increase entirely, since the cap binds at every tablet width. If the
+         420px floor is ever removed, this needs revisiting. */
+      padding-block: calc(var(--space-lg) * 1.5);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .quote-band__inner {
+      padding-block: calc(var(--space-md) * 1.5);
+    }
+  }
+
+  .quote-band figure {
+    max-width: 1040px;
+    margin-inline: auto;
+  }
+
+  .quote-band__quote {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-42);
+    line-height: var(--lh-lead);
+    color: var(--on-dark);
+    text-wrap: balance;
+  }
+
+  .quote-band__by {
+    display: inline-block;
+    margin-block-start: var(--space-28);
+    font-family: var(--font-label);
+    font-size: var(--fs-14);
+    font-weight: var(--fw-bold);
+    /* The board's 0.22em — wider than `--ls-label`, and the widest tracking on
+       the site. It is one short line under a 42px quote and needs the air. */
+    letter-spacing: 0.22em;
+    line-height: var(--lh-label);
+    text-transform: uppercase;
+    color: var(--on-dark-62);
+  }
+</style>

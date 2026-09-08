@@ -125,9 +125,9 @@ const portrait = quote?.attorney?.portrait?.asset
                     </span>
                     <span class="expect__title">{item.title}</span>
                     <span class="expect__blurb">{item.blurb}</span>
-                    <span class="expect__toggle" aria-hidden="true">
-                      <span class="expect__bar" />
-                      <span class="expect__bar expect__bar--v" />
+                    <span class="toggle expect__toggle" aria-hidden="true">
+                      <span class="toggle__bar" />
+                      <span class="toggle__bar toggle__bar--v" />
                     </span>
                   </summary>
                   {item.detail && (
@@ -335,69 +335,14 @@ const portrait = quote?.attorney?.portrait?.asset
     color: var(--muted);
   }
 
+  /* The control itself is `.toggle` in global.css — the shared disclosure
+     toggle, which was promoted OUT of this component so every <details> on the
+     site opens the same way. What is left here is the only part that belongs to
+     this layout: where it sits in the row's grid. */
   .expect__toggle {
     grid-column: 3;
     grid-row: 1 / span 2;
     align-self: center;
-    position: relative;
-    width: 30px;
-    height: 30px;
-    border: 1px solid rgba(169, 126, 55, 0.5);
-    border-radius: var(--radius-full);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--gold-ink);
-    transition: background-color var(--duration) var(--ease),
-      color var(--duration) var(--ease),
-      border-color var(--duration) var(--ease);
-  }
-
-  /* Two drawn bars rather than a "+" and a "−" glyph. Two reasons: Roboto
-     Condensed's plus is thin and sits high in the em box, so it never looked
-     centred in the circle — and `content` cannot be transitioned, so a glyph
-     swap can only ever snap. The vertical bar rotates flat onto the horizontal
-     one, which is the whole animation. */
-  .expect__bar {
-    position: absolute;
-    width: 11px;
-    height: 2px;
-    border-radius: 1px;
-    background: currentColor;
-  }
-
-  .expect__bar--v {
-    transform: rotate(90deg);
-    transition: transform var(--duration) var(--ease);
-  }
-
-  .expect__disclosure[open] .expect__bar--v {
-    transform: rotate(0deg);
-  }
-
-  .expect__summary:hover .expect__toggle,
-  .expect__summary:focus-visible .expect__toggle {
-    background-color: var(--gold);
-    border-color: var(--gold);
-    color: var(--ink);
-  }
-
-  /* `::details-content` is the box the UA wraps a disclosure's content in, and
-     it is the only way to animate a <details> both ways without JavaScript.
-     Growing to `auto` needs `interpolate-size: allow-keywords`, which is set on
-     :root in global.css.
-     Where the pseudo-element is not supported the rules are dropped whole and
-     the panel simply snaps open, which is the behaviour it had before. */
-  .expect__disclosure::details-content {
-    block-size: 0;
-    overflow: hidden;
-    transition:
-      block-size var(--duration) var(--ease),
-      content-visibility var(--duration) var(--ease) allow-discrete;
-  }
-
-  .expect__disclosure[open]::details-content {
-    block-size: auto;
   }
 
   .expect__detail {
