@@ -28,6 +28,8 @@ import { richText } from "./objects/richText";
 import { stat } from "./objects/stat";
 import { textLink } from "./objects/textLink";
 import { videoCard } from "./objects/videoCard";
+import { whyReason } from "./objects/whyReason";
+import { whyUsSection } from "./objects/whyUsSection";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Documents
@@ -48,6 +50,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   deadlinesSection,
   reviewsSection,
   attorneysSection,
+  whyUsSection,
   // Shared objects
   attorneyQuote,
   ctaLink,
@@ -61,4 +64,5 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   stat,
   textLink,
   videoCard,
+  whyReason,
 ];

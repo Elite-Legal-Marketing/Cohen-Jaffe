@@ -1,7 +1,7 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-08 ("Why Cohen & Jaffe" band built on `hp_why_us`, awaiting sign-off; uncommitted)
+Last updated: 2026-09-08 (the "Why Cohen & Jaffe" band modelled in Sanity on `hp_why_us_sanity`; uncommitted)
 
 ## ⚠️ Read this before writing any code
 
@@ -32,46 +32,48 @@ conversation.
 
 ## Where things stand
 
-**Ten of the homepage's fifteen sections exist. NINE are finished** — hero, stats band, case
-results, "Our goals", the fee explainer, practice areas, the New York deadlines band,
-testimonials and the attorneys band, all built, modelled, seeded and wired.
+**Ten of the homepage's fifteen sections exist, and ALL TEN ARE FINISHED** — hero, stats band,
+case results, "Our goals", the fee explainer, practice areas, the New York deadlines band,
+testimonials, the attorneys band and "Why Cohen & Jaffe", every one of them built, modelled,
+seeded and wired. **There is no section left at the hardcoded stage and `src/data/` now holds
+`navigation.ts` alone.**
 
-**The tenth, "Why Cohen & Jaffe", is BUILT AND AWAITING SIGN-OFF** — the hardcoded stage, per
-AGENTS.md → "build it, approve it, then wire it". It renders from `src/data/homeWhyUs.ts`.
-Nothing about it is in Sanity yet and nothing should be until it is approved.
+The why-us band was approved and merged to `master` (`f80ef6e`, PR #17) still reading from
+`src/data/homeWhyUs.ts`. That was the last loose end and it is closed: the band reads from
+`homePage.whyUs` like every other section, and the staged constant is deleted.
 
-The attorneys band was merged to `master` (`0162890`, PR #16) still unmodelled, which was
-the one loose end left open rather than a decision. It is closed: the band reads from
-`homePage.attorneys` like every other section, and the staged constant and temporary query
-that fed it are deleted.
+**One branch is in flight. `hp_why_us_sanity` is cut from `master` (`a7a1696`) and carries the
+why-us modelling UNCOMMITTED.** Both branches the previous handoff described as in flight —
+`hp_attorneys_sanity` and `hp_why_us` — have since been merged, so nothing stacks on anything
+any more. ⚠️ There is also an empty `hp_contact_banner` sitting on `master` with no commits;
+this work was moved off it because it is not the contact banner.
 
-**Two branches are in flight and `hp_why_us` STACKS ON TOP OF `hp_attorneys_sanity`, not on
-master.** `hp_attorneys_sanity` (`7ad30fd`, off `95b165a`) holds the attorneys modelling,
-committed and **not pushed — there is no PR**. `hp_why_us` was re-pointed at that commit and
-carries the why-us band **uncommitted**. Merge the attorneys PR first, or the why-us diff
-will look like it contains both.
-
-Gates, all run after the seed: `npm run build` green, `npm run check:types` **0 errors (81
-files)**, `npm run typegen` **2 queries, 45 schema types**, `npx sanity documents validate
+Gates, all run after the seed: `npm run build` green, `npm run check:types` **0 errors (85
+files)**, `npm run typegen` **2 queries, 47 schema types**, `npx sanity documents validate
 --yes` clean at **145 documents, 0 errors, 0 warnings**. The band reads back through the
-PUBLIC API with no token — the build uses the unauthenticated client and renders all three
-cards.
+PUBLIC API with no token — verified with an unauthenticated `curl`, and the build renders all
+four reasons. ⚠️ **A green build and a correct public API do NOT prove the Studio shows it** —
+see the draft-shadowing note under "Things that would surprise someone". The seed was re-run
+(`SEED_OVERWRITE=1`) on 2026-09-08 after a draft publish wiped it.
 
 **The rendered homepage is BYTE-IDENTICAL before and after the modelling** — `dist/index.html`
-built from `master` and from this branch differ by zero bytes. That is the proof that moving
-the copy into Sanity changed nothing on the page, and it is worth re-running as the last step
-of any wiring swap: build, stash, rebuild, `diff`.
+built from `master` and from this branch differ by zero bytes (268,410 each). That is the proof
+that moving the copy into Sanity changed nothing on the page, and it is worth re-running as the
+last step of any wiring swap: build, stash, rebuild, `diff`.
 
-## The "Why Cohen & Jaffe" band — BUILT, NOT YET APPROVED
+## The "Why Cohen & Jaffe" band
 
-`src/components/WhyUs.astro`, rendered after the attorneys band. A full-bleed team
-photograph on the forest ground: eyebrow, 62px heading and a one-line lead held left over it,
-then four reasons ruled off in gold along the foot.
+`src/components/WhyUs.astro`, rendered after the attorneys band, wired to `homePage.whyUs`. A
+full-bleed team photograph on the forest ground: eyebrow, 62px heading and a one-line lead held
+left over it, then four reasons ruled off in gold along the foot.
 
 | File | What |
 | --- | --- |
 | `src/components/WhyUs.astro` | The section. No script |
-| `src/data/homeWhyUs.ts` | ⚠️ The hardcoded stage — **delete when modelled**. Holds the full provenance |
+| `src/sanity/schemaTypes/objects/whyUsSection.ts` | The model — `eyebrow`, `heading`, `lead`, `reasons[]` |
+| `src/sanity/schemaTypes/objects/whyReason.ts` | One reason — `title`, `body`. No icon field |
+| `src/lib/queries.ts` → `HOME_PAGE_QUERY` | The `whyUs{…}` projection, folded in with the rest |
+| `scripts/seed-home-why-us.ts` | Seeds the section, **has run**, guarded. ⚠️ **Holds the full provenance** |
 | `src/assets/why-team-wide.png` | The board's `team-why.png`, 2048x1152. Desktop only (≥1024px) |
 | `src/assets/why-team-narrow.png` | A tighter crop of the same shoot, 1196x776. Tablet and phone |
 | `src/assets/icons/why/` | Four icons, hand-cut from the board's inline paths, `currentColor` |
@@ -100,7 +102,10 @@ that is legal advertising, so the line now says what the source says. Same treat
 deadlines band's three corrected lines got. **Do not restore the board's wording.**
 
 ⚠️ **"A caseload we keep small on purpose" is UNSOURCED** and was left in as approved artboard
-copy. Nothing in the mirror says it; only the firm can confirm it. **Raised 2026-09-08.**
+copy. Nothing in the mirror says it; only the firm can confirm it. **Raised 2026-09-08, still
+unanswered.** It is now editable in the Studio, which is where to fix it when the answer comes —
+no code change. The corrected Jaffe medic line is the same: `scripts/seed-home-why-us.ts` holds
+both sources.
 
 ### TWO photographs, not two crops of one
 
@@ -196,13 +201,32 @@ Four things about the stack below 1024 are load-bearing:
   inner), not the board's fixed `height: 65vh; min-height: 820px` — which on a phone would
   either crop the four reasons off or leave a chasm under them.
 
-### What modelling it will take
+### How it is modelled
 
-A `whyUsSection` object — `eyebrow`, `heading`, `lead`, and `reasons[]` of a small object with
-`title` and `body`. No icon field. Then delete `src/data/homeWhyUs.ts` and fold a `whyUs{…}`
-projection into `HOME_PAGE_QUERY`. **The component's prop shape is already the shape that
-projection produces.** Check `schema.json` before predicting a typegen count — see the
-attorneys band's note on `<type>.reference`.
+`whyUsSection` holds **four fields and no more** — `eyebrow`, `heading`, `lead` and `reasons[]`
+of `whyReason` (`title`, `body`). Three things the band draws are deliberately absent, and each
+is a field somebody will otherwise propose adding back:
+
+- **No IMAGE field.** Both photographs are large decorative art, so they stay in `src/assets/`
+  and go through Astro's pipeline (AGENTS.md rule 5). They are also a matched PAIR at two
+  different aspect ratios, one of which the stacked layout's `65vw` is derived from — an editor
+  swapping one of them in isolation would silently start cropping a person off the end.
+- **No ICON field.** The four glyphs are matched to the rows BY POSITION in the component, the
+  way the "What you can expect" glyphs are. Reordering rows in the Studio moves the WORDS, not
+  the pictures, and a fifth row wraps back to the first icon.
+- **No BUTTON.** The board's "MID CTA BAR" above this band is an empty comment — see above.
+
+`reasons` is `.max(4).warning(...)`, the house default, **not** the `.error()` the case-results
+and attorneys bands take. Both of those exceptions exist on an explicit client instruction and
+there is none here: a fifth reason is ugly rather than broken — it sits alone on a second row
+and borrows the first glyph.
+
+⚠️ **The array carries no `.required()`, so the component guards it** (`section.reasons ?? []`).
+An empty band would otherwise draw four gold column rules over nothing.
+
+**Typegen went 45 → 47 schema types**, +1 for each object. Neither is a document type, so
+neither mints a `<type>.reference` — that is why this one matched its prediction where the
+attorneys band's did not.
 
 ## The attorneys band
 
@@ -656,6 +680,7 @@ field — reordering rows in the Studio moves the words, not the pictures.
 → `Deadlines.astro`. `reviewsSection` → `reviews[]->` a MIXED array of `videoReview` and
 `review` → `Reviews.astro` — the only reference array accepting two document types.
 `attorneysSection` → `attorneys[]->` `attorney` (an ordered array of three) → `Attorneys.astro`.
+`whyUsSection` → `reasons[]` of `whyReason` → `WhyUs.astro`.
 `firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`, `MobileNav`,
 `Footer`; `Fees.astro` calls `getFirm()` directly.
 
@@ -672,6 +697,11 @@ singleton must be in `SINGLETONS`, or the Studio offers a "create new" beside it
 **The reviews collection's desk has still not been seen signed in.** `/admin/` renders its
 login card (healthy), but the desk is only visible to a signed-in session — check that
 **Reviews** nests under Collections and appears **once**.
+
+**Nor has the homepage FORM been seen signed in since `whyUs` was added.** Same reason, same
+check: "Why Cohen & Jaffe" should be the last collapsed section on the Homepage document, with
+a Copy / Reasons group split. The login card renders, which is all that can be verified without
+signing in.
 
 ## Videos — pulled, not yet uploaded
 
@@ -706,19 +736,19 @@ badge-less.
     allow and the practice-areas headline says the opposite. The firm should pick one.
 11. **"A caseload we keep small on purpose"** in the why-us band is unsourced — the firm's to
     confirm. So is the corrected Jaffe medic line, which now says only what `/about/` says.
-12. **Nothing outstanding on the why-us LAYOUT** — the band is built at all three widths and
-    awaiting design sign-off. The two open items on it are the content lines above.
+    Both are now Studio edits rather than code changes; the sources are in
+    `scripts/seed-home-why-us.ts`. **Nothing else is outstanding on that band** — it is
+    approved, merged, modelled and seeded.
 
 A new Sanity CORS origin **will** be needed for the eventual custom domain — with credentials.
 
 ## What's next
 
-1. **Push `hp_attorneys_sanity` and open its PR** — committed at `7ad30fd`, green, unpushed.
-   `hp_why_us` sits on top of it, so merge that one first.
-2. **Get the "Why Cohen & Jaffe" band approved, then model it** — `whyUsSection`, delete
-   `src/data/homeWhyUs.ts`, fold the projection into `HOME_PAGE_QUERY`. Two content answers
-   are wanted with the design: the unsourced "caseload we keep small" line, and whether the
-   firm confirms the corrected Jaffe medic line.
+1. **Commit and push `hp_why_us_sanity`, and open its PR** — the why-us modelling is in the
+   working tree, both gates green, seeded and byte-diffed, and NOT yet committed. Nothing
+   stacks on it.
+2. **The next homepage section, or the first inner page.** Five of the fifteen homepage
+   sections are still unbuilt; `hp_contact_banner` was cut for one of them and is still empty.
 3. **`/about/testimonials/`** — the "Read all reviews" destination, already in
    `navigation.ts:111` and `:241` and already indexed. `CJ - Testimonials.dc.html` is
    approved: a video-reviews band, a written-reviews band with a load-more button, and a
@@ -735,6 +765,18 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
 
 ## Things that would surprise someone
 
+- ⚠️ **A SEED PATCHES THE PUBLISHED DOCUMENT; THE STUDIO SHOWS THE DRAFT.** If an
+  unpublished `drafts.homePage` exists when a seed runs, the new content is invisible in the
+  Studio — the form renders the draft, which predates the seed — while the SITE renders it
+  correctly, because the unauthenticated client reads published. Publishing that draft then
+  replaces published wholesale and DISCARDS what was seeded. This cost a session on
+  2026-09-08 on the why-us band: build green, public API correct, page correct, form empty.
+  **And the obvious check does not see it** — `sanity documents query` defaults to a recent
+  `--api-version` whose perspective EXCLUDES drafts, so `*[_id == "drafts.homePage"]` returns
+  nothing against a dataset that has one. Use `npx sanity documents get drafts.homePage`,
+  which resolves the id instead of running a perspective-filtered query. **Confirm no draft
+  exists before seeding a singleton field**; every seed script in `scripts/` has this
+  exposure.
 - **A `createOrReplace` seed is a LOADED GUN once the Studio has been used.** The three
   partners' roles have been edited there; re-running `seed-attorneys.ts` would revert all
   three with no warning. To drop a field from live documents prefer a targeted `unset`
@@ -818,7 +860,7 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   how a section is added to the homepage singleton without disturbing the others.
   `sanity documents delete` needs `--dataset production` before the id.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen currently reports
-  **2 queries and 45 schema types**; if the query count drops, this is why.
+  **2 queries and 47 schema types**; if the query count drops, this is why.
 - **Typegen's `<type>.reference` is emitted once per REFERENCED DOCUMENT TYPE, not once per
   reference.** Adding the attorneys band's `attorney[]->` array raised the count by one, not
   two, because `attorney.reference` already existed for `attorneyQuote.attorney`. Check
