@@ -1,0 +1,457 @@
+---
+/**
+ * Homepage "Why Cohen & Jaffe" band — a full-bleed team photograph, the copy
+ * held left over it, and four reasons ruled off along the foot.
+ *
+ * From the WHY COHEN & JAFFE band of `Cohen & Jaffe Homepage v1.dc.html`
+ * (markup 579-618), built as drawn. The content's provenance — and the one
+ * factual line that was corrected against the live site — is in
+ * `src/data/homeWhyUs.ts`, not repeated here.
+ *
+ * ⚠️ THE ARTBOARD'S "MID CTA BAR" ABOVE THIS SECTION IS EMPTY. Line 576 of the
+ * board is a section comment with no markup under it, so there is nothing to
+ * build and nothing was invented to fill it. If a mid-page CTA is wanted it is
+ * a new request, not a missing implementation.
+ *
+ * THE ICONS ARE BIGGER THAN THE BOARD DRAWS THEM — 34px against its 26px, on
+ * the client's instruction (2026-09-08). The stroke scales with them, so they
+ * read heavier as well as larger, which is what was wanted. They are matched to
+ * the reasons BY POSITION, the way the "What you can expect" glyphs are: there
+ * is no icon field and a fifth reason would wrap back to the first.
+ */
+import { getImage } from "astro:assets";
+import teamWide from "../assets/why-team-wide.png";
+import teamNarrow from "../assets/why-team-narrow.png";
+import IconExperience from "../assets/icons/why/experience.svg";
+import IconTrial from "../assets/icons/why/trial.svg";
+import IconMedical from "../assets/icons/why/medical.svg";
+import IconAccess from "../assets/icons/why/access.svg";
+
+interface Props {
+  section: {
+    eyebrow: string;
+    heading: string;
+    lead: string;
+    reasons: readonly { readonly title: string; readonly body: string }[];
+  };
+}
+
+const { section } = Astro.props;
+
+const REASON_ICONS = [IconExperience, IconTrial, IconMedical, IconAccess];
+
+/**
+ * Large decorative art, so it lives in the repo and goes through Astro's
+ * pipeline rather than Sanity — AGENTS.md → "Images: in Sanity or in code?".
+ * Astro converts both to WebP and fingerprints them at build time.
+ *
+ * TWO PHOTOGRAPHS OF THE SAME GROUP, NOT TWO CROPS OF ONE — the same answer the
+ * hero reaches for, and on the client's instruction (2026-09-08). The wide shot
+ * is framed for a band that is much wider than it is tall, with the group small
+ * against the trees; below 1024px the band is either a tall box (tablet, where
+ * the copy sits over the picture) or a stacked strip (phone), and in both the
+ * wide frame loses the people. The narrow file is a tighter crop of the same
+ * shoot in which the six of them fill the frame.
+ *
+ * ⚠️ THE TWO HAVE DIFFERENT ASPECT RATIOS — 16:9 wide, 1.54:1 narrow — and the
+ * stacked layout's height is derived from the NARROW one. See the note on
+ * `height` in the narrow media query before changing either file.
+ */
+const PHOTO_ALT = "The attorneys and staff of Cohen & Jaffe";
+
+const wide = await getImage({
+  src: teamWide,
+  widths: [1280, 1660, 2200],
+  format: "webp",
+});
+const narrow = await getImage({
+  src: teamNarrow,
+  widths: [420, 640, 828, 1196],
+  format: "webp",
+});
+---
+
+<section class="why on-dark" aria-labelledby="why-heading">
+  <div class="why__media">
+    <picture>
+      <source
+        media="(min-width: 1024px)"
+        srcset={wide.srcSet.attribute}
+        sizes="100vw"
+        type="image/webp"
+      />
+      <img
+        class="why__image"
+        src={narrow.src}
+        srcset={narrow.srcSet.attribute}
+        sizes="100vw"
+        alt={PHOTO_ALT}
+        width={narrow.attributes.width}
+        height={narrow.attributes.height}
+        loading="lazy"
+        decoding="async"
+      />
+    </picture>
+    <div class="why__wash" aria-hidden="true"></div>
+    <div class="why__fade" aria-hidden="true"></div>
+  </div>
+
+  <div class="container why__inner">
+    <header class="why__head">
+      <p class="eyebrow">{section.eyebrow}</p>
+      <h2 class="why__heading" id="why-heading">{section.heading}</h2>
+      <p class="why__lead">{section.lead}</p>
+    </header>
+
+    <ul class="why__grid" role="list">
+      {
+        section.reasons.map((reason, i) => {
+          const Icon = REASON_ICONS[i % REASON_ICONS.length];
+          return (
+            <li class="why__item">
+              {/* A wrapper this template owns — scoped styles cannot reach the
+                  SVG component's own root element. */}
+              <span class="why__icon" aria-hidden="true">
+                <Icon />
+              </span>
+              <h3 class="why__title">{reason.title}</h3>
+              <p class="why__body">{reason.body}</p>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  /* The band is its own stacking context: the photograph and both scrims are
+     absolutely positioned inside `.why__media`, and the content sits above them
+     in normal flow. Height therefore comes from the CONTENT, with a floor on
+     desktop — not from the board's `height: 65vh; min-height: 820px`, which on
+     a phone would either crop the four reasons off or leave a chasm under them. */
+  .why {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    /* The board's ground, kept as the colour behind the photograph: a gold
+       glow at the top left over the forest gradient. It shows through wherever
+       the photograph does not reach and while it is still loading. */
+    background:
+      radial-gradient(900px 520px at 12% 10%, rgba(217, 185, 120, 0.12) 0%, rgba(217, 185, 120, 0) 62%),
+      linear-gradient(165deg, var(--forest-800) 0%, var(--forest-850) 55%, var(--forest-1000) 100%);
+    padding-block: var(--space-xl) var(--space-lg);
+  }
+
+  .why__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+
+  /* ⚠️ THE <picture> NEEDS THE SIZE TOO. It is auto-height, so `height: 100%`
+     on the <img> inside has nothing to resolve against and the photograph stops
+     short, leaving a bar of the section's own gradient along the bottom. */
+  .why__media picture {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .why__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* The board's framing, and it only ever applies to the WIDE shot: this is
+       the one case where the box is a wider ratio than the photograph, so the
+       crop is vertical. The group sits high in the wide frame and a centred
+       crop cuts their heads. Below 1024px the narrow shot is in a box TALLER
+       than itself, the crop is horizontal, and this value does nothing. */
+    object-position: center 30%;
+  }
+
+  /* Two scrims, both the board's. The first drives the copy side dark so the
+     heading has something to sit on; the second sinks the foot of the picture
+     so the four reasons read against near-solid ground. They are SIBLINGS of
+     the image rather than pseudo-elements on the section — a negative-z child
+     would paint under the section's own background and dim that instead. */
+  .why__wash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba(24, 29, 17, 0.94) 0%,
+      rgba(26, 32, 19, 0.86) 26%,
+      rgba(28, 34, 20, 0.5) 40%,
+      rgba(28, 34, 20, 0) 54%
+    );
+  }
+
+  .why__fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(20, 24, 14, 0) 36%,
+      rgba(20, 24, 14, 0.72) 52%,
+      rgba(20, 24, 14, 0.94) 63%,
+      rgba(18, 22, 13, 0.97) 100%
+    );
+  }
+
+  .why__inner {
+    display: flex;
+    flex-direction: column;
+    /* The board runs `justify-content: space-between` inside a fixed 820px box.
+       With a content-driven height that would collapse to nothing, so the gap
+       between the copy and the reasons is set explicitly instead. */
+    gap: var(--space-xl);
+    min-height: clamp(0px, 62vh, 700px);
+  }
+
+  /* --- The copy ------------------------------------------------------------
+     560px on the board, which is where the left scrim is still nearly opaque.
+     Past that the heading runs out over the photograph and loses contrast. */
+
+  .why__head {
+    max-width: 560px;
+    /* Centred in whatever slack the band has above the reasons, the way the
+       board's `flex: 1` block is. */
+    margin-block: auto;
+  }
+
+  .why__heading {
+    /* The board sets 64px, which is not a step on the ramp — 62 is, and it is
+       the nearest. It also keeps this h2 a size BELOW the hero's 66px h1
+       instead of level with it. */
+    font-size: var(--fs-62);
+    line-height: var(--lh-display);
+    letter-spacing: var(--ls-display);
+    margin-block-end: var(--space-24);
+  }
+
+  .why__lead {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    /* `.on-dark` sets `--color-text` to 62% for copy on a flat dark panel. Over
+       a photograph, even a scrimmed one, that is too faint — the board runs the
+       lead at 0.82 and the reason bodies at 0.88, and `--on-dark-80` is the
+       nearest token to both. (The board making its BODY brighter than its LEAD
+       is not a hierarchy worth reproducing at two hundredths of an alpha.) */
+    color: var(--on-dark-80);
+    margin: 0;
+  }
+
+  /* --- The four reasons ----------------------------------------------------
+     Four across, and the count divides cleanly all the way down: 4 → 2 → 1.
+     The rule between columns is a `border-inline-start` on every item with the
+     first of each ROW switched off, so the dividers never appear at the edge of
+     the grid — and the nth-child rule changes with the column count. */
+
+  .why__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  .why__item {
+    padding-inline: var(--space-44);
+    /* A GOLD hairline, not the neutral `--border` that `.on-dark` supplies —
+       the board rules these columns in gold. Same local form the deadlines and
+       fee bands use for their gold rules. */
+    border-inline-start: 1px solid rgba(217, 185, 120, 0.42);
+  }
+
+  .why__item:nth-child(4n + 1) {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .why__item:nth-child(4n) {
+    padding-inline-end: 0;
+  }
+
+  /* 34px, not the board's 26 — see the note at the top of this file. */
+  .why__icon {
+    display: block;
+    color: var(--gold);
+    margin-block-end: var(--space-16);
+  }
+
+  .why__icon :global(svg) {
+    display: block;
+    width: 34px;
+    height: 34px;
+  }
+
+  .why__title {
+    font-size: var(--fs-card-title);
+    line-height: var(--lh-card);
+    margin-block-end: var(--space-10);
+  }
+
+  .why__body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--on-dark-80);
+    margin: 0;
+  }
+
+  /* --- Responsive ----------------------------------------------------------
+     Structure only; type and spacing already ramp through clamp(). Each block
+     re-points the "first in the row" rule at the new column count, or the
+     dividers reappear down the left edge. */
+
+  /* ⚠️ THE SIDE WASH IS NOT A CONSTANT — IT HAS TO GROW AS THE BAND NARROWS.
+     The board's 90deg gradient is clear by 54%, which is exactly where its
+     560px copy column ends on a 1660px board. Hold that stop while the column
+     stays the same width and the viewport shrinks, and the copy walks out past
+     the scrim onto the photograph: at 768px the heading was crossing the team's
+     faces and the lead was set over someone's head. Same failure the hero
+     stacks to avoid — "so text is never laid over anyone's face".
+     This block is the LAST width at which the band overlays at all: below 1024
+     it stacks. So the widened wash covers 1024-1279 only, where the copy column
+     is still narrower than the band and there is a clear side to fade to. */
+  @media (max-width: 1279px) {
+    .why__item {
+      padding-inline: var(--space-32);
+    }
+
+    .why__wash {
+      background: linear-gradient(
+        90deg,
+        rgba(24, 29, 17, 0.94) 0%,
+        rgba(26, 32, 19, 0.9) 42%,
+        rgba(28, 34, 20, 0.62) 68%,
+        rgba(28, 34, 20, 0.28) 90%,
+        rgba(28, 34, 20, 0.18) 100%
+      );
+    }
+  }
+
+  /* ---- Stacked ------------------------------------------------------------
+     BELOW 1024px THE BAND STACKS, the way the hero does below 900px: picture on
+     top, copy beneath, nothing ever laid over a face. Client's call, twice —
+     phones first, then tablets (2026-09-08).
+
+     Overlaying was tried both ways under 1024 and neither works. A wash heavy
+     enough to carry the copy buries the photograph completely: that shipped for
+     an afternoon and made the tighter crop added for these very widths paint
+     nothing at all. A wash light enough to show it puts the heading back across
+     two faces — worse here than at desktop, because the narrow file has the six
+     of them much LARGER in frame.
+
+     This block MUST stay after the base rules it overrides — same selectors at
+     the same specificity, so source order decides. */
+  @media (max-width: 1023px) {
+    .why {
+      /* The picture goes edge to edge at the top, so the section's own top
+         padding would push it down off the join. `.why__inner` takes it back. */
+      padding-block-start: 0;
+    }
+
+    .why__media {
+      position: relative;
+      inset: auto;
+      z-index: auto;
+      width: 100%;
+      /* NOT `aspect-ratio` with `max-height` — once the height clamps the ratio
+         pulls the WIDTH in and the picture stops being full-bleed. The height
+         is set directly.
+         ⚠️ 65vw IS DERIVED FROM THE NARROW FILE AND MUST MOVE WITH IT.
+         `why-team-narrow.png` is 1196x776, and 776/1196 = 64.9%, so at 65vw the
+         box is the photograph's own ratio and NOTHING is cropped. It read 56vw
+         while this band had a single 16:9 photograph; swapping in the tighter
+         crop changed the number. Re-derive it if either file is replaced — an
+         inherited value here silently starts taking a person off one end.
+         The 40vh guard is what actually bites on a TABLET, where 65vw would be
+         a 500px picture: there the box goes wider than the photograph and the
+         crop turns vertical, which is what `object-position` below is for. */
+      height: min(65vw, 40vh);
+      /* The picture dissolves into the section's OWN gradient rather than into
+         a colour guessed to match it. A foot scrim would need an end colour,
+         and the ground here is a 165deg gradient — any fixed value is right at
+         exactly one point down the band and visibly wrong above and below it.
+         A mask has nothing to match. */
+      -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+      mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+    }
+
+    .why__image {
+      /* The hero's answer, for the hero's reason. Once the 40vh guard makes the
+         box wider than the photograph the crop is vertical, and the desktop
+         rule's 30% would shave the tops of their heads. Anchored to the top,
+         the crop comes off the bottom instead — cropping at the shins is fine. */
+      object-position: center top;
+    }
+
+    /* Both scrims existed to hold copy up over the photograph. Stacked, there
+       is no copy over it. */
+    .why__wash,
+    .why__fade {
+      display: none;
+    }
+
+    .why__inner {
+      padding-block-start: var(--space-md);
+      /* The floor exists to stop the copy and the reasons collapsing together
+         inside a fixed-height overlay. Stacked, the picture supplies the height
+         and this would only add dead space under the last row. */
+      min-height: 0;
+    }
+
+    .why__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: var(--space-40);
+    }
+
+    .why__item:nth-child(4n),
+    .why__item:nth-child(4n + 1) {
+      padding-inline: var(--space-32);
+    }
+
+    .why__item:nth-child(odd) {
+      padding-inline-start: 0;
+      border-inline-start: 0;
+    }
+
+    .why__item:nth-child(even) {
+      padding-inline-end: 0;
+    }
+  }
+
+  /* ---- One up -------------------------------------------------------------
+     The last structural step. The band is already stacked by this point — that
+     happens at 1024 — so all this block does is fold the two columns of reasons
+     into one. */
+  @media (max-width: 639px) {
+    /* The vertical rules have nothing left to separate, so they go and the row
+       gap carries the separation on its own. */
+    .why__grid {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: var(--space-36);
+    }
+
+    .why__item,
+    .why__item:nth-child(4n),
+    .why__item:nth-child(4n + 1) {
+      padding-inline: 0;
+      border-inline-start: 0;
+    }
+
+    .why__inner {
+      gap: var(--space-lg);
+    }
+
+    /* The 560px cap was the width of the board's copy column, which was the
+       width the side scrim covered. Stacked there is no scrim to stay inside
+       and no photograph to stay off, so at one-up it only stops the lead using
+       the full column. */
+    .why__head {
+      max-width: none;
+    }
+  }
+
+</style>

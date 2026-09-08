@@ -100,6 +100,20 @@ export const HOME_PAGE_QUERY = defineQuery(`
         _type == "review" => { author, quote },
         _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }
       }
+    },
+    attorneys{
+      eyebrow,
+      heading,
+      cta{ label, href },
+      attorneys[]->{
+        _id,
+        name,
+        role,
+        "slug": slug.current,
+        quote,
+        wistiaId,
+        portrait{ ..., alt }
+      }
     }
   }
 `);
@@ -132,32 +146,5 @@ export const FIRM_DETAILS_QUERY = defineQuery(`
     },
     advertisingLabel,
     legalDisclaimer
-  }
-`);
-
-/**
- * The attorneys the homepage band draws, by slug.
-
- *
- * ⚠️ TEMPORARY, and it goes away with `src/data/homeAttorneys.ts`. The band's
- * copy and running order are still hardcoded pending sign-off, so the six
- * documents are fetched on their own rather than through an `attorneys[]->`
- * projection on `homePage` that does not exist yet. When the section is
- * modelled this query is deleted and that projection replaces it — the
- * component's prop shape is already the shape it will produce.
- *
- * `_type` is not projected — unlike the reviews band, every card here is one
- * type — but `_id` is, because it is the handle Visual Editing needs and the
- * `attorneys[]->` projection that replaces this will carry it anyway.
- */
-export const HOME_ATTORNEYS_QUERY = defineQuery(`
-  *[_type == "attorney" && slug.current in $slugs]{
-    _id,
-    name,
-    role,
-    "slug": slug.current,
-    quote,
-    wistiaId,
-    portrait{ ..., alt }
   }
 `);
