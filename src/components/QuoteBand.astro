@@ -18,9 +18,12 @@
  * modelled it takes an `attorneyQuote`, and the role below stops being a string
  * that can go stale.
  *
- * The gold span inside the sentence is the board's own emphasis. It is written
- * as markup here rather than as a field for the same reason: nothing about this
- * is editable yet.
+ * ⚠️ THE QUOTE IS ONE COLOUR NOW, and the board's gold middle clause is gone.
+ * `attorneyQuote` carried a second `accent` field for exactly that effect and it
+ * was removed on the client's call — it costs an editor a decision about where a
+ * sentence ends every time they write a quote, and the words belong to the quote
+ * either way. Reusing the shared type inherits that decision, which is the point
+ * of reusing it rather than inventing a second quote object.
  *
  * ⚠️ NOT THE BOARD'S `quote-bg-partners-walk.png`. That is the same shoot, the
  * same three men and the same tree-lined setting as the contact form's
@@ -38,6 +41,22 @@
  */
 import { Image } from "astro:assets";
 import quoteBg from "../assets/quote-team-street.png";
+import type { FAQS_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+
+interface Props {
+  quote: NonNullable<NonNullable<FAQS_PAGE_QUERY_RESULT>["quote"]>;
+}
+
+const { quote } = Astro.props;
+const attorney = quote.attorney;
+
+/**
+ * ⚠️ THE PHOTOGRAPH IS NOT A FIELD. It is large decorative art with no editorial
+ * decision in it, so it lives in `src/assets/` and goes through Astro's pipeline
+ * — which fingerprints it, converts to WebP and builds the srcset at build time
+ * (AGENTS.md rule 5). The frame is also chosen for this band's shallow ratio;
+ * an editor swapping it for a squarer one would silently crop the group out.
+ */
 ---
 
 <section class="quote-band">
@@ -53,11 +72,14 @@ import quoteBg from "../assets/quote-team-street.png";
 
   <div class="container quote-band__inner">
     <figure>
-      <blockquote class="quote-band__quote">
-        No question is too small to ask, and <span>no call obligates you to hire us.</span> Ask,
-        and then decide.
-      </blockquote>
-      <figcaption class="quote-band__by">Richard S. Jaffe · Managing Partner</figcaption>
+      <blockquote class="quote-band__quote">{quote.text}</blockquote>
+      {
+        attorney && (
+          <figcaption class="quote-band__by">
+            {[attorney.name, attorney.role].filter(Boolean).join(" · ")}
+          </figcaption>
+        )
+      }
     </figure>
   </div>
 </section>
@@ -160,10 +182,6 @@ import quoteBg from "../assets/quote-team-street.png";
     line-height: var(--lh-lead);
     color: var(--on-dark);
     text-wrap: balance;
-  }
-
-  .quote-band__quote span {
-    color: var(--gold);
   }
 
   .quote-band__by {

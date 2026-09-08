@@ -113,6 +113,12 @@ export const homePage = defineType({
       type: "caseBannerSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "faqs",
+      title: "FAQs",
+      type: "faqSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

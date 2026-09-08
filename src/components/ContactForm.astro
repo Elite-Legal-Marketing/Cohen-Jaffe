@@ -38,6 +38,10 @@
  * are stored in display form only, because storing the pair is two things that
  * can disagree and they did (AGENTS.md rule 9).
  *
+ * The band's COPY is `contactSection`, a Site Settings singleton — the same band
+ * appears on several pages, which is rule 9's bar. What stays in code is the
+ * structure, the icons and the validation.
+ *
  * ⚠️ THE "CONTACT ME IN SPANISH" CHECKBOX IS NOT THE DEFERRED SPANISH SECTION.
  * The artboard's "En Español" nav control was cut on request and `/es/` is
  * deferred pending a client decision on its IA. This is a contact PREFERENCE on
@@ -48,6 +52,7 @@
 import { Image } from "astro:assets";
 import formPartners from "../assets/form-three-partners.png";
 import { getFirm } from "../lib/firm";
+import { getContact } from "../lib/contact";
 import { telHref, smsHref } from "../lib/phone";
 
 /**
@@ -59,17 +64,20 @@ const ENDPOINT: string | null = null;
 const firm = await getFirm();
 const phone = firm?.phone;
 const sms = firm?.sms;
+
+/**
+ * The band's copy, from Site Settings → Contact Form. Memoised for the build the
+ * way `getFirm()` is, because this band appears on several pages.
+ */
+const copy = await getContact();
 ---
 
 <section class="contact surface-sand" id="contact">
   <div class="container contact__grid">
     <div class="contact__intro">
-      <p class="eyebrow">Get answers now</p>
-      <h2 class="contact__heading">Take the first step. We will do the rest.</h2>
-      <p class="contact__lead">
-        Tell us what happened. We will listen, answer your questions, and help you
-        understand your options — and you pay nothing unless we win.
-      </p>
+      {copy?.eyebrow && <p class="eyebrow">{copy.eyebrow}</p>}
+      <h2 class="contact__heading">{copy?.heading}</h2>
+      {copy?.lead && <p class="contact__lead">{copy.lead}</p>}
 
       <ul class="contact__ways" role="list">
         {
@@ -90,7 +98,7 @@ const sms = firm?.sms;
                 <path d="M6.5 4h3l1.5 4-2 1.4a10 10 0 0 0 5.6 5.6l1.4-2 4 1.5v3a1.6 1.6 0 0 1-1.8 1.6C11.9 18.3 5.7 12.1 4.9 5.8A1.6 1.6 0 0 1 6.5 4z" />
               </svg>
               <span class="contact__way">
-                <span class="contact__way-label">Call, 24 hours a day</span>
+                <span class="contact__way-label">{copy?.callLabel}</span>
                 <a class="contact__number" href={telHref(phone)}>
                   {phone}
                 </a>
@@ -116,7 +124,7 @@ const sms = firm?.sms;
                 <path d="M4.5 5.5h15v10h-9l-4 3.5z" />
               </svg>
               <span class="contact__way">
-                <span class="contact__way-label">Text us 24/7</span>
+                <span class="contact__way-label">{copy?.textLabel}</span>
                 <a class="contact__number" href={smsHref(sms)}>
                   {sms}
                 </a>
@@ -141,19 +149,15 @@ const sms = firm?.sms;
             <path d="M5.5 9.8V19h13V9.8" />
           </svg>
           <span class="contact__way">
-            <span class="contact__way-label">Cannot travel?</span>
-            <span class="contact__way-text">We will come to you</span>
+            <span class="contact__way-label">{copy?.travelLabel}</span>
+            <span class="contact__way-text">{copy?.travelText}</span>
           </span>
         </li>
       </ul>
 
       <div class="contact__note">
-        <p class="contact__note-label">Free · Confidential · No obligation</p>
-        <p class="contact__note-body">
-          Submitting this form does not create an attorney-client relationship. Cohen &amp;
-          Jaffe will send messages regarding case details and status updates; message and
-          data rates may apply.
-        </p>
+        {copy?.noteLabel && <p class="contact__note-label">{copy.noteLabel}</p>}
+        {copy?.disclaimer && <p class="contact__note-body">{copy.disclaimer}</p>}
       </div>
     </div>
 
@@ -168,11 +172,11 @@ const sms = firm?.sms;
           loading="lazy"
         />
         <div class="contact__figure-scrim"></div>
-        <p class="contact__figure-badge">No pressure · no obligation</p>
+        {copy?.badge && <p class="contact__figure-badge">{copy.badge}</p>}
       </div>
 
       <div class="contact__form-body">
-        <h3 class="contact__form-heading">Request a free consultation</h3>
+        <h3 class="contact__form-heading">{copy?.formHeading}</h3>
 
         <form class="contact__form" novalidate data-contact-form>
           <div class="contact__fields">
@@ -270,9 +274,7 @@ const sms = firm?.sms;
           <label class="contact__spanish">
             <input type="checkbox" name="spanish" value="yes" />
             <span class="contact__check" aria-hidden="true"></span>
-            <span>
-              Please contact me in Spanish · <em>Comuníquese conmigo en español</em>
-            </span>
+            <span>{copy?.spanishLabel}</span>
           </label>
 
           {/* ⚠️ HONEYPOT. Hidden from sight, from assistive tech and from Tab, so
@@ -295,7 +297,7 @@ const sms = firm?.sms;
           </div>
 
           <button class="btn btn--gold btn--block" type="submit">
-            Submit — free consultation
+            {copy?.submitLabel}
           </button>
 
           {/* Assertive: it is the answer to an action the visitor just took, and

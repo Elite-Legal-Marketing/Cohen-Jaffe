@@ -3,6 +3,8 @@ import { CaseIcon } from "@sanity/icons/Case";
 import { CogIcon } from "@sanity/icons/Cog";
 import { DocumentsIcon } from "@sanity/icons/Documents";
 import { FolderIcon } from "@sanity/icons/Folder";
+import { CheckmarkCircleIcon } from "@sanity/icons/CheckmarkCircle";
+import { EnvelopeIcon } from "@sanity/icons/Envelope";
 import { HelpCircleIcon } from "@sanity/icons/HelpCircle";
 import { HomeIcon } from "@sanity/icons/Home";
 import { PlayIcon } from "@sanity/icons/Play";
@@ -28,7 +30,13 @@ import { UsersIcon } from "@sanity/icons/Users";
  *
  * Keep SINGLETONS in sync when adding one, or step 2 silently stops working.
  */
-const SINGLETONS = ["homePage", "firmDetails"] as const;
+const SINGLETONS = [
+  "homePage",
+  "faqsPage",
+  "thankYouPage",
+  "firmDetails",
+  "contactSection",
+] as const;
 
 /**
  * Collections given their own list item above. They must be excluded from the
@@ -66,7 +74,11 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.list()
             .title("Pages")
-            .items([singleton(S, "homePage", "Homepage", HomeIcon)]),
+            .items([
+              singleton(S, "homePage", "Homepage", HomeIcon),
+              singleton(S, "faqsPage", "FAQs", HelpCircleIcon),
+              singleton(S, "thankYouPage", "Thank You", CheckmarkCircleIcon),
+            ]),
         ),
 
       S.divider(),
@@ -139,7 +151,12 @@ export const structure: StructureResolver = (S) =>
         .child(
           S.list()
             .title("Site Settings")
-            .items([singleton(S, "firmDetails", "Firm Details", CogIcon)]),
+            .items([
+              singleton(S, "firmDetails", "Firm Details", CogIcon),
+              // Not a page field: the same band appears on several pages, which
+              // is rule 9's bar for Site Settings.
+              singleton(S, "contactSection", "Contact Form", EnvelopeIcon),
+            ]),
         ),
 
       // Anything else: not a singleton, and not already listed above.

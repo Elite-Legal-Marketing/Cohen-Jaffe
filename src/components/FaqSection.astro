@@ -53,19 +53,10 @@
 import RichText from "./RichText.astro";
 import { faqHref } from "../lib/faqs";
 import { faqCategoryTitle } from "../sanity/schemaTypes/faqCategories";
-import type { FAQS_QUERY_RESULT } from "../sanity/sanity.types";
+import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
-type Faq = FAQS_QUERY_RESULT[number];
-
-interface Section {
-  eyebrow?: string | null;
-  heading?: string | null;
-  lead?: string | null;
-  faqs?: Faq[] | null;
-  closingHeading?: string | null;
-  closingLead?: string | null;
-  closingCta?: { label?: string | null; href?: string | null } | null;
-}
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["faqs"]>;
+type Faq = NonNullable<NonNullable<Section["faqs"]>[number]>;
 
 interface Props {
   section: Section;

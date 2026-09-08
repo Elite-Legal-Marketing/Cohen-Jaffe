@@ -124,6 +124,15 @@ export const HOME_PAGE_QUERY = defineQuery(`
     caseBanner{
       heading,
       cta{ label, href }
+    },
+    faqs{
+      eyebrow,
+      heading,
+      lead,
+      faqs[]->{ _id, question, "slug": slug.current, category, answer },
+      closingHeading,
+      closingLead,
+      closingCta{ label, href }
     }
   }
 `);
@@ -192,5 +201,70 @@ export const FAQ_INDEX_QUERY = defineQuery(`
     question,
     "slug": slug.current,
     category
+  }
+`);
+
+/**
+ * The `/faqs/` hub's own chrome — hero, list head, claims band and quote.
+ *
+ * NOT the questions: those are `FAQ_INDEX_QUERY`, because the page renders every
+ * one of them rather than a curated set. Two queries because they are two
+ * different things, and the hub would otherwise fetch 180 documents to read four
+ * strings off a singleton.
+ */
+export const FAQS_PAGE_QUERY = defineQuery(`
+  *[_id == "faqsPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    listEyebrow,
+    listHeading,
+    stats[]{ _key, figure, label, body },
+    quote{
+      text,
+      attorney->{ name, role }
+    }
+  }
+`);
+
+/**
+ * The contact band, shared by every page that carries it.
+ *
+ * Fetched through `getContact()` in `src/lib/contact.ts`, which memoises it for
+ * the build the way `getFirm()` does — the band appears on several pages and
+ * each one would otherwise be another round trip for the same document.
+ */
+export const CONTACT_SECTION_QUERY = defineQuery(`
+  *[_id == "contactSection"][0]{
+    eyebrow,
+    heading,
+    lead,
+    callLabel,
+    textLabel,
+    travelLabel,
+    travelText,
+    noteLabel,
+    disclaimer,
+    badge,
+    formHeading,
+    submitLabel,
+    spanishLabel
+  }
+`);
+
+/** The `/thank-you/` page. */
+export const THANK_YOU_PAGE_QUERY = defineQuery(`
+  *[_id == "thankYouPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    cta{ label, href },
+    waitEyebrow,
+    waitHeading,
+    steps[]{ _key, title, body },
+    readHeading,
+    readLead,
+    readPrimary{ label, href },
+    readSecondary{ label, href }
   }
 `);

@@ -2,11 +2,14 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { attorney } from "./documents/attorney";
 import { caseResult } from "./documents/caseResult";
+import { contactSection } from "./documents/contactSection";
 import { faq } from "./documents/faq";
+import { faqsPage } from "./documents/faqsPage";
 import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
 import { practiceArea } from "./documents/practiceArea";
+import { thankYouPage } from "./documents/thankYouPage";
 import { review } from "./documents/review";
 import { videoReview } from "./documents/videoReview";
 import { aboutSection } from "./objects/aboutSection";
@@ -20,6 +23,7 @@ import { feesSection } from "./objects/feesSection";
 import { ctaLink } from "./objects/ctaLink";
 import { deadlineFigure } from "./objects/deadlineFigure";
 import { deadlinesSection } from "./objects/deadlinesSection";
+import { faqSection } from "./objects/faqSection";
 import { reviewsSection } from "./objects/reviewsSection";
 import { hero } from "./objects/hero";
 import { office } from "./objects/office";
@@ -30,12 +34,15 @@ import { richText } from "./objects/richText";
 import { stat } from "./objects/stat";
 import { textLink } from "./objects/textLink";
 import { videoCard } from "./objects/videoCard";
+import { waitStep } from "./objects/waitStep";
 import { whyReason } from "./objects/whyReason";
 import { whyUsSection } from "./objects/whyUsSection";
 
 export const schemaTypes: SchemaTypeDefinition[] = [
   // Documents
   homePage,
+  faqsPage,
+  thankYouPage,
   featuredCaseResult,
   caseResult,
   attorney,
@@ -44,6 +51,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   videoReview,
   faq,
   firmDetails,
+  contactSection,
   // Section objects — one per band of a page
   hero,
   caseResultsSection,
@@ -55,6 +63,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   attorneysSection,
   whyUsSection,
   caseBannerSection,
+  faqSection,
   // Shared objects
   attorneyQuote,
   ctaLink,
@@ -68,5 +77,6 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   stat,
   textLink,
   videoCard,
+  waitStep,
   whyReason,
 ];

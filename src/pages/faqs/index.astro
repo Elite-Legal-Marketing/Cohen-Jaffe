@@ -47,60 +47,26 @@ import Layout from "../../layouts/Layout.astro";
 import Stats from "../../components/Stats.astro";
 import QuoteBand from "../../components/QuoteBand.astro";
 import ContactForm from "../../components/ContactForm.astro";
-import { FAQ_INDEX_QUERY } from "../../lib/queries";
+import { FAQ_INDEX_QUERY, FAQS_PAGE_QUERY } from "../../lib/queries";
 import { faqHref } from "../../lib/faqs";
 import { FAQ_CATEGORIES, faqCategoryTitle } from "../../sanity/schemaTypes/faqCategories";
-import type { FAQ_INDEX_QUERY_RESULT } from "../../sanity/sanity.types";
+import type {
+  FAQ_INDEX_QUERY_RESULT,
+  FAQS_PAGE_QUERY_RESULT,
+} from "../../sanity/sanity.types";
 
-const faqs = (await sanityClient.fetch<FAQ_INDEX_QUERY_RESULT>(FAQ_INDEX_QUERY)) ?? [];
+/**
+ * Two fetches, because they are two different things: the page's own chrome, and
+ * every question in the collection. Folding them into one would mean pulling 180
+ * documents to read four strings off a singleton.
+ */
+const [page, faqs] = await Promise.all([
+  sanityClient.fetch<FAQS_PAGE_QUERY_RESULT>(FAQS_PAGE_QUERY),
+  sanityClient.fetch<FAQ_INDEX_QUERY_RESULT>(FAQ_INDEX_QUERY).then((rows) => rows ?? []),
+]);
 
 /** How many cards show before "View more" — four full rows of the 4-across grid. */
 const BATCH = 16;
-
-/**
- * The claims band under the questions, from the STATS band of `CJ - FAQ.dc.html`.
- *
- * ⚠️ IT REUSES THE HOMEPAGE'S `Stats.astro` RATHER THAN RESTATING IT. The two
- * bands are the same component with different words, and the homepage version is
- * the more considered one — it carries the divider arithmetic across three
- * breakpoints, equalises row heights so the hairlines are not ragged, and turns
- * the rule horizontal when it stacks. A second copy would have drifted from it
- * the first time either changed.
- *
- * ⚠️ "MILLIONS / RECOVERED" IS UNSOURCED, and it is the one claim here with no
- * figure behind it. Built as drawn on the client's instruction (2026-09-08),
- * with the firm to confirm or replace it before launch — the case-results ledger
- * holds 60 real recoveries, so a real number is available if they would rather
- * print one. The other three hold up: "no fee unless we win" is the firm's
- * standing promise, and "100 Years+" is `/about/`'s own "more than 100 years of
- * combined experience".
- */
-const STATS = [
-  {
-    _key: "no-fee",
-    figure: "No Fee",
-    label: "Unless we win",
-    body: "You pay nothing up front, and nothing at all unless we recover for you.",
-  },
-  {
-    _key: "we-travel",
-    figure: "We Travel",
-    label: "Home, hospital, or video",
-    body: "If you cannot come to us, we come to you — anywhere on Long Island.",
-  },
-  {
-    _key: "millions",
-    figure: "Millions",
-    label: "Recovered",
-    body: "Verdicts and settlements won for injured Long Islanders and their families.",
-  },
-  {
-    _key: "experience",
-    figure: "100 Years+",
-    label: "Of combined experience",
-    body: "A century of courtroom-tested work in serious injury and accident claims.",
-  },
-];
 
 /**
  * Only the categories that actually hold a question. A pill that filters to an
@@ -146,19 +112,13 @@ const allCss = `
 #fc-all:checked ~ .faq-filter label[for="fc-all"] { ${activePill} }`;
 ---
 
-<Layout
-  title="Frequently Asked Questions"
-  description="Straight answers about fees, deadlines, insurance adjusters, and what actually happens to an injury case in New York. Free consultation, and no fee unless we win."
->
+<Layout title="Frequently Asked Questions" description={page?.lead ?? undefined}>
   <section class="faq-hero surface-forest-deep">
     <div class="container">
       <div class="faq-hero__copy">
-        <p class="eyebrow">Frequently asked questions</p>
-        <h1 class="faq-hero__title">The questions people ask us first.</h1>
-        <p class="faq-hero__lead">
-          Straight answers about fees, deadlines, insurance adjusters, and what actually
-          happens to a case in New York — no legalese, no obligation.
-        </p>
+        {page?.eyebrow && <p class="eyebrow">{page.eyebrow}</p>}
+        <h1 class="faq-hero__title">{page?.heading}</h1>
+        {page?.lead && <p class="faq-hero__lead">{page.lead}</p>}
       </div>
     </div>
   </section>
@@ -171,8 +131,8 @@ const allCss = `
           numbers to keep in step, and they disagreed for a moment on every
           filter change. Removed on the client's instruction (2026-09-08). */}
       <header class="faq-index__head">
-        <p class="eyebrow">Browse by topic</p>
-        <h2 class="faq-index__heading">Answers from the attorneys who handle these cases.</h2>
+        {page?.listEyebrow && <p class="eyebrow">{page.listEyebrow}</p>}
+        <h2 class="faq-index__heading">{page?.listHeading}</h2>
       </header>
 
       {/* The radios come first so `~` reaches both the pills and the grid. */}
@@ -227,8 +187,8 @@ const allCss = `
     </div>
   </section>
 
-  <Stats stats={STATS} />
-  <QuoteBand />
+  {page?.stats && page.stats.length > 0 && <Stats stats={page.stats} />}
+  {page?.quote && <QuoteBand quote={page.quote} />}
   <ContactForm />
 </Layout>
 
