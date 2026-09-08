@@ -87,6 +87,19 @@ export const HOME_PAGE_QUERY = defineQuery(`
       lead,
       cta{ label, href },
       deadlines[]{ _key, figure, unit, body }
+    },
+    reviews{
+      eyebrow,
+      heading,
+      lead,
+      cta{ label, href },
+      reviews[]->{
+        _id,
+        _type,
+        location,
+        _type == "review" => { author, quote },
+        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }
+      }
     }
   }
 `);

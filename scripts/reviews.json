@@ -1,0 +1,189 @@
+{
+  "videos": [
+    {
+      "id": "video-review-maria-r-hempstead",
+      "file": "review-woman.png",
+      "clientName": "Maria R.",
+      "location": "Hempstead",
+      "caseType": null,
+      "headline": "“I thought I could handle the adjuster myself.”",
+      "wistiaId": "c6b0eghb5r"
+    },
+    {
+      "id": "video-review-james-t-islip",
+      "file": "review-man.png",
+      "clientName": "James T.",
+      "location": "Islip",
+      "caseType": null,
+      "headline": "“They came to my hospital room.”",
+      "wistiaId": "c6b0eghb5r"
+    },
+    {
+      "id": "video-review-menache-r-great-neck",
+      "file": "review-senior.png",
+      "clientName": "Menache R.",
+      "location": "Great Neck",
+      "caseType": null,
+      "headline": "“They treated my mother like family.”",
+      "wistiaId": "c6b0eghb5r"
+    },
+    {
+      "id": "video-review-howard-new-hyde-park",
+      "file": "result-client-2.png",
+      "clientName": "Howard",
+      "location": "New Hyde Park",
+      "caseType": null,
+      "headline": "“The first offer was insulting. They kept going.”",
+      "wistiaId": "c6b0eghb5r"
+    }
+  ],
+  "reviews": [
+    {
+      "id": "review-howard-new-hyde-park",
+      "author": "Howard",
+      "location": null,
+      "caseType": null,
+      "quote": "It was a pleasure to have this law firm represent me. From the first day I walked in their office it was a warm welcome. During my representation they were there for me, always calling to remind me of appointments and preparing me as well. I would recommend them to anyone who needs representation. I am extremely pleased with their performance. The staff was fantastic."
+    },
+    {
+      "id": "review-menache-r-great-neck",
+      "author": "Menache R.",
+      "location": null,
+      "caseType": null,
+      "quote": "I found The Law Office of Cohen & Jaffe online by the reviews, and I will say the reviews were spot on. They are excellent, I worked with Steve on my Mom’s case and Steve and his staff were outstanding. They constantly kept in touch with updates and were always available to answer any questions we had. I would highly recommend Cohen & Jaffe you will not be disappointed."
+    },
+    {
+      "id": "review-patty-r-mineola",
+      "author": "Patty R.",
+      "location": null,
+      "caseType": null,
+      "quote": "I had a great experience with this law firm, from easy communication via email, text and phone calls. Each member of the team helping me, especially Trisha, was very kind, took their time to answer my questions. I recommend utilizing their skills if ever needed."
+    },
+    {
+      "id": "review-client",
+      "author": "Client",
+      "location": null,
+      "caseType": "Serious injury",
+      "quote": "I can’t begin to find the words to describe how beyond grateful I am to have found this law firm. My attorney Richard Jaffe was spectacular. He explained everything, he answered when I called, and he never once made me feel like a file on a desk."
+    },
+    {
+      "id": "review-client-nassau-county",
+      "author": "Client",
+      "location": "Nassau County",
+      "caseType": "Rear-end collision",
+      "quote": "They explained every step in plain English before it happened, so I was never sitting at home wondering what was going on with my own case. Calls came back the same day, every time."
+    },
+    {
+      "id": "review-client-queens",
+      "author": "Client",
+      "location": "Queens",
+      "caseType": "Pedestrian accident",
+      "quote": "The insurance company acted like nothing happened to me. Cohen & Jaffe took the whole thing off my shoulders and kept pushing long after I would have given up on my own."
+    },
+    {
+      "id": "review-denise-m-franklin-square",
+      "author": "Denise M.",
+      "location": "Franklin Square",
+      "caseType": "Slip and fall",
+      "quote": "I fell in a supermarket and assumed nothing could be done because I was embarrassed. They took it seriously from the first phone call, got the incident report and the footage, and handled the store’s insurer for me."
+    },
+    {
+      "id": "review-client-valley-stream",
+      "author": "Client",
+      "location": "Valley Stream",
+      "caseType": "Construction accident",
+      "quote": "I was out of work for eight months. They advanced every cost, and I never once had to write a check while the case was open. That is the only reason I could afford to see it through."
+    },
+    {
+      "id": "review-robert-a-westbury",
+      "author": "Robert A.",
+      "location": "Westbury",
+      "caseType": "Truck accident",
+      "quote": "Richard handled my deposition prep himself and walked me through every question I might get. When the day came I was not nervous, because nothing surprised me."
+    },
+    {
+      "id": "review-client-freeport",
+      "author": "Client",
+      "location": "Freeport",
+      "caseType": "Motorcycle accident",
+      "quote": "A lot of firms would not return my call once they heard motorcycle. These guys did not blink. They understood the bike, the road, and what actually happened out there."
+    },
+    {
+      "id": "review-yolanda-p-jackson-heights",
+      "author": "Yolanda P.",
+      "location": "Jackson Heights",
+      "caseType": "Personal injury",
+      "quote": "They spoke to my husband and me in Spanish, explained the paperwork line by line, and never made us feel rushed. That mattered more than I can explain."
+    },
+    {
+      "id": "review-client-long-beach",
+      "author": "Client",
+      "location": "Long Beach",
+      "caseType": "Premises liability",
+      "quote": "Every update came before I had to ask for it. In two years I do not think I ever called and wondered where things stood."
+    },
+    {
+      "id": "review-client-bethpage",
+      "author": "Client",
+      "location": "Bethpage",
+      "caseType": "Medical malpractice",
+      "quote": "They had a physician review my records before they told me I had a case. No promises up front, just an honest answer, which is what I wanted."
+    },
+    {
+      "id": "review-anthony-d-islip",
+      "author": "Anthony D.",
+      "location": "Islip",
+      "caseType": "Car accident",
+      "quote": "The first offer was a fraction of my medical bills. They said no and kept working. What we ended with was not close to what the adjuster wanted me to take."
+    },
+    {
+      "id": "review-client-oyster-bay",
+      "author": "Client",
+      "location": "Oyster Bay",
+      "caseType": "Wrongful death",
+      "quote": "They handled the hardest year of our family’s life with real decency. We were never a case number to anyone in that office."
+    },
+    {
+      "id": "review-client-babylon",
+      "author": "Client",
+      "location": "Babylon",
+      "caseType": "Bicycle accident",
+      "quote": "A driver door-ed me and left. They tracked down the vehicle and the policy, and I did not have to make a single one of those calls myself."
+    },
+    {
+      "id": "review-client-hempstead",
+      "author": "Client",
+      "location": "Hempstead",
+      "caseType": "Nursing home neglect",
+      "quote": "We brought them a folder of paperwork we did not understand. They read all of it, told us what it meant, and told us the truth about our options."
+    },
+    {
+      "id": "review-client-elmhurst",
+      "author": "Client",
+      "location": "Elmhurst",
+      "caseType": "Workplace injury",
+      "quote": "I was worried about my immigration status and whether making a claim would hurt me. They answered that question honestly on the first call, at no charge."
+    },
+    {
+      "id": "review-client-glen-oaks",
+      "author": "Client",
+      "location": "Glen Oaks",
+      "caseType": "Brain injury",
+      "quote": "My husband’s injury was not visible, so the insurer treated it like it was not real. They brought in the right experts and made a record that could not be dismissed."
+    },
+    {
+      "id": "review-client-mineola",
+      "author": "Client",
+      "location": "Mineola",
+      "caseType": "Rear-end collision",
+      "quote": "Steve met me at my house because I could not drive. I did not expect a lawyer to do that."
+    },
+    {
+      "id": "review-client-forest-hills",
+      "author": "Client",
+      "location": "Forest Hills",
+      "caseType": "Personal injury",
+      "quote": "Straight answers, no exaggerated promises, and they never once made me feel like I was bothering them by calling."
+    }
+  ]
+}

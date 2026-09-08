@@ -28,6 +28,7 @@ import IconCalls from "../assets/icons/expect/calls.svg";
 import { getImage } from "astro:assets";
 import RichText from "./RichText.astro";
 import { urlFor } from "../lib/image";
+import { videoDuration } from "../lib/wistia";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
 type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["about"]>;
@@ -58,6 +59,15 @@ const cover = await getImage({
 
 const quote = section.quote;
 const video = section.video;
+
+/**
+ * The video's real running time, read from Wistia at build time rather than
+ * typed into `eyebrow`. That field used to hold the whole string — "Watch ·
+ * 2 min" — for a video that actually runs 2:47. It now holds the LABEL only and
+ * the duration is appended here; see `src/lib/wistia.ts`. Unreachable video, or
+ * no Wistia id, means the eyebrow renders as just its label.
+ */
+const videoLength = await videoDuration(video?.wistiaId);
 
 /**
  * The olive glyph beside each "What you can expect" row, BY ROW POSITION.
@@ -189,7 +199,9 @@ const portrait = quote?.attorney?.portrait?.asset
               </svg>
             </span>
             <span class="about-video__caption">
-              <span class="eyebrow eyebrow--bare about-video__eyebrow">{video.eyebrow}</span>
+              <span class="eyebrow eyebrow--bare about-video__eyebrow">
+                {[video.eyebrow, videoLength].filter(Boolean).join(" \u00b7 ")}
+              </span>
               <span class="about-video__title">{video.title}</span>
             </span>
           </button>
