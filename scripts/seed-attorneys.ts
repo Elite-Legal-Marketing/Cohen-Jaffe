@@ -27,8 +27,7 @@
  *
  *   - **Quotes for McNaughton, Sawicki and Parnell.** None of the three is
  *     quoted anywhere on the live site. `quote` is left empty rather than
- *     written for them; the homepage artboard's quotes for the three partners
- *     are likewise ignored in favour of the real ones those three have given.
+ *     written for them.
  *   - **"Managing Partner" / "Founding Partner" / "Lead Trial Lawyer".** The
  *     live site titles Cohen, Jaffe and Tiger identically: "Partner". The
  *     artboards' finer-grained titles are plausible — Cohen did found the
@@ -41,6 +40,24 @@
  * One knowing edit: Tiger's notable-case list on the live site reads
  * "2.75 for an injured construction worker" — a missing "$" and "million" that
  * every other line in the same list has. Written here as "$2.75 million".
+ *
+ * ⚠️⚠️ THIS SCRIPT MUST NOT BE RE-RUN. It is `createOrReplace`, so it replaces
+ * each document WHOLE — and two fields below are now superseded by edits the
+ * firm made in the Studio on 2026-09-08, which a re-run would silently revert
+ * with nothing on screen to say it had:
+ *
+ *   - **`role`** for the three partners. The live site titles Cohen, Jaffe and
+ *     Tiger identically as "Partner", which is what is seeded here. The firm
+ *     has since set "Founding Partner", "Managing Partner" and "Partner".
+ *   - **`quote`** for the same three. Seeded here from the live site because the
+ *     homepage artboard's versions were unsourced; the firm has since replaced
+ *     all three with the artboard's wording and confirmed those are real.
+ *
+ * The seeds are left as they are rather than edited to match, because a seed
+ * that cannot be run is not worth maintaining and rewriting it would destroy the
+ * provenance record above — which is the actual value of this file now. To
+ * change an attorney, patch the field: `scripts/unset-attorney-summary.ts` and
+ * `scripts/patch-attorney-portraits.ts` are the worked examples.
  */
 import { getCliClient } from "sanity/cli";
 import { createReadStream } from "node:fs";
@@ -55,7 +72,6 @@ interface Seed {
   file: string;
   name: string;
   role: string;
-  summary: string;
   quote?: string;
   headline: string;
   biography: string[];
@@ -80,8 +96,6 @@ const SEEDS: Seed[] = [
     file: "atty-cohen.png",
     name: "Stephen M. Cohen",
     role: "Partner · Personal Injury Attorney",
-    summary:
-      "He started out on his own in a third-floor Bedford-Stuyvesant walkup and has represented injured working people ever since.",
     quote:
       "I take great pride that the firm is really people-related. I want the firm to convey the idea that when they come in to see us, we're no better than they are.",
     headline: "A solo practice in a Brooklyn walkup, grown into a six-attorney firm.",
@@ -107,8 +121,6 @@ const SEEDS: Seed[] = [
     file: "atty-jaffe.png",
     name: "Richard S. Jaffe",
     role: "Partner · Personal Injury Attorney",
-    summary:
-      "A trial attorney of thirty years who has volunteered as a firefighter and critical-care EMT on Long Island, and who has secured multi-million dollar verdicts and settlements.",
     quote:
       "I want to convey to the clients that we're going to do the best we can and that no matter how many questions you have, you're always going to get that service. You're going to get courteous people who care about you.",
     headline: "A fierce trial attorney and litigator.",
@@ -138,8 +150,6 @@ const SEEDS: Seed[] = [
     file: "atty-tiger.png",
     name: "Stephen B. Tiger",
     role: "Partner · Personal Injury Attorney",
-    summary:
-      "He came to plaintiff's work from a career in finance, and is known for the persistence he brings to the discovery process.",
     quote:
       "I really don't like to take what the insurance companies do lying down, so I'm happy to fight with them for the people.",
     headline: "Whatever is necessary to secure the best possible recovery.",
@@ -173,8 +183,6 @@ const SEEDS: Seed[] = [
     file: "atty-mcnaughton.png",
     name: "Caitlin McNaughton, Esq.",
     role: "Managing Attorney · Personal Injury Attorney",
-    summary:
-      "Licensed in three states and admitted in federal and appellate courts, with more than $12 million recovered for her clients.",
     headline: "Standing up for those who cannot stand up for themselves.",
     biography: [
       "Caitlin McNaughton is a tough litigator who chose a career as an attorney because she firmly believes in standing up for those who cannot stand up for themselves. She has always believed that while flawed, the American judicial system represents the best force for justice in the world.",
@@ -190,8 +198,6 @@ const SEEDS: Seed[] = [
     file: "atty-sawicki.png",
     name: "Katherine Sawicki, Esq.",
     role: "Personal Injury Attorney",
-    summary:
-      "She worked full time as a paralegal while earning her law degree at night, and has been with the firm since 2019.",
     headline: "Close communication, at every stage of the recovery.",
     biography: [
       "With a passion for helping accident victims and a commitment to maintaining close communication with her clients, Katherine Sawicki has been a dedicated personal injury attorney with the Law Office of Cohen & Jaffe since 2019.",
@@ -214,8 +220,6 @@ const SEEDS: Seed[] = [
     file: "atty-parnell.png",
     name: "Garrett V. Parnell, Esq.",
     role: "Personal Injury Attorney",
-    summary:
-      "He spent years defending personal injury claims for insurance carriers before moving to the plaintiff's side of the same work.",
     headline: "He learned the insurance company's playbook from inside it.",
     biography: [
       "Having tried cases for insurance carriers, Garrett brings a strategic advantage to representing injured clients. His understanding of how insurance companies investigate, evaluate and negotiate claims informs the way he handles plaintiff's personal injury claims.",
@@ -268,7 +272,6 @@ async function main() {
       name: seed.name,
       slug: { _type: "slug", current: seed.slug },
       role: seed.role,
-      summary: seed.summary,
       ...(seed.quote ? { quote: seed.quote } : {}),
       headline: seed.headline,
       biography: toBlocks(seed.biography),

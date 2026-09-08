@@ -18,7 +18,7 @@ import { UserIcon } from "@sanity/icons/User";
  * `CJ - Attorneys.dc.html` (partner and associate cards) and
  * `CJ - Attorney Bio.dc.html` (the bio page, which reads nearly all of it).
  *
- * ⚠️ ONLY SIX FIELDS ARE REQUIRED — name, slug, role, portrait, summary,
+ * ⚠️ ONLY FIVE FIELDS ARE REQUIRED — name, slug, role, portrait and
  * biography. That is a deliberate reaction to `featuredCaseResult`, where
  * making every field required means the 60 real results cannot be migrated
  * without inventing four fields each. Here the credentials blocks are genuinely
@@ -28,10 +28,11 @@ import { UserIcon } from "@sanity/icons/User";
  *
  * Three blocks the bio artboard draws are deliberately NOT modelled here:
  *
- *   - **The video card** (thumbnail, "Watch · 2:14", title). A `video` document
- *     type is already planned for the 81 Wistia uploads; per-attorney video
- *     becomes a reference to that, and loose `wistiaId`/`duration` strings here
- *     would only have to be unpicked. No attorney video exists yet either.
+ *   - **The bio page's video CARD** (thumbnail, title, running time). A `video`
+ *     document type is planned for the 81 Wistia uploads and that card becomes
+ *     a reference to it. The bare `wistiaId` below is NOT that card — it is the
+ *     one thing the homepage needs, a hashed id to open the lightbox with, and
+ *     it is optional precisely because no attorney video exists yet.
  *   - **The practice-areas sidebar.** Becomes `reference` to `practiceArea`
  *     when that type lands. An array of strings now is the same parallel
  *     taxonomy problem the case-result categories already have.
@@ -105,20 +106,6 @@ export const attorney = defineType({
       ],
     }),
     defineField({
-      name: "summary",
-      title: "Card blurb",
-      description:
-        "One or two sentences under the script-font signature, on the homepage band and the listing cards. Not shown on the bio page — the biography takes over there.",
-      type: "text",
-      rows: 3,
-      group: "profile",
-      validation: (rule) =>
-        rule
-          .required()
-          .max(220)
-          .warning("Sits in a third-width column at 16/28 — beyond ~220 characters it unbalances a row of three."),
-    }),
-    defineField({
       name: "quote",
       title: "Quote",
       description:
@@ -130,6 +117,14 @@ export const attorney = defineType({
         rule
           .max(240)
           .warning("Set italic at 21-24px on the cards — beyond ~240 characters it dominates the card."),
+    }),
+    defineField({
+      name: "wistiaId",
+      title: "Video",
+      description:
+        'The hashed id from the video\'s Wistia URL, e.g. "c6b0eghb5r". Optional — the play button over the portrait appears only for an attorney who has one, and no attorney has been filmed yet. Its running time is read from Wistia rather than typed.',
+      type: "string",
+      group: "profile",
     }),
 
     defineField({
