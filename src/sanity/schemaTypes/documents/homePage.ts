@@ -107,6 +107,12 @@ export const homePage = defineType({
       type: "whyUsSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "caseBanner",
+      title: "Case review banner",
+      type: "caseBannerSection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

@@ -11,6 +11,7 @@ import { videoReview } from "./documents/videoReview";
 import { aboutSection } from "./objects/aboutSection";
 import { attorneyQuote } from "./objects/attorneyQuote";
 import { attorneysSection } from "./objects/attorneysSection";
+import { caseBannerSection } from "./objects/caseBannerSection";
 import { caseResultsSection } from "./objects/caseResultsSection";
 import { expectation } from "./objects/expectation";
 import { feeColumn } from "./objects/feeColumn";
@@ -51,6 +52,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   reviewsSection,
   attorneysSection,
   whyUsSection,
+  caseBannerSection,
   // Shared objects
   attorneyQuote,
   ctaLink,

@@ -11,6 +11,7 @@ import Deadlines from "../components/Deadlines.astro";
 import Reviews from "../components/Reviews.astro";
 import Attorneys from "../components/Attorneys.astro";
 import WhyUs from "../components/WhyUs.astro";
+import CaseBanner from "../components/CaseBanner.astro";
 import { HOME_PAGE_QUERY } from "../lib/queries";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
@@ -32,4 +33,5 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.reviews && <Reviews section={home.reviews} />}
   {home?.attorneys && <Attorneys section={home.attorneys} />}
   {home?.whyUs && <WhyUs section={home.whyUs} />}
+  {home?.caseBanner && <CaseBanner section={home.caseBanner} />}
 </Layout>

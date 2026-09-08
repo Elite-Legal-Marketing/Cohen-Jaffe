@@ -1,7 +1,7 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-08 (the "Why Cohen & Jaffe" band modelled in Sanity on `hp_why_us_sanity`; uncommitted)
+Last updated: 2026-09-08 (the "Not sure if you have a case?" banner built and modelled on `hp_case_banner`; uncommitted)
 
 ## ⚠️ Read this before writing any code
 
@@ -32,34 +32,109 @@ conversation.
 
 ## Where things stand
 
-**Ten of the homepage's fifteen sections exist, and ALL TEN ARE FINISHED** — hero, stats band,
-case results, "Our goals", the fee explainer, practice areas, the New York deadlines band,
-testimonials, the attorneys band and "Why Cohen & Jaffe", every one of them built, modelled,
-seeded and wired. **There is no section left at the hardcoded stage and `src/data/` now holds
-`navigation.ts` alone.**
+**Eleven of the homepage's fifteen sections exist, and ALL ELEVEN ARE FINISHED** — hero, stats
+band, case results, "Our goals", the fee explainer, practice areas, the New York deadlines
+band, testimonials, the attorneys band, "Why Cohen & Jaffe" and the case review banner, every
+one built, modelled, seeded and wired. **No section is at the hardcoded stage and `src/data/`
+holds `navigation.ts` alone.**
 
-The why-us band was approved and merged to `master` (`f80ef6e`, PR #17) still reading from
-`src/data/homeWhyUs.ts`. That was the last loose end and it is closed: the band reads from
-`homePage.whyUs` like every other section, and the staged constant is deleted.
+The why-us modelling merged to `master` (`869ea74`, PR #18). **One branch is in flight:
+`hp_case_banner`, cut from `master` (`04c1edd`), carrying the case review banner UNCOMMITTED —
+built, approved, modelled and seeded in one pass.** ⚠️ An empty `hp_contact_banner` still sits
+on an older commit with nothing on it; this work was not done there.
 
-**One branch is in flight. `hp_why_us_sanity` is cut from `master` (`a7a1696`) and carries the
-why-us modelling UNCOMMITTED.** Both branches the previous handoff described as in flight —
-`hp_attorneys_sanity` and `hp_why_us` — have since been merged, so nothing stacks on anything
-any more. ⚠️ There is also an empty `hp_contact_banner` sitting on `master` with no commits;
-this work was moved off it because it is not the contact banner.
+Gates: `npm run build` green, `npm run check:types` **0 errors (88 files)**, `npm run typegen`
+**2 queries, 48 schema types**, `npx sanity documents validate --yes` clean at **144 documents,
+0 errors, 0 warnings**.
 
-Gates, all run after the seed: `npm run build` green, `npm run check:types` **0 errors (85
-files)**, `npm run typegen` **2 queries, 47 schema types**, `npx sanity documents validate
---yes` clean at **145 documents, 0 errors, 0 warnings**. The band reads back through the
-PUBLIC API with no token — verified with an unauthenticated `curl`, and the build renders all
-four reasons. ⚠️ **A green build and a correct public API do NOT prove the Studio shows it** —
-see the draft-shadowing note under "Things that would surprise someone". The seed was re-run
-(`SEED_OVERWRITE=1`) on 2026-09-08 after a draft publish wiped it.
+⚠️ **THE DOCUMENT COUNT WENT 145 → 144 AND NOTHING WAS DELETED.** The 145th was
+`drafts.homePage`, which was published on 2026-09-08 and is therefore gone. The 144 are
+60 case results + 47 practice areas + 21 reviews + 6 attorneys + 4 featured case results +
+4 video reviews + `firmDetails` + `homePage`. Image assets and system documents are not
+validated and sit outside the count.
 
-**The rendered homepage is BYTE-IDENTICAL before and after the modelling** — `dist/index.html`
-built from `master` and from this branch differ by zero bytes (268,410 each). That is the proof
-that moving the copy into Sanity changed nothing on the page, and it is worth re-running as the
-last step of any wiring swap: build, stash, rebuild, `diff`.
+**The banner's rendered output is BYTE-IDENTICAL hardcoded vs modelled** — 270,114 bytes
+either way. ⚠️ Note the usual "build, stash, rebuild, diff" does NOT work for a section built
+and modelled on the same branch: stashing removes the whole section rather than reverting it to
+its hardcoded form, so the diff compares "no band" against "band". The hardcoded variant has to
+be reconstructed deliberately.
+
+## The case review banner
+
+`src/components/CaseBanner.astro`, rendered after the why-us band, wired to
+`homePage.caseBanner`. A full-width gold strip: one line of serif copy centred against two
+buttons — a dark "Free case review" and an outlined "Call <the firm's number>".
+
+| File | What |
+| --- | --- |
+| `src/components/CaseBanner.astro` | The section. No script |
+| `src/sanity/schemaTypes/objects/caseBannerSection.ts` | The model — `heading`, `cta`. Two fields |
+| `scripts/seed-home-case-banner.ts` | Seeds it, **has run**, guarded — **and checks for a draft first** |
+
+Built from `Cohen & Jaffe Homepage v1.dc.html` markup 621-628.
+
+⚠️ **THIS IS NOT THE BOARD'S "MID CTA BAR".** That comment sits at line 576, above the why-us
+band, with no markup under it — nothing was ever built for it and nothing should be invented.
+This banner is a separate, fully drawn strip further down, and it sits directly above the FAQ
+section when that gets built.
+
+### The phone number is not this section's content
+
+The board writes the second button as "Call 516-358-6900". The number is a Site Settings fact —
+header, drawer, footer and fee explainer all carry it — so the component reads it through
+`getFirm()` and composes the label, with `telHref()` deriving the link. **There is no phone
+field on this section and there must not be one** (AGENTS.md rule 9). The word "Call" is
+presentation glue in the component, the way the deadlines band renders its units.
+
+That leaves the model at **two fields**: `heading` and `cta`. `cta` is OPTIONAL, matching the
+reviews, deadlines and attorneys bands — and unlike the attorneys band, removing it is not a
+dead end, because the call button beside it comes from Site Settings. There is no eyebrow; the
+board draws none and there is nothing for one to introduce.
+
+### Two departures from the board, both deliberate
+
+- ⚠️ **THE SECONDARY BUTTON'S HOVER IS OURS.** The board hovers it to `#a97e37` with an
+  underline; against the gold band that computes to **1.93:1 contrast**, so the hover state is
+  less readable than the rest state's 8.4:1. It is `.btn--outline` instead — the site's neutral
+  outline, which fills ink on hover. **Do not restore the board's hover.**
+- ⚠️ **ITS RESTING BORDER IS A LOCAL `--ink`, NOT `.btn--outline`'s OWN.** That variant's
+  hairline is `--border-deep` (#c9bfa8), calibrated for cream, and it all but disappears on
+  gold. The board draws this border in ink and `.case-banner__call` puts it back. Reaching for
+  a variant brings its resting state with it — check both states against the new ground.
+
+### The heading's floor is raised, and 28px is measured
+
+`font-size: clamp(28px, 1.2507rem + 0.7222vw, 32px)` — `--fs-32`'s own slope, so it still lands
+on the board's exact 32px at 1660, with the floor lifted from 22.72 to 28.
+
+The ramp's floors are `16 + (design - 16) x 0.42`, which compresses everything toward 16 so a
+dense layout stays readable. This band is not dense: on a phone the heading is the only content
+above two buttons, and 22.72px read as a caption over them.
+
+⚠️ **28 IS THE LARGEST SIZE THAT HOLDS ONE LINE AT 375px.** The container is 335px there and
+the approved sentence sets 313px at 28px; at 30px it measures 337px and wraps. **Re-measure if
+the copy changes** — a longer sentence wants a lower floor, which is what the 40-character cap
+on `heading` is warning about.
+
+⚠️ **A FLAT MOBILE OVERRIDE INVERTS THE RAMP.** `@media (max-width: 768px) { font-size: 28px }`
+was the obvious alternative: the token gives 25.6px at 768, so the heading would have SHRUNK as
+the screen grew past the breakpoint. Raising the floor keeps it monotonic — flat 28 below
+1106px, then 28 to 32.
+
+### Layout notes worth keeping
+
+- **The gradient is on the `<section>`, never on `.container`.** A container is inset by the
+  gutter, so a background on it stops short and the page shows in two strips down the sides.
+- **`padding-block: var(--space-36)`, not `.section`.** The board's own padding; `.section`
+  would give it 64-130px and turn a strip into a chapter. At 1660 the band is 132px
+  (36 + 60 + 36), matching the board exactly.
+- ⚠️ **`align-self: stretch` DOES NOT WIDEN THE BUTTON COLUMN.** `.case-banner__inner` is a ROW
+  flex container, so the cross axis is vertical and `align-self` stretches HEIGHT. The buttons
+  came out 175px on a 375px screen, because `.btn--wide`'s 100% resolved against a
+  content-sized box. `width: 100%` is the axis that matters.
+- **The heading is a `<p>`, not an `<h2>`.** The band is a call to action, not a section of
+  content, so a heading would put a rung in the document outline with nothing under it.
+  `aria-labelledby` still names the region.
 
 ## The "Why Cohen & Jaffe" band
 
@@ -681,6 +756,7 @@ field — reordering rows in the Studio moves the words, not the pictures.
 `review` → `Reviews.astro` — the only reference array accepting two document types.
 `attorneysSection` → `attorneys[]->` `attorney` (an ordered array of three) → `Attorneys.astro`.
 `whyUsSection` → `reasons[]` of `whyReason` → `WhyUs.astro`.
+`caseBannerSection` → `heading` + `cta` → `CaseBanner.astro`, which reads the phone from `getFirm()`.
 `firmDetails` → `FIRM_DETAILS_QUERY` → `getFirm()` → `Layout.astro` → `Nav`, `MobileNav`,
 `Footer`; `Fees.astro` calls `getFirm()` directly.
 
@@ -744,11 +820,13 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
 
 ## What's next
 
-1. **Commit and push `hp_why_us_sanity`, and open its PR** — the why-us modelling is in the
-   working tree, both gates green, seeded and byte-diffed, and NOT yet committed. Nothing
+1. **Commit and push `hp_case_banner`, and open its PR** — the banner is built, modelled and
+   seeded in the working tree, both gates green, byte-diffed, and NOT yet committed. Nothing
    stacks on it.
-2. **The next homepage section, or the first inner page.** Five of the fifteen homepage
-   sections are still unbuilt; `hp_contact_banner` was cut for one of them and is still empty.
+2. **The FAQ section is the banner's own neighbour** — `Cohen & Jaffe Homepage v1.dc.html`
+   markup 629-676 draws it directly under this strip: a category filter, `<details>` rows each
+   with a video answer, and a closing forest panel. Four of the fifteen homepage sections are
+   still unbuilt.
 3. **`/about/testimonials/`** — the "Read all reviews" destination, already in
    `navigation.ts:111` and `:241` and already indexed. `CJ - Testimonials.dc.html` is
    approved: a video-reviews band, a written-reviews band with a load-more button, and a
@@ -860,7 +938,7 @@ A new Sanity CORS origin **will** be needed for the eventual custom domain — w
   how a section is added to the homepage singleton without disturbing the others.
   `sanity documents delete` needs `--dataset production` before the id.
 - **Never put a `//` comment inside a `defineQuery` template.** Typegen currently reports
-  **2 queries and 47 schema types**; if the query count drops, this is why.
+  **2 queries and 48 schema types**; if the query count drops, this is why.
 - **Typegen's `<type>.reference` is emitted once per REFERENCED DOCUMENT TYPE, not once per
   reference.** Adding the attorneys band's `attorney[]->` array raised the count by one, not
   two, because `attorney.reference` already existed for `attorneyQuote.attorney`. Check
