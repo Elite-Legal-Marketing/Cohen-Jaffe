@@ -8,9 +8,13 @@
  * "Design tokens": body text carries no default margin by design, and `.prose`
  * is where the rhythm lives.
  *
- * `.prose` also caps the measure at ~68 characters. That is deliberate even
- * inside a wider column: the 790px design column runs past 90 characters at
- * this size.
+ * ⚠️ `.prose` DOES NOT CAP THE MEASURE — it fills whatever column it is given.
+ * This docblock said the opposite for a while: there WAS a 600px cap and it was
+ * removed on the client's call, because it left the homepage's intro copy
+ * stopping ~90px short of its column while the list below ran the full width.
+ * If a column here is too wide to read comfortably, the fix is
+ * `.container--prose` (790px) on the wrapper, not a cap in `.prose`. The full
+ * reasoning is on the `.prose` block in `global.css`.
  */
 import { PortableText } from "astro-portabletext";
 import type { PortableTextProps } from "astro-portabletext/types";

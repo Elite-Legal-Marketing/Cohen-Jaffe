@@ -201,7 +201,17 @@ export const PRIMARY_NAV: NavItem[] = [
       { label: "Blog", href: "/blog/" },
       { label: "FAQ's", href: "/faqs/" },
       { label: "Video Library", href: "/video-center/" },
-      { label: "Scholarship Essay Contest", href: "/about/community-scholarship/" },
+      /**
+       * ⚠️ "Scholarship Essay Contest" WAS HERE and was removed 2026-09-09,
+       * with the section that promoted it. The live contest closed applications
+       * on 12 June 2026, and `/about/community-scholarship/` now 301s to
+       * `/about/our-community/` in `vercel.json` — a nav item pointing at a
+       * redirect is a link that describes one page and lands on another.
+       *
+       * ⚠️ THE LIVE PAGE STILL SAYS "Each year". If a 2027 round opens, this
+       * item, the redirect and the community page's scholarship band all come
+       * back together. Restoring one without the others is the failure mode.
+       */
     ],
   },
 

@@ -2,12 +2,14 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { attorney } from "./documents/attorney";
 import { caseResult } from "./documents/caseResult";
+import { communityPage } from "./documents/communityPage";
 import { contactSection } from "./documents/contactSection";
 import { faq } from "./documents/faq";
 import { faqsPage } from "./documents/faqsPage";
 import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
+import { organization } from "./documents/organization";
 import { practiceArea } from "./documents/practiceArea";
 import { thankYouPage } from "./documents/thankYouPage";
 import { review } from "./documents/review";
@@ -16,6 +18,7 @@ import { aboutSection } from "./objects/aboutSection";
 import { attorneyQuote } from "./objects/attorneyQuote";
 import { attorneysSection } from "./objects/attorneysSection";
 import { caseBannerSection } from "./objects/caseBannerSection";
+import { communitySection } from "./objects/communitySection";
 import { caseResultsSection } from "./objects/caseResultsSection";
 import { expectation } from "./objects/expectation";
 import { feeColumn } from "./objects/feeColumn";
@@ -42,6 +45,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   // Documents
   homePage,
   faqsPage,
+  communityPage,
   thankYouPage,
   featuredCaseResult,
   caseResult,
@@ -50,6 +54,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   review,
   videoReview,
   faq,
+  organization,
   firmDetails,
   contactSection,
   // Section objects — one per band of a page
@@ -64,6 +69,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   whyUsSection,
   caseBannerSection,
   faqSection,
+  communitySection,
   // Shared objects
   attorneyQuote,
   ctaLink,

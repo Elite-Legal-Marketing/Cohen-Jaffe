@@ -133,6 +133,15 @@ export const HOME_PAGE_QUERY = defineQuery(`
       closingHeading,
       closingLead,
       closingCta{ label, href }
+    },
+    community{
+      eyebrow,
+      heading,
+      featureLabel,
+      featureHeading,
+      featureBody,
+      featureLink{ label, href },
+      cta{ label, href }
     }
   }
 `);
@@ -266,5 +275,69 @@ export const THANK_YOU_PAGE_QUERY = defineQuery(`
     readLead,
     readPrimary{ label, href },
     readSecondary{ label, href }
+  }
+`);
+
+/**
+ * The charities and clubs the firm supports.
+ *
+ * Ordered here rather than at render, unlike the homepage band's first pass:
+ * both surfaces want the same alphabetical order, so it is the query's job.
+ *
+ * ⚠️ `lower(name)`, NOT `name`. GROQ's `order()` is CASE-SENSITIVE, so every
+ * capital sorts ahead of every lowercase letter: on a plain `order(name asc)`
+ * "CMSA Long Island" lands between "Blue Knights" and "Center for
+ * Developmental Disabilities", because it compares "M" against "e". It shows up
+ * the moment one name is an acronym and looks like a random misfiling rather
+ * than a sort rule. Both surfaces read this query, so fixing it here fixes it
+ * in both places.
+ *
+ * `note` is projected even though the homepage band never prints it — one query
+ * for two surfaces is worth more than the ~1 KB the band discards, and a second
+ * near-identical query is a second thing to keep in step.
+ */
+export const ORGANIZATIONS_QUERY = defineQuery(`
+  *[_type == "organization"] | order(lower(name) asc){
+    _id,
+    name,
+    href,
+    note
+  }
+`);
+
+/**
+ * `/about/our-community/` — the whole page.
+ *
+ * The ORGANIZATIONS are not here: they are a collection, fetched separately by
+ * `ORGANIZATIONS_QUERY`, because the same twenty feed the homepage band too.
+ *
+ * `introQuote.attorney` is dereferenced for name, role and portrait — house
+ * rule 8, and it replaces a hand-rolled query that fetched Richard Jaffe by id
+ * because the hardcoded version had nowhere to put a reference. The live site
+ * calls him "founding partner" in the very sentence quoted on this page while
+ * the Studio has him as Managing Partner, so reading the role rather than
+ * typing it is what stops the page contradicting his bio.
+ */
+export const COMMUNITY_PAGE_QUERY = defineQuery(`
+  *[_id == "communityPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    introHeading,
+    introBody,
+    introQuote{
+      text,
+      attorney->{ name, role, portrait }
+    },
+    introQuoteBody,
+    orgsEyebrow,
+    orgsHeading,
+    orgsLead,
+    memorialEyebrow,
+    memorialHeading,
+    memorialBody,
+    memorialQuote,
+    memorialNote,
+    memorialLink{ label, href }
   }
 `);

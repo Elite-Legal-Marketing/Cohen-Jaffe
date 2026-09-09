@@ -6,6 +6,7 @@ import { FolderIcon } from "@sanity/icons/Folder";
 import { CheckmarkCircleIcon } from "@sanity/icons/CheckmarkCircle";
 import { EnvelopeIcon } from "@sanity/icons/Envelope";
 import { HelpCircleIcon } from "@sanity/icons/HelpCircle";
+import { HeartIcon } from "@sanity/icons/Heart";
 import { HomeIcon } from "@sanity/icons/Home";
 import { PlayIcon } from "@sanity/icons/Play";
 import { StarIcon } from "@sanity/icons/Star";
@@ -33,6 +34,7 @@ import { UsersIcon } from "@sanity/icons/Users";
 const SINGLETONS = [
   "homePage",
   "faqsPage",
+  "communityPage",
   "thankYouPage",
   "firmDetails",
   "contactSection",
@@ -50,6 +52,7 @@ const LISTED = [
   "videoReview",
   "review",
   "faq",
+  "organization",
 ] as const;
 
 /** A singleton list item: fixed id, so there is only ever one document. */
@@ -77,6 +80,7 @@ export const structure: StructureResolver = (S) =>
             .items([
               singleton(S, "homePage", "Homepage", HomeIcon),
               singleton(S, "faqsPage", "FAQs", HelpCircleIcon),
+              singleton(S, "communityPage", "Our Community", HeartIcon),
               singleton(S, "thankYouPage", "Thank You", CheckmarkCircleIcon),
             ]),
         ),
@@ -139,6 +143,14 @@ export const structure: StructureResolver = (S) =>
               // own search is how anyone finds one. Eighteen per-category
               // sub-lists is the `/studio-polish` option if editors ask for it.
               S.documentTypeListItem("faq").title("FAQs").icon(HelpCircleIcon),
+
+              // The charities and clubs the firm supports. Read by two
+              // surfaces — the homepage band and /about/our-community/ — and
+              // both sort alphabetically at render, so there is no order to
+              // maintain here either.
+              S.documentTypeListItem("organization")
+                .title("Organizations")
+                .icon(HeartIcon),
             ]),
         ),
 

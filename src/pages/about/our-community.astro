@@ -1,0 +1,587 @@
+---
+/**
+ * `/about/our-community/` — the firm's community involvement.
+ *
+ * Built from `CJ - Community.dc.html`, MINUS four of its eight sections. The
+ * sibling board `CJ - Community Involvement.dc.html` draws the same page
+ * differently and is NOT the reference; if someone asks why the page does not
+ * match "the community board", that is which one they mean.
+ *
+ * ⚠️ FOUR SECTIONS WERE CUT ON THE CLIENT'S INSTRUCTION (2026-09-09), and the
+ * reasons are worth keeping so nobody restores them from the board:
+ *
+ *   Photo hero    replaced by the `/faqs/` hero. Interior pages get ONE hero
+ *                 treatment, and it is not a photograph.
+ *   Breadcrumb    removed site-wide, a decision already taken on 2026-09-08 —
+ *                 `/faqs/` records it too. This page reintroduced one from the
+ *                 board by mistake. There are no breadcrumbs on this site.
+ *   Showcase      the three-card row. It claimed "free legal clinics" and
+ *                 printed "know your rights" guides, neither of which appears
+ *                 anywhere on the live site or in the 217-page mirror, and its
+ *                 three photographs were AI renderings carrying invented
+ *                 signage ("COMMUNITY LEGAL AID", "FREE LEGAL RESOURCES",
+ *                 and a board reading "COMMUNITY LAW PARTNERS", which is not
+ *                 the firm's name). The assets are deleted, not orphaned.
+ *   Stats + quote the four claims were a THIRD copy of the homepage's, and the
+ *                 closing quote was unsourced and attributed to Stephen Cohen.
+ *
+ * The URL is the live one. `/about/our-community/` is indexed, it is what
+ * `navigation.ts` already carries, and it is where the homepage band's button
+ * points — this page is what stops that link 404ing.
+ *
+ * What remains: hero, intro, organizations, memorial.
+ *
+ * ⚠️ THE SCHOLARSHIP BAND WAS CUT TOO (2026-09-09). The live
+ * `/about/community-scholarship/` page closed applications on 12 June 2026, so
+ * the band was advertising a contest nobody can enter; that URL now redirects
+ * here in `vercel.json` and its nav item is gone. ⚠️ THE LIVE PAGE STILL SAYS
+ * "Each year" — if a 2027 round opens, the redirect and the nav item both have
+ * to come back, and this band with them.
+ *
+ * Cutting it also removed the last of the board's fabricated photographs, the
+ * "Scholarship Certificate" made out to a person who does not exist. There are
+ * now no invented images on this page.
+ *
+ * ⚠️ EVERYTHING HERE IS HARDCODED EXCEPT THE ORGANIZATIONS AND THE ONE
+ * ATTRIBUTION. AGENTS.md, "Building sections": build it, approve it, then
+ * model it. The constants below are shaped the way the projections will return
+ * them.
+ */
+import { sanityClient } from "sanity:client";
+
+import Layout from "../../layouts/Layout.astro";
+import { urlFor } from "../../lib/image";
+import RichText from "../../components/RichText.astro";
+import { COMMUNITY_PAGE_QUERY, ORGANIZATIONS_QUERY } from "../../lib/queries";
+import type {
+  COMMUNITY_PAGE_QUERY_RESULT,
+  ORGANIZATIONS_QUERY_RESULT,
+} from "../../sanity/sanity.types";
+
+
+const [organizations, page] = await Promise.all([
+  sanityClient.fetch<ORGANIZATIONS_QUERY_RESULT>(ORGANIZATIONS_QUERY),
+  sanityClient.fetch<COMMUNITY_PAGE_QUERY_RESULT>(COMMUNITY_PAGE_QUERY),
+]);
+
+/**
+ * The attorney behind the intro quote, dereferenced by the query — house rule
+ * 8, so the name and role come from their bio and cannot go stale here.
+ */
+const quoteAttorney = page?.introQuote?.attorney;
+
+/**
+ * The organizations, split into the board's three cards.
+ *
+ * ⚠️ THE BOARD'S CATEGORY HEADINGS ARE NOT HERE, and their absence is the
+ * decision. The board labels its three cards "Children & families", "Health &
+ * awareness" and "Veterans & first responders" — but those were drawn against
+ * the client's own list of organizations, and the fifteen we publish come from
+ * the live page instead (the client's call, 2026-09-09). The two lists overlap
+ * on FOUR entries. An arts centre, a film festival and a running club belong
+ * to none of the three headings, so filling them would mean inventing a
+ * taxonomy to justify a label.
+ *
+ * What survives is the board's SHAPE: three cards, five to a card, in the
+ * query's alphabetical order — so the columns read down and then across, the
+ * way a single list would if you cut it in three.
+ */
+const COLUMNS = 3;
+const perColumn = Math.ceil(organizations.length / COLUMNS);
+const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
+  organizations.slice(i * perColumn, (i + 1) * perColumn),
+).filter((column) => column.length > 0);
+---
+
+{/* ⚠️ EVERY SECTION DECLARES ITS OWN GROUND, and they alternate deliberately
+    (client, 2026-09-09): forest-deep hero, sand, cream, sand, then the footer's
+    forest gradient. No two neighbours share a background. `surface-cream` on
+    the causes band is the page default and therefore redundant — it is written
+    anyway so the alternation can be read off the markup instead of inferred
+    from what is missing, which is how the intro and the causes band came to be
+    the same colour in the first place. Inserting a section means re-checking
+    its two neighbours. */}
+<Layout
+  title={page?.heading ?? "Our Community Focus"}
+  description={page?.lead ?? undefined}
+>
+  <section class="page-hero surface-forest-deep">
+    <div class="container">
+      <div class="page-hero__copy">
+        <p class="eyebrow">{page?.eyebrow}</p>
+        <h1 class="page-hero__title">{page?.heading}</h1>
+        <p class="page-hero__lead">{page?.lead}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="intro section surface-sand" aria-labelledby="intro-heading">
+    <div class="container intro__grid">
+      {/* ⚠️ NO KICKER HERE — "Why we show up" is the HERO's kicker now. Two
+          children, so the quote card and the heading are both in the grid's
+          only row and their tops line up with no placement rules at all. The
+          three-child, two-row structure this replaced existed solely to push
+          the card past a kicker that is no longer here; `.memorial__panel`
+          still needs it, and still has it. */}
+      <div class="intro__copy">
+        <h2 id="intro-heading" class="intro__heading">{page?.introHeading}</h2>
+        {/* `.prose` carries the paragraph rhythm — the reset zeroes margins,
+            and this is authored long-form rather than a designed stack. */}
+        {page?.introBody && <RichText class="intro__body" value={page.introBody} />}
+      </div>
+
+      <figure class="quote-card">
+        <blockquote class="quote-card__lead">“{page?.introQuote?.text}”</blockquote>
+        {page?.introQuoteBody && <p class="quote-card__body">“{page.introQuoteBody}”</p>}
+        {
+          quoteAttorney && (
+            <figcaption class="quote-card__by">
+              {quoteAttorney.portrait && (
+                <img
+                  class="quote-card__portrait"
+                  src={urlFor(quoteAttorney.portrait).width(128).height(128).url()}
+                  alt=""
+                  width="64"
+                  height="64"
+                  loading="lazy"
+                />
+              )}
+              <span>
+                <span class="quote-card__name">{quoteAttorney.name}</span>
+                {quoteAttorney.role && (
+                  <span class="eyebrow eyebrow--bare quote-card__role">{quoteAttorney.role}</span>
+                )}
+              </span>
+            </figcaption>
+          )
+        }
+      </figure>
+    </div>
+  </section>
+
+  <section class="causes section surface-cream" aria-labelledby="causes-heading">
+    <div class="container">
+      <header class="causes__head">
+        <div>
+          <p class="eyebrow">{page?.orgsEyebrow}</p>
+          <h2 id="causes-heading" class="causes__heading">{page?.orgsHeading}</h2>
+        </div>
+        <p class="causes__lead">{page?.orgsLead}</p>
+      </header>
+
+      <div class="causes__grid">
+        {
+          organizationColumns.map((column) => (
+            <ul class="causes__card" role="list">
+              {column.map((org) => (
+                <li class="cause">
+                  <p class="cause__name">
+                    {org.href ? (
+                      <a href={org.href} target="_blank" rel="noopener noreferrer">
+                        {org.name}
+                      </a>
+                    ) : (
+                      org.name
+                    )}
+                  </p>
+                  {org.note && <p class="cause__note">{org.note}</p>}
+                </li>
+              ))}
+            </ul>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="memorial section surface-sand" aria-labelledby="memorial-heading">
+    <div class="container">
+      {/* Same three-child, two-row structure as the intro, and for the same
+          reason: the pull quote lines up with the heading, not with the
+          "In memoriam" kicker above it. */}
+      <div class="memorial__panel">
+        <p class="eyebrow eyebrow--bare memorial__eyebrow">{page?.memorialEyebrow}</p>
+
+        <div class="memorial__copy">
+          <h2 id="memorial-heading" class="memorial__heading">{page?.memorialHeading}</h2>
+          <p class="memorial__body">{page?.memorialBody}</p>
+        </div>
+
+        <div class="memorial__aside">
+          <p class="memorial__quote">{page?.memorialQuote}</p>
+          <hr class="memorial__rule" />
+          <p class="memorial__note">{page?.memorialNote}</p>
+          {
+            page?.memorialLink?.href && (
+              <p class="memorial__link">
+                <a
+                  class="link-arrow"
+                  href={page.memorialLink.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {page.memorialLink.label}
+                  <span class="arrow" aria-hidden="true">→</span>
+                </a>
+              </p>
+            )
+          }
+        </div>
+      </div>
+    </div>
+  </section>
+
+</Layout>
+
+<style>
+  /* --- Hero ----------------------------------------------------------------
+
+     ⚠️ THIS IS THE `/faqs/` HERO, COPIED. The photo band the board draws was
+     replaced on the client's instruction (2026-09-09): interior pages get one
+     hero treatment, and this is it — forest-deep, no photograph, copy at the
+     container's left.
+
+     ⚠️ COPIED RATHER THAN SHARED, and that is a liability worth naming. Two
+     pages now carry these rules verbatim, including the tablet override and
+     its measured `* 1.5`. The repo's own bar for promotion is the second
+     consumer — `.toggle` came out of `About.astro` at exactly this point — so
+     this belongs in `global.css` as `.page-hero`. Not done here because it
+     means editing a shipped page; raised.
+   */
+
+  .page-hero {
+    display: flex;
+    align-items: center;
+    min-height: 420px;
+    padding-block: var(--space-xl);
+  }
+
+  .page-hero__copy {
+    max-width: 1000px;
+  }
+
+  .page-hero__title {
+    font-family: var(--font-heading);
+    font-weight: var(--fw-regular);
+    font-size: var(--fs-page-title);
+    line-height: var(--lh-tight);
+    letter-spacing: var(--ls-display);
+    color: var(--on-dark);
+    text-wrap: balance;
+    margin-block-end: var(--space-22);
+  }
+
+  .page-hero__lead {
+    font-size: var(--fs-lead);
+    line-height: var(--lh-lead);
+    color: var(--on-dark-80);
+    max-width: var(--container-prose);
+    text-wrap: pretty;
+  }
+
+  /* --- Intro --------------------------------------------------------------- */
+
+  .intro__grid {
+    display: grid;
+    grid-template-columns: 1fr 640px;
+    gap: var(--space-xl);
+    align-items: start;
+  }
+
+  .intro__heading {
+    font-size: var(--fs-52);
+    line-height: var(--lh-tight);
+    margin-block-end: var(--space-28);
+  }
+
+  /* ⚠️ `:global`, because this class rides on `RichText`'s root element and a
+     component's own markup does not carry this page's scope attribute — a
+     plain `.intro__body` rule compiles to `.intro__body[data-astro-cid-…]` and
+     silently matches nothing. The paragraph rhythm itself comes from `.prose`,
+     which `RichText` always emits; this only sets the size the section wants. */
+  .intro__body :global(p) {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+  }
+
+  .quote-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-block-start: 3px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: var(--space-40) var(--space-44);
+  }
+
+  .quote-card__lead {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: var(--fs-28);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+    margin-block-end: var(--space-24);
+  }
+
+  .quote-card__body {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    margin-block-end: var(--space-24);
+  }
+
+  .quote-card__by {
+    display: flex;
+    align-items: center;
+    gap: var(--space-18);
+    padding-block-start: var(--space-22);
+    border-block-start: 1px solid var(--border);
+  }
+
+  .quote-card__portrait {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-full);
+    object-fit: cover;
+    object-position: 50% 18%;
+    flex: none;
+  }
+
+  .quote-card__name {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: var(--fs-24);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+  }
+
+  .quote-card__role {
+    display: block;
+    font-size: var(--fs-meta);
+    margin-block: var(--space-4) 0;
+  }
+
+  /* --- Causes -------------------------------------------------------------- */
+
+  .causes__head {
+    display: grid;
+    grid-template-columns: 1fr 700px;
+    gap: var(--space-xl);
+    align-items: end;
+    padding-block-end: var(--space-md);
+    border-block-end: 1px solid var(--border-strong);
+    margin-block-end: var(--space-lg);
+  }
+
+  .causes__heading {
+    font-size: var(--fs-52);
+    line-height: var(--lh-tight);
+    margin-block-end: 0;
+  }
+
+  .causes__lead {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--muted-2);
+  }
+
+  .causes__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-20);
+  }
+
+  .causes__card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-22);
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-md);
+  }
+
+  .cause__name {
+    font-family: var(--font-heading);
+    font-size: var(--fs-23);
+    line-height: var(--lh-snug);
+    color: var(--color-heading);
+    margin-block-end: var(--space-6);
+  }
+
+  /* Same fade-up underline as every other link on the site:
+     `text-decoration-line` cannot be transitioned, so it is declared at rest
+     with a transparent colour and the COLOUR is what animates. */
+  .cause__name a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: transparent;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .cause__name a:hover {
+    color: var(--gold-ink);
+    text-decoration-color: currentColor;
+  }
+
+  .cause__note {
+    font-size: var(--fs-small);
+    line-height: var(--lh-small);
+    color: var(--muted);
+  }
+
+  /* --- Memorial ------------------------------------------------------------ */
+
+  /* `column-gap` only — see the note on `.intro__grid`. */
+  .memorial__panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: var(--space-xl);
+    align-items: start;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-block-start: 3px solid var(--gold);
+    border-radius: var(--radius-lg);
+    padding: var(--space-60) var(--space-80);
+  }
+
+  .memorial__eyebrow {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .memorial__copy {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .memorial__aside {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .memorial__eyebrow {
+    margin-block-end: var(--space-18);
+  }
+
+  /* ⚠️ `--fs-46` DOES NOT EXIST. The ramp steps 42 -> 48 and the board sets
+     these two panel headings at 46, so this is the nearest real token rather
+     than an invented one — an undefined custom property falls back silently to
+     the inherited size, which is how a heading ends up at body size with no
+     error anywhere. A one-page token was the alternative and is not worth a
+     2px difference at the desktop end. */
+  .memorial__heading {
+    font-size: var(--fs-48);
+    line-height: var(--lh-heading);
+    margin-block-end: var(--space-22);
+  }
+
+  .memorial__body {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    text-wrap: pretty;
+  }
+
+  .memorial__quote {
+    font-family: var(--font-heading);
+    font-style: italic;
+    font-size: var(--fs-26);
+    line-height: var(--lh-card);
+    color: var(--color-heading);
+  }
+
+  .memorial__rule {
+    border: 0;
+    border-block-start: 1px solid var(--border);
+    margin-block: var(--space-26);
+  }
+
+  .memorial__note {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    color: var(--muted-2);
+  }
+
+  .memorial__link {
+    margin-block-start: var(--space-26);
+  }
+
+  /* --- Responsive -----------------------------------------------------------
+     Structure only; type and spacing already ramp through clamp(). */
+
+  /* The 420px floor and the full `--space-xl` are drawn for a board where the
+     heading sits on one line; below tablet it wraps and the floor stops doing
+     anything, so the padding would stack on copy that is already tall. The
+     `* 1.5` is the measured middle `/faqs/` arrived at — see its docblock for
+     why it is deliberately larger than the desktop padding. */
+  @media (max-width: 1023px) {
+    .page-hero {
+      min-height: 0;
+      padding-block: calc(var(--space-lg) * 1.5);
+    }
+  }
+
+  @media (max-width: 639px) {
+    .page-hero {
+      padding-block: calc(var(--space-md) * 1.5);
+    }
+  }
+
+  /* ⚠️ EXPLICIT PLACEMENT MUST BE UNDONE WHEN THE GRID COLLAPSES. Leaving
+     `grid-row: 2` on the card in a one-column grid parks it beside the copy in
+     a phantom second column and leaves row 1 half empty. `auto` hands the
+     three children back to normal flow order, and the row gap comes back
+     because the heading's margin no longer separates two columns. */
+  @media (max-width: 1279px) {
+    .intro__grid,
+    .causes__head {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+
+    .memorial__panel {
+      padding: var(--space-md);
+    }
+  }
+
+  @media (max-width: 1023px) {
+    .memorial__panel {
+      grid-template-columns: 1fr;
+      gap: var(--space-lg);
+    }
+
+    .memorial__eyebrow,
+    .memorial__copy,
+    .memorial__aside {
+      grid-column: 1;
+      grid-row: auto;
+    }
+
+    /* ⚠️ ROW GAP 0, AND THE ASIDE CARRIES ITS OWN. In one column the grid's
+       row gap ADDS to the kicker's own margin, so "In memoriam" sat 54px off
+       its heading where the design wants 18 — margin doubling against gap,
+       arriving through a responsive collapse rather than a component. Zeroing
+       the kicker instead would lose the tight kicker-to-heading pairing, so
+       the gap moves to the one place that needs it.
+
+       The intro used to carry the same pair of rules. It no longer needs them:
+       its kicker moved to the hero, so its grid is a plain single row. */
+    .memorial__panel {
+      row-gap: 0;
+    }
+
+    .memorial__aside {
+      margin-block-start: var(--space-lg);
+    }
+  }
+
+  @media (max-width: 767px) {
+    .causes__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .quote-card {
+      padding: var(--space-md);
+    }
+  }
+</style>
