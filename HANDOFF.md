@@ -489,29 +489,26 @@ or the Studio offers a "create new" beside it.
 5. **Two organizations link to Facebook** because the live page has no other target.
 6. ⚠️ **`.page-hero` is copied from `/faqs/`, not shared.** Two consumers; it belongs in
    `global.css`.
-7. **`RichText.astro`'s docblock is wrong.** It claims "`.prose` also caps the measure at
-   ~68 characters"; `global.css` says explicitly *"No measure cap: `.prose` fills whatever
-   column it is given"*, and computed `max-width` is `none`. One line, in a shipped file.
-8. ⚠️ **The scholarship redirect assumes the contest is retired.** The live page still says
+7. ⚠️ **The scholarship redirect assumes the contest is retired.** The live page still says
    "Each year". See the dependency above.
-9. **The FAQs page quote is unsourced** and attributed to Richard Jaffe. Now a Studio edit.
+8. **The FAQs page quote is unsourced** and attributed to Richard Jaffe. Now a Studio edit.
    Same for **"Our goals"**.
-10. **"Millions / Recovered"** has no figure behind it. The ledger holds 60 real recoveries.
-11. **The 110 `tel:` links** baked into FAQ answers.
-12. **Should any FAQ categories be combined?** The rail mixes how it happened, what was
+9. **"Millions / Recovered"** has no figure behind it. The ledger holds 60 real recoveries.
+10. **The 110 `tel:` links** baked into FAQ answers.
+11. **Should any FAQ categories be combined?** The rail mixes how it happened, what was
     injured, and which department. The two defensible merges are Slip and Fall Injury →
     Premises Liability and Neck Injuries (1) → Personal Injury. **"Personal Injury" is
     functionally "everything else"** and might be better named "General".
-13. **Google Business Profile API access** — a client action, 3-10 business days.
-14. **Real reviews** for the 22 placeholders, **real client videos** for all four
+12. **Google Business Profile API access** — a client action, 3-10 business days.
+13. **Real reviews** for the 22 placeholders, **real client videos** for all four
     `videoReview` documents.
-15. **Case results needs real names, quotes, photographs and insurer-offer figures.**
-16. **Two attorneys carry a placeholder video** (`c6b0eghb5r`). A play button over a named
+14. **Case results needs real names, quotes, photographs and insurer-offer figures.**
+15. **Two attorneys carry a placeholder video** (`c6b0eghb5r`). A play button over a named
     attorney's portrait is a promise the video is of that attorney.
-17. **Nine practice-area URLs need confirming live.**
-18. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
+16. **Nine practice-area URLs need confirming live.**
+17. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
     form's "contact me in Spanish" checkbox **presumes someone acts on it**.
-19. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
+18. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
     allow.
 
 ## What's next
