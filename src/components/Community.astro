@@ -1,0 +1,422 @@
+---
+/**
+ * Homepage "In the community" band — a mosaic of community photographs beside
+ * one text card about the Reagan and Jax Cohen Memorial Fund, over a strip of
+ * the organizations the firm supports.
+ *
+ * From `Cohen & Jaffe Homepage v1.dc.html` markup 678-706, the section between
+ * the FAQ band and the blog band.
+ *
+ * ⚠️ CONTENT IS HARDCODED ON PURPOSE. AGENTS.md → "Building sections": build it,
+ * approve it, then model it. `COMMUNITY` below is shaped the way the GROQ
+ * projection will return it, so wiring is a swap from this constant to a prop
+ * rather than a rewrite.
+ *
+ * ⚠️ THE SEVEN PHOTOGRAPHS DO NOT EXIST YET. `.community__tile` is scaffolding
+ * — a flat `--border-deep` block with a label — and the whole `PHOTO_SLOTS`
+ * array plus its three CSS rules come OUT when the firm supplies the images.
+ * The artboard tints its seven placeholders four slightly different greys;
+ * that is deliberately not carried over. Four one-off hexes would have to be
+ * deleted later anyway, and one flat colour reads unmistakably as "photos to
+ * come" where four subtly different ones read as a design.
+ */
+const COMMUNITY = {
+  eyebrow: "In the community",
+  heading: "We're from here.",
+  feature: {
+    label: "The Reagan and Jax Cohen Memorial Fund",
+    heading: "A promise Stephen made to his grandchildren.",
+    body: "In 2014, founding partner Stephen Cohen lost his two young grandchildren. The fund in their names supports organizations working for the health of children.",
+    /* The fund's OWN site, which is what the live `/about/our-community/` page
+       links these words to (verified 200). Not `/about/our-community/` — the
+       section's own button already goes there, and a memorial to the founder's
+       grandchildren should not point at the firm's marketing page. The one
+       outbound link on the homepage, and correctly so. */
+    link: { label: "About the fund", href: "https://www.reaganjax.memorial/" },
+  },
+  /**
+   * ⚠️ EVERY NAME AND EVERY URL HERE IS TAKEN FROM THE LIVE
+   * `/about/our-community/` PAGE. That is the rule for this strip, set
+   * 2026-09-09, and it is why there are fifteen names and not the artboard's
+   * sixteen: the board also lists "Cystic Fibrosis Foundation", which appears
+   * nowhere on that page and nowhere in the 217-page SiteSucker mirror. An
+   * unsourced claim that the firm supports a named real charity is the same
+   * failure as the invented pull quotes cut from "Our goals" and the
+   * practice-areas band — on legal advertising, worse.
+   *
+   * Where the board abbreviates a name the live page writes out ("NY Bully
+   * Crew", "LI International Film Expo", "Fighters of Fire Toy Run"), the live
+   * page's form wins.
+   *
+   * The array below is in the board's order; the STRIP renders alphabetically —
+   * see `ORGANIZATIONS` under it. The two are kept separate so this list stays
+   * diffable against the board and against the live page, which is what it has
+   * to be checked against.
+   *
+   * ⚠️ `href` IS OPTIONAL, AND ONE ITEM HAS NONE. The live page names Tuberous
+   * Sclerosis Alliance in running text without linking it, so it renders as
+   * plain text here. Guessing `tsalliance.org` would be inventing a source; an
+   * unlinked name is merely quieter than its neighbours.
+   *
+   * Every URL was requested and returns 200. Four notes:
+   *   - Cinema Arts Centre is the ONE URL rewritten. The mirror's
+   *     `/about-us/mission/` now 404s — the site restructured — so this is the
+   *     live page that path was reorganised into, which keeps the mirror's
+   *     intent (their mission page) without shipping a dead link.
+   *   - Hicksville American Soccer Club and the Film Expo are written `http://`
+   *     on the live page and both 301 to `https://`. Stored as https, so the
+   *     link does not spend a redirect arriving somewhere the browser would
+   *     have gone anyway.
+   *   - Patriot Guard and the Film Expo answer 406 to a plain `curl` and 200 to
+   *     a browser. That is a bot filter, not a broken link.
+   *   - Blue Knights and Fighters of Fire have no site of their own; the live
+   *     page links both to Facebook, so these do too.
+   *
+   * Two names are NOT the mirror's exact string, both deliberately:
+   *   - "Friends of Jaclyn Foundation" — the mirror types "Jacklyn". The charity
+   *     is Friends of Jaclyn, named for Jaclyn Murphy, and the firm's own
+   *     content notes spell it Jaclyn. Two sources against one typo. (The URL
+   *     the mirror links, friendsofjaclyn.org, spells it correctly too.)
+   *   - "Syosset Baseball" — the mirror types "Syosset Baseball Assocation"
+   *     [sic]. The board's short form carries neither the typo nor a guess at
+   *     the correction.
+   */
+  organizations: [
+    { name: "Patriot Guard", href: "https://pgrny.org/index.php/about-us" },
+    { name: "Center for Developmental Disabilities", href: "https://www.centerfordd.org/" },
+    { name: "Long Island ABATE", href: "https://longislandabate.org/" },
+    { name: "Blue Knights", href: "https://www.facebook.com/profile.php?id=61559472040893" },
+    { name: "Tuberous Sclerosis Alliance" },
+    { name: "New York Bully Crew", href: "https://www.nybullycrew.org/" },
+    { name: "Greater Long Island Running Club", href: "https://www.glirc.org/who-we-are" },
+    { name: "Syosset Baseball", href: "https://www.syossetbaseball.org/" },
+    { name: "Hicksville American Soccer Club", href: "https://hicksvillesoccerclub.com/about" },
+    { name: "Huntington Tri-Village Little League", href: "https://www.htvlittleleague.org/" },
+    { name: "Cinema Arts Centre", href: "https://cinemaartscentre.org/about-us/mission-history" },
+    { name: "Long Island International Film Expo", href: "https://longislandfilm.com/" },
+    { name: "Friends of Jaclyn Foundation", href: "https://friendsofjaclyn.org/" },
+    { name: "Babylon Breast Cancer Coalition", href: "https://babylonbreastcancer.org/" },
+    { name: "Fighters of Fire Motorcycle Club", href: "https://www.facebook.com/profile.php?id=61550973894643" },
+  ] as { name: string; href?: string }[],
+  cta: { label: "More ways we show up", href: "/about/our-community/" },
+};
+
+/**
+ * The seven placeholder tiles, in the artboard's order, named by shape rather
+ * than by span so the CSS carries the numbers.
+ *
+ * These spans tile a 4-wide x 3-tall block EXACTLY (2 + 1 + 1x2 + 1 + 2 + 2 + 2
+ * = twelve cells), which is the whole reason the tablet layout below can drop
+ * the card to its own row and reuse these spans untouched on a 4-column grid.
+ * Changing one shape breaks both layouts.
+ */
+const PHOTO_SLOTS = ["wide", "", "tall", "", "wide", "wide", "wide"] as const;
+
+/**
+ * The strip, alphabetised.
+ *
+ * Sorted here rather than authored in order, for the same reason the FAQ hub's
+ * category rail is sorted at render: an ordering that is a RULE cannot be got
+ * wrong by the next person to add a name, and when this moves to Sanity the
+ * whole thing becomes `| order(name asc)` in the query rather than a column of
+ * drag handles an editor has to keep sorted by hand.
+ *
+ * `localeCompare` and not `<`: a plain comparison sorts by code unit, which is
+ * fine for these fifteen and wrong the first time a name arrives with an accent
+ * or a leading article.
+ */
+const ORGANIZATIONS = [...COMMUNITY.organizations].sort((a, b) =>
+  a.name.localeCompare(b.name),
+);
+---
+
+<section class="community section surface-sand" aria-labelledby="community-heading">
+  <div class="container">
+    <header class="community__head">
+      <p class="eyebrow eyebrow--center">{COMMUNITY.eyebrow}</p>
+      {/* The h2's own 0.5em is zeroed — this header owns the gap to the mosaic. */}
+      <h2 id="community-heading">{COMMUNITY.heading}</h2>
+    </header>
+
+    <div class="community__grid">
+      <article class="community__card">
+        {/* `--bare`, not the plain `.eyebrow`: the dash means "a section starts
+            here", and this labels a card inside one that has already started. */}
+        <p class="eyebrow eyebrow--bare community__card-label">
+          {COMMUNITY.feature.label}
+        </p>
+        <h3 class="community__card-heading">{COMMUNITY.feature.heading}</h3>
+        <p class="community__card-body">{COMMUNITY.feature.body}</p>
+        <p>
+          <a
+            class="link-arrow"
+            href={COMMUNITY.feature.link.href}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {COMMUNITY.feature.link.label}
+            <span class="arrow" aria-hidden="true">→</span>
+          </a>
+        </p>
+      </article>
+
+      {
+        /* `aria-hidden`, because a placeholder is not content — without it a
+           screen reader reads "Community photo" seven times for nothing. It
+           comes off with the scaffolding, when each tile becomes an <img> with
+           a real alt. */
+        PHOTO_SLOTS.map((shape) => (
+          <div
+            class:list={["community__tile", shape && `community__tile--${shape}`]}
+            aria-hidden="true"
+          >
+            <span class="community__tile-label">Community photo</span>
+          </div>
+        ))
+      }
+    </div>
+
+    {/* A <ul>: it is a list of organizations, and the middots are drawn by CSS
+        so they are never read aloud between the names. */}
+    <ul class="community__orgs">
+      {
+        ORGANIZATIONS.map((org) => (
+          <li>
+            {org.href ? (
+              <a href={org.href} target="_blank" rel="noopener noreferrer">
+                {org.name}
+              </a>
+            ) : (
+              org.name
+            )}
+          </li>
+        ))
+      }
+    </ul>
+
+    <div class="community__actions">
+      {/* No arrow in the label. Site-wide rule (AGENTS.md, 2026-09-08): a button
+          already says it goes somewhere with its whole shape. The artboard draws
+          one inside this button; `.btn .arrow { display: none }` in global.css
+          is the guard, but the fix is to leave it out of the markup. */}
+      <a class="btn btn--green" href={COMMUNITY.cta.href}>{COMMUNITY.cta.label}</a>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* --- Head ---------------------------------------------------------------- */
+
+  .community__head {
+    text-align: center;
+    margin-block-end: var(--space-32);
+  }
+
+  .community__head h2 {
+    margin-block-end: 0;
+  }
+
+  /* --- The mosaic ---------------------------------------------------------- */
+
+  /* The artboard's six columns on fixed 150px rows, with one change: the rows
+     are a MINIMUM rather than a fixed height.
+
+     At 1660 the card has ~370px of content in a 462px box and fits. At 1280 the
+     same copy needs ~390px in a 357px box and overflows — the column narrows
+     faster than the row height does. `minmax(_, auto)` lets the three rows the
+     card spans grow together, and because the tiles occupy exactly those three
+     rows the mosaic stays aligned instead of breaking. A fixed height here is
+     the bug; the fluid row is the fix. */
+  .community__grid {
+    --community-row: clamp(110px, 9vw, 150px);
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    grid-auto-rows: minmax(var(--community-row), auto);
+    gap: var(--space-6);
+    margin-block-end: var(--space-28);
+  }
+
+  .community__card {
+    grid-column: span 2;
+    grid-row: span 3;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* The card is the one WHITE thing on a sand section — cream, per the token
+       block's "cream is the page, sand is the alternating section, white is the
+       card"; the artboard sets it #f8f4ec, which is cream, not white. */
+    background: var(--cream);
+    /* 48px at the desktop end, compressing to 28 — the artboard's 48/44 with a
+       mobile floor. There is no --space-48 step, and this padding should shrink
+       with the viewport anyway. */
+    padding: var(--space-md);
+  }
+
+  .community__card-label {
+    font-size: var(--fs-12);
+    margin-block-end: var(--space-12);
+  }
+
+  /* The artboard's 30px; the h3 default is --fs-32. */
+  .community__card-heading {
+    font-size: var(--fs-30);
+    margin-block-end: var(--space-14);
+  }
+
+  .community__card-body {
+    color: var(--muted);
+    margin-block-end: var(--space-18);
+  }
+
+  /* --- Placeholder tiles — SCAFFOLDING, delete with PHOTO_SLOTS ------------- */
+
+  .community__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--border-deep);
+  }
+
+  .community__tile--wide {
+    grid-column: span 2;
+  }
+
+  .community__tile--tall {
+    grid-row: span 2;
+  }
+
+  .community__tile-label {
+    font-family: var(--font-label);
+    font-size: var(--fs-11);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-widest);
+    text-transform: uppercase;
+    color: var(--muted);
+    line-height: var(--lh-label);
+  }
+
+  /* --- The organization strip ---------------------------------------------- */
+
+  .community__orgs {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    /* ⚠️ NOT REDUNDANT, AND THE RESET DOES NOT COVER IT. A bare <ul> still gets
+       `list-style: disc` and a 40px indent, and turning the list into a flex
+       container does NOT drop the markers: blockification leaves a `list-item`
+       a `list-item`, so every name kept a real bullet to its left. That put a
+       disc in front of "Patriot Guard" — the leading dot — with the drawn
+       middots sitting between the pairs, two separators deep.
+
+       ⚠️ AND IT SURVIVES THE OBVIOUS MEASUREMENT. An `outside` marker paints
+       beyond the li's border box, so comparing the text's left edge to the li's
+       left edge reports 0 whether or not a bullet is there. Read
+       `list-style-type` and `display` instead — a `list-item` in a flex row is
+       the tell. */
+    list-style: none;
+    padding-inline-start: 0;
+    font-family: var(--font-label);
+    font-size: var(--fs-meta);
+    font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-label);
+    text-transform: uppercase;
+    color: var(--gold-ink);
+    /* 2, above the --lh-small (1.7) the ramp would give 13px. This is the
+       deadlines band's case in reverse: sixteen tracked uppercase names wrap to
+       three or four lines here, and tracked caps have no x-height or descender
+       relief, so at 1.7 the lines read as one solid block. The artboard sets
+       26px on 13px, which is this. Local, and only because the strip wraps. */
+    line-height: 2;
+    text-align: center;
+    margin-block-end: var(--space-28);
+  }
+
+  /* The middot between names, drawn rather than typed so it is never announced.
+     The gap is split either side so the separator sits optically centred
+     between two names.
+
+     ⚠️ `::after` ON ALL BUT THE LAST — NOT `li + li::before`. A flex item
+     carries its own pseudo-element, so a separator drawn BEFORE each name
+     travels to the front of whatever line that name wraps onto: at 1660 this
+     strip runs to three lines, and two of them opened with an orphaned middot
+     floating 0.6em off the first word. Drawn AFTER, it is glued to the end of
+     the name it follows and can only ever trail a line, which is how a run-in
+     list is set. Any wrapped separator list has this bug in the `::before`
+     form; it is invisible until the row wraps. */
+  .community__orgs > li:not(:last-child)::after {
+    content: "·";
+    color: var(--gold-ink);
+    opacity: 0.5;
+    margin-inline: 0.6em;
+  }
+
+  /* The names are links to the organizations, the same targets the live
+     `/about/our-community/` page uses, and like the fund they open in a new tab
+     — this strip is a set of fifteen departures from the page, and taking a
+     reader off the homepage fifteen different ways is worse than opening a tab.
+
+     ⚠️ The underline is declared AT REST with a transparent colour and the
+     COLOUR is what animates. `text-decoration-line` cannot be transitioned, so
+     an underline that exists only in the `:hover` rule pops in regardless of
+     what the transition says — the trap that bit both phone numbers, the fee
+     band's call line and `.link-arrow`. Colour interpolation is premultiplied,
+     so it fades up from nothing rather than through a grey. */
+  .community__orgs a {
+    color: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    text-decoration-color: transparent;
+    transition: color var(--duration) var(--ease),
+      text-decoration-color var(--duration) var(--ease);
+  }
+
+  .community__orgs a:hover {
+    color: var(--ink);
+    text-decoration-color: currentColor;
+  }
+
+  .community__actions {
+    display: flex;
+    justify-content: center;
+  }
+
+  /* --- Responsive -----------------------------------------------------------
+     Structure only; type and spacing already ramp through clamp(). */
+
+  /* Below the header's own breakpoint the six-column mosaic stops working — the
+     card's two columns fall under 300px and the copy sets four words a line. The
+     card takes its own full-width row and the seven tiles keep their spans, which
+     tile a 4x3 block exactly. Nothing about the tiles is re-authored. */
+  @media (max-width: 1279px) {
+    .community__grid {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .community__card {
+      grid-column: 1 / -1;
+      grid-row: auto;
+    }
+  }
+
+  /* Two across. The spans are dropped — a `span 2` on a two-column grid is a
+     full-width band, and three of those in a row is not a mosaic. Seven tiles
+     leave an orphan on the last row, so the last one takes the full width
+     deliberately rather than sitting half-empty beside a gap. */
+  @media (max-width: 767px) {
+    .community__grid {
+      grid-template-columns: repeat(2, 1fr);
+      --community-row: 120px;
+    }
+
+    .community__tile--wide,
+    .community__tile--tall {
+      grid-column: auto;
+      grid-row: auto;
+    }
+
+    .community__tile:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

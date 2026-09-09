@@ -13,6 +13,7 @@ import Attorneys from "../components/Attorneys.astro";
 import WhyUs from "../components/WhyUs.astro";
 import CaseBanner from "../components/CaseBanner.astro";
 import FaqSection from "../components/FaqSection.astro";
+import Community from "../components/Community.astro";
 import { HOME_PAGE_QUERY } from "../lib/queries";
 import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
 
@@ -37,4 +38,7 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.whyUs && <WhyUs section={home.whyUs} />}
   {home?.caseBanner && <CaseBanner section={home.caseBanner} />}
   {home?.faqs && <FaqSection section={home.faqs} />}
+  {/* Hardcoded content until the design is approved — AGENTS.md, "Building
+      sections". No `home?.` guard because there is nothing in Sanity yet. */}
+  <Community />
 </Layout>
