@@ -1,9 +1,25 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-09 (the homepage community band, the `organization`
-collection and `/about/our-community/` — all built, modelled and seeded — on
-`hp_community`, four commits, **NOT PUSHED**)
+Last updated: 2026-09-09 (the migration tracker — `scripts/build-inventory.ts`,
+`scripts/tracker-template.html` and the published board — on `sitemap_tracking`)
+
+> ## 🗺️ The migration tracker owns state now
+>
+> **https://claude.ai/code/artifact/132be22d-3167-4080-8b5e-9950dc5fe163**
+>
+> Every live URL, what happens to it, and the open-items list. **1,658 live URLs;
+> 1,527 would 404 at launch.** Rebuild with `npm run inventory`, then republish
+> `scripts/tracker.html`.
+>
+> **This file owns knowledge; the tracker owns state. Nothing belongs in both.**
+> That boundary was drawn after this document announced "`hp_community`, four
+> commits, NOT PUSHED" in bold, three times — and was contradicted by a merge
+> commit **51 seconds later**. It failed structurally, not carelessly: a document
+> cannot record its own push. So build status is computed from `dist/` and
+> redirect status from `vercel.json`, and nobody can hand-edit either.
+>
+> **Do not add an open-questions list back to this file.** It lives in the tracker.
 
 ## ⚠️ Read this before writing any code
 
@@ -57,8 +73,12 @@ RECOGNITION and AREAS WE SERVE** — the board's last four, in that order.
 `thank-you.astro` and `about/our-community.astro` — **185 pages build**, of which 180 are
 FAQs. **`src/data/` holds `navigation.ts` alone.**
 
-⚠️ **ONE BRANCH IS IN FLIGHT AND IT IS NOT PUSHED.** `hp_community`, cut from `master`
-(`3a9fc50`), four commits. Nothing is stacked on it.
+`hp_community` was merged as PR #21 and is in `master` at `c2f4137`. Current branch is
+**`sitemap_tracking`**, which carries the migration tracker.
+
+⚠️ **185 pages is 11% of the job.** The live site publishes **1,658 URLs** and 1,527 of them
+have no page and no redirect. That gap is invisible from inside this repo, which is what the
+tracker exists to show — check it before estimating anything.
 
 Gates: `npm run build` green at **185 pages**, `npm run check:types` **0 errors (121
 files)**, `npm run typegen` **9 queries, 58 schema types**, `npx sanity documents validate
@@ -478,42 +498,35 @@ or the Studio offers a "create new" beside it.
 
 ## Open questions / waiting on the user
 
-1. ⚠️ **The contact form has no destination**, and **`/thank-you/` is not `noindex`.** An
-   indexed thank-you page turns up in search for people who never submitted anything.
-   **Neither may launch as-is.**
-2. ⚠️ **The homepage community band needs seven photographs.** It cannot be approved
-   without them.
-3. ⚠️ **"A promise Stephen made to his grandchildren."** — the board's heading on that band,
-   in no source, about a real bereavement.
-4. **The community strip is 442px over 14 lines at 375px.** Left as built.
-5. **Two organizations link to Facebook** because the live page has no other target.
-6. ⚠️ **`.page-hero` is copied from `/faqs/`, not shared.** Two consumers; it belongs in
-   `global.css`.
-7. ⚠️ **The scholarship redirect assumes the contest is retired.** The live page still says
-   "Each year". See the dependency above.
-8. **The FAQs page quote is unsourced** and attributed to Richard Jaffe. Now a Studio edit.
-   Same for **"Our goals"**.
-9. **"Millions / Recovered"** has no figure behind it. The ledger holds 60 real recoveries.
-10. **The 110 `tel:` links** baked into FAQ answers.
-11. **Should any FAQ categories be combined?** The rail mixes how it happened, what was
-    injured, and which department. The two defensible merges are Slip and Fall Injury →
-    Premises Liability and Neck Injuries (1) → Personal Injury. **"Personal Injury" is
-    functionally "everything else"** and might be better named "General".
-12. **Google Business Profile API access** — a client action, 3-10 business days.
-13. **Real reviews** for the 22 placeholders, **real client videos** for all four
-    `videoReview` documents.
-14. **Case results needs real names, quotes, photographs and insurer-offer figures.**
-15. **Two attorneys carry a placeholder video** (`c6b0eghb5r`). A play button over a named
-    attorney's portrait is a promise the video is of that attorney.
-16. **Nine practice-area URLs need confirming live.**
-17. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
-    form's "contact me in Spanish" checkbox **presumes someone acts on it**.
-18. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
-    allow.
+**Moved to the tracker** — https://claude.ai/code/artifact/132be22d-3167-4080-8b5e-9950dc5fe163
 
+All 18 of the items that used to sit here are open items there, with their detail intact,
+alongside four this survey added: the `/case-results/:slug` redirect that 301s into a 404,
+the live canonical loop on the foreign-objects pages, the 46 practice areas with no design,
+and the 81 unaccounted-for firm videos.
+
+⚠️ **Do not restore the list here.** Two documents describing the same 22 facts is exactly
+the arrangement that let this file claim a merged branch was unpushed. The tracker owns
+state; this file owns knowledge.
+
+The three that block launch outright, kept here because they are knowledge rather than
+task state:
+
+1. **The contact form has no destination** (`ENDPOINT` is `null`) and **`/thank-you/` is not
+   `noindex`**. Neither may launch as-is.
+2. **The four featured case results are fabricated artboard copy** and must be replaced with
+   genuine client stories.
+3. **22 of the 25 reviews are placeholder copy and nothing marks them.** The FOOTER
+   disclaimer is what currently covers that band.
 ## What's next
 
-1. **Push `hp_community` and open its PR.** Four commits, all gates green.
+**Sequenced against the tracker, which shows where the 1,527 unbuilt URLs actually are.**
+The homepage sections below are small; the routes underneath them are the job.
+
+1. **A practice-area detail route** — the single largest unblocking win. It clears 47 seeded
+   `practiceArea` documents that have no page today and roughly 17 dead nav/footer links at
+   once. ⚠️ **But 46 of the 47 have no design** — `CJ - Car Accidents` draws the top-level
+   car accidents page only, and a lighter default layout has to be designed first.
 2. **Four homepage sections remain unbuilt**: the blog band, contact, recognition and
    "Areas we serve", in the board's order.
 3. **`/about/testimonials/`** — `CJ - Testimonials.dc.html` approved, `caseType` exists, and

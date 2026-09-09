@@ -1,0 +1,755 @@
+<title>Cohen &amp; Jaffe Cutover Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Instrument+Sans:wght@400;500;600&family=Oswald:wght@400;500;600&family=Roboto+Condensed:wght@400;600;700&display=swap">
+
+<style>
+/* ── Tokens ───────────────────────────────────────────────────────────────
+   Palette, faces and rhythm are the Cohen & Jaffe design system from
+   src/styles/global.css, not an invention. This is an internal tool for the
+   team building that site, so it should look like it belongs to it.
+   Three semantic colours are added, because coverage state is not brand:
+   --ok / --warn / --crit. --crit is a warm brick chosen to sit inside the
+   earth palette rather than a pure alarm red fighting the gold.            */
+:root {
+  color-scheme: light;
+
+  --cream: #f8f4ec;
+  --sand: #efe8d9;
+  --ink: #24231e;
+  --body-ink: #3a382f;
+  --gold: #d9b978;
+  --gold-ink: #a97e37;
+  --gold-wash: rgba(217, 185, 120, 0.26);
+  --green: #4d5e37;
+  --forest-850: #232b19;
+  --forest-950: #1f2617;
+
+  --ok: #4d5e37;
+  --warn: #a97e37;
+  --crit: #a4472f;
+
+  --ground: var(--cream);
+  --surface: #fffdf8;
+  --surface-2: var(--sand);
+  --text: var(--body-ink);
+  --heading: var(--ink);
+  --muted: #6f6a5c;
+  --rule: #e2dac9;
+  --rule-strong: #ddd4c0;
+  --field: #fffdf8;
+
+  --font-heading: "Newsreader", "Iowan Old Style", Palatino, Georgia, serif;
+  --font-body: "Instrument Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+  --font-label: "Roboto Condensed", "Arial Narrow", sans-serif;
+  --font-figure: "Oswald", "Roboto Condensed", "Arial Narrow", sans-serif;
+
+  --gutter: clamp(16px, 3vw, 40px);
+  --radius: 3px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --ground: var(--forest-950);
+    --surface: var(--forest-850);
+    --surface-2: #29321d;
+    --text: rgba(248, 244, 236, 0.78);
+    --heading: #f8f4ec;
+    --muted: rgba(248, 244, 236, 0.52);
+    --rule: rgba(248, 244, 236, 0.16);
+    --rule-strong: rgba(248, 244, 236, 0.26);
+    --field: #1a2013;
+    --ok: #9ab87a;
+    --warn: #d9b978;
+    --crit: #dd8368;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --ground: var(--forest-950);
+  --surface: var(--forest-850);
+  --surface-2: #29321d;
+  --text: rgba(248, 244, 236, 0.78);
+  --heading: #f8f4ec;
+  --muted: rgba(248, 244, 236, 0.52);
+  --rule: rgba(248, 244, 236, 0.16);
+  --rule-strong: rgba(248, 244, 236, 0.26);
+  --field: #1a2013;
+  --ok: #9ab87a;
+  --warn: #d9b978;
+  --crit: #dd8368;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { font-family: var(--font-heading); color: var(--heading); font-weight: 400; margin: 0; text-wrap: balance; }
+
+.wrap { max-width: 1500px; margin: 0 auto; padding: 0 var(--gutter) 80px; }
+
+.eyebrow {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+.masthead {
+  border-bottom: 1px solid var(--rule-strong);
+  padding: 28px 0 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px 32px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.masthead h1 { font-size: clamp(26px, 3.4vw, 38px); line-height: 1.1; }
+.masthead .sub { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.masthead .sub code { font-family: var(--font-label); font-size: 12px; }
+
+.stamp { text-align: right; font-size: 12px; color: var(--muted); }
+.stamp b { color: var(--heading); font-weight: 500; }
+
+/* ── The headline figure ──────────────────────────────────────────────── */
+.headline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: 28px 0 0;
+}
+.fig { background: var(--surface); padding: 18px 20px 16px; }
+.fig .n {
+  font-family: var(--font-figure);
+  font-size: clamp(34px, 5vw, 52px);
+  line-height: 0.95;
+  font-variant-numeric: tabular-nums;
+  color: var(--heading);
+  display: block;
+}
+.fig.is-crit .n { color: var(--crit); }
+.fig.is-ok .n { color: var(--ok); }
+.fig .lbl { margin-top: 8px; }
+.fig .hint { font-size: 12px; color: var(--muted); margin-top: 3px; }
+
+/* ── Coverage board ───────────────────────────────────────────────────── */
+.board { margin-top: 40px; }
+.board h2 { font-size: 20px; }
+.board-note { color: var(--muted); font-size: 13px; margin: 6px 0 16px; max-width: 62ch; }
+
+.cov { display: flex; flex-direction: column; gap: 2px; }
+.cov-row {
+  display: grid;
+  grid-template-columns: minmax(120px, 200px) 1fr minmax(148px, auto);
+  gap: 14px;
+  align-items: center;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--rule);
+}
+.cov-row .name { font-family: var(--font-label); font-weight: 600; font-size: 13px; color: var(--heading); }
+.cov-bar { display: flex; height: 12px; background: var(--surface-2); overflow: hidden; }
+.cov-bar span { display: block; height: 100%; }
+.cov-bar .b-built { background: var(--ok); }
+.cov-bar .b-red { background: var(--warn); }
+.cov-bar .b-not { background: var(--crit); opacity: 0.85; }
+.cov-nums { font-family: var(--font-label); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; text-align: right; }
+.cov-nums b { color: var(--crit); font-weight: 700; }
+
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+.legend i { width: 10px; height: 10px; display: inline-block; margin-right: 6px; vertical-align: -1px; }
+
+/* ── Controls ─────────────────────────────────────────────────────────── */
+.controls {
+  margin-top: 44px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--rule-strong);
+}
+input[type="search"], select, textarea, input[type="text"] {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  padding: 7px 9px;
+}
+input[type="search"] { min-width: 240px; flex: 1 1 240px; }
+:focus-visible { outline: 2px solid var(--gold-ink); outline-offset: 1px; }
+.count { margin-left: auto; font-family: var(--font-label); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+.tablewrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+thead th {
+  font-family: var(--font-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  text-align: left;
+  padding: 12px 10px;
+  border-bottom: 1px solid var(--rule-strong);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  background: var(--ground);
+  z-index: 1;
+}
+tbody td { padding: 9px 10px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tbody tr.r-not { box-shadow: inset 3px 0 0 var(--crit); }
+tbody tr.r-red { box-shadow: inset 3px 0 0 var(--warn); }
+tbody tr.r-built { box-shadow: inset 3px 0 0 var(--ok); }
+
+.p-path { font-family: var(--font-label); font-size: 12.5px; color: var(--heading); word-break: break-word; }
+.p-title { color: var(--muted); font-size: 12px; margin-top: 2px; max-width: 46ch; }
+.num { font-variant-numeric: tabular-nums; text-align: right; font-family: var(--font-label); white-space: nowrap; }
+
+.pill {
+  display: inline-block;
+  font-family: var(--font-label);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.pill.s-built { color: var(--ok); }
+.pill.s-redirected { color: var(--warn); }
+.pill.s-not { color: var(--crit); }
+.pill.d-board { color: var(--green); }
+.pill.d-default { color: var(--muted); }
+.pill.d-none { color: var(--crit); }
+.flag {
+  display: inline-block;
+  font-family: var(--font-label);
+  font-size: 10.5px;
+  color: var(--warn);
+  background: var(--gold-wash);
+  padding: 1px 6px;
+  border-radius: var(--radius);
+  margin-top: 4px;
+}
+.redir { font-family: var(--font-label); font-size: 11.5px; color: var(--muted); display: block; margin-top: 3px; }
+
+td.dec select { width: 100%; min-width: 116px; }
+tr.has-dec td.dec select { border-color: var(--gold-ink); }
+.notebtn {
+  background: none;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  color: var(--muted);
+  font-family: var(--font-label);
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+.notebtn:hover { color: var(--heading); border-color: var(--rule-strong); }
+.notebtn.on { color: var(--gold-ink); border-color: var(--gold-ink); }
+
+tr.detail td { background: var(--surface); padding: 12px 10px 16px; }
+.detail-grid { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; }
+.detail-grid label { font-family: var(--font-label); font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 3px; }
+.detail-grid textarea { width: min(560px, 100%); min-height: 46px; resize: vertical; }
+.detail-grid input[type="text"] { width: min(360px, 100%); }
+
+.more { margin-top: 18px; display: flex; gap: 12px; align-items: center; }
+button.load {
+  font-family: var(--font-label);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 9px 18px;
+  background: var(--surface-2);
+  color: var(--heading);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+button.load:hover { background: var(--gold-wash); }
+
+/* ── Backlog ──────────────────────────────────────────────────────────── */
+.backlog { margin-top: 56px; }
+.backlog h2 { font-size: 20px; }
+.bl-list { list-style: none; margin: 16px 0 0; padding: 0; display: flex; flex-direction: column; gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+.bl-item { background: var(--surface); padding: 12px 14px; display: grid; grid-template-columns: 1fr auto; gap: 8px 14px; align-items: start; }
+.bl-item.done { opacity: 0.55; }
+.bl-item.done .bl-t { text-decoration: line-through; }
+.bl-t { font-weight: 600; color: var(--heading); }
+.bl-d { font-size: 12.5px; color: var(--muted); margin-top: 3px; max-width: 78ch; }
+.bl-actions { display: flex; gap: 6px; }
+.bl-empty { color: var(--muted); font-size: 13px; padding: 14px 0; }
+.bl-add { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.bl-add input { flex: 1 1 260px; }
+
+/* ── Status strip ─────────────────────────────────────────────────────── */
+.dbstate {
+  margin-top: 34px;
+  padding: 10px 14px;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--surface);
+}
+.dbstate b { color: var(--heading); font-weight: 500; }
+.dbstate.warn { border-color: var(--warn); }
+
+.orphans { margin-top: 20px; font-size: 12.5px; color: var(--muted); }
+.orphans code { font-family: var(--font-label); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+@media (max-width: 700px) {
+  .cov-row { grid-template-columns: 1fr; gap: 5px; }
+  .cov-nums { text-align: left; }
+  thead { display: none; }
+  tbody td { display: block; border-bottom: none; padding: 4px 10px; }
+  tbody tr { display: block; border-bottom: 1px solid var(--rule); padding: 8px 0; }
+  .num { text-align: left; }
+}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow">Cohen &amp; Jaffe &middot; WordPress cutover</p>
+      <h1>What happens to every live URL</h1>
+      <p class="sub">
+        Every URL the live site publishes, joined against what this repo builds.
+        Regenerate with <code>npm&nbsp;run&nbsp;inventory</code>, then republish.
+      </p>
+    </div>
+    <div class="stamp">
+      <div>Inventory generated<br><b id="gen">—</b></div>
+      <div style="margin-top:8px">Source <b id="src">—</b></div>
+    </div>
+  </header>
+
+  <section class="headline" id="figs"></section>
+
+  <section class="board">
+    <h2>Coverage by section</h2>
+    <p class="board-note">
+      Built and redirect status are computed from <code>dist/</code> and
+      <code>vercel.json</code> every time the inventory is regenerated. Nobody edits
+      them, so they cannot drift out of date.
+    </p>
+    <div class="cov" id="cov"></div>
+    <div class="legend">
+      <span><i style="background:var(--ok)"></i>Built on the new site</span>
+      <span><i style="background:var(--warn)"></i>Redirected in vercel.json</span>
+      <span><i style="background:var(--crit)"></i>Unaccounted &mdash; would 404 at launch</span>
+    </div>
+  </section>
+
+  <section class="board">
+    <h2>Every URL</h2>
+    <p class="board-note">
+      Word counts and shared-title counts are evidence to sort by, not verdicts.
+      Purge calls belong to the SEO team; every URL starts unreviewed and is treated
+      as <em>migrate</em> until someone says otherwise.
+    </p>
+
+    <div class="controls">
+      <input type="search" id="q" placeholder="Search path or title" aria-label="Search path or title">
+      <select id="f-section" aria-label="Filter by section"><option value="">All sections</option></select>
+      <select id="f-status" aria-label="Filter by build status">
+        <option value="">Any status</option>
+        <option value="not-built">Not built</option>
+        <option value="redirected">Redirected</option>
+        <option value="built">Built</option>
+      </select>
+      <select id="f-design" aria-label="Filter by design coverage">
+        <option value="">Any design</option>
+        <option value="board">Has a board</option>
+        <option value="default">Shared template</option>
+        <option value="none">No design</option>
+      </select>
+      <select id="f-dec" aria-label="Filter by decision">
+        <option value="">Any decision</option>
+        <option value="__none">Unreviewed</option>
+        <option value="migrate">Migrate</option>
+        <option value="redirect">Redirect</option>
+        <option value="drop">Drop</option>
+      </select>
+      <select id="sort" aria-label="Sort">
+        <option value="path">Sort: path</option>
+        <option value="words-desc">Sort: most words</option>
+        <option value="words-asc">Sort: fewest words</option>
+        <option value="date-desc">Sort: newest</option>
+      </select>
+      <span class="count" id="count">—</span>
+    </div>
+
+    <div class="tablewrap">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">URL</th>
+            <th scope="col">Section</th>
+            <th scope="col" class="num">Words</th>
+            <th scope="col">New site</th>
+            <th scope="col">Design</th>
+            <th scope="col">Decision</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div class="more">
+      <button class="load" id="more" type="button">Show more</button>
+      <span class="count" id="shown"></span>
+    </div>
+    <div class="orphans" id="orphans" hidden></div>
+  </section>
+
+  <section class="backlog">
+    <h2>Open items</h2>
+    <p class="board-note">
+      Bugs, blockers and decisions waiting on someone. This is the live list;
+      <code>HANDOFF.md</code> keeps the knowledge, this keeps the state.
+    </p>
+    <ul class="bl-list" id="bl"></ul>
+    <p class="bl-empty" id="bl-empty" hidden>Nothing open.</p>
+    <div class="bl-add">
+      <input type="text" id="bl-title" placeholder="What needs doing" aria-label="New item title">
+      <input type="text" id="bl-detail" placeholder="Detail (optional)" aria-label="New item detail">
+      <button class="load" id="bl-save" type="button">Add</button>
+    </div>
+  </section>
+
+  <p class="dbstate" id="dbstate"><b>Connecting</b> to shared storage…</p>
+</div>
+
+<script id="inventory" type="application/json">/*__INVENTORY__*/</script>
+<script>
+(() => {
+  "use strict";
+  const DATA = JSON.parse(document.getElementById("inventory").textContent);
+  const ROWS = DATA.r.map(([path, title, words, type, section, status, redirectTo, design, designBoard, published, flags]) =>
+    ({ path, title, words, type, section, status, redirectTo, design, designBoard, published, flags }));
+
+  /* ⚠️ MUST STAY IDENTICAL to normalizePath() in scripts/build-inventory.ts.
+     Stored decisions are keyed on it: if the two drift, every key misses and
+     the whole decision set renders as empty. */
+  const normalizePath = (input) => {
+    let p = String(input).trim();
+    if (/^https?:\/\//i.test(p)) { try { p = new URL(p).pathname; } catch (e) { /* treat as path */ } }
+    p = p.split("#")[0].split("?")[0].toLowerCase();
+    if (!p.startsWith("/")) p = "/" + p;
+    if (!p.endsWith("/")) p = p + "/";
+    return p.replace(/\/{2,}/g, "/");
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const n = (v) => v.toLocaleString("en-US");
+
+  // ── Header + headline figures ───────────────────────────────────────────
+  $("gen").textContent = new Date(DATA.g).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" });
+  $("src").textContent = DATA.src === "dist" ? "dist/ (accurate)" : "src/pages/ — run npm run build";
+  const c = DATA.c;
+  $("figs").innerHTML = [
+    ["", c.live, "Live URLs", "in the site's own sitemaps"],
+    ["is-ok", c.built, "Built", "rendering on the new site"],
+    ["", c.redirected, "Redirected", "handled in vercel.json"],
+    ["is-crit", c.notBuilt, "Would 404", "no page, no redirect"],
+  ].map(([cls, num, lbl, hint]) =>
+    `<div class="fig ${cls}"><span class="n">${n(num)}</span><p class="eyebrow lbl">${lbl}</p><p class="hint">${hint}</p></div>`
+  ).join("");
+
+  // ── Coverage board ──────────────────────────────────────────────────────
+  $("cov").innerHTML = Object.entries(DATA.s).map(([name, s]) => {
+    const pct = (v) => (s.live ? (v / s.live) * 100 : 0);
+    return `<div class="cov-row">
+      <span class="name">${esc(name)}</span>
+      <span class="cov-bar" role="img" aria-label="${s.built} built, ${s.redirected} redirected, ${s.notBuilt} unaccounted of ${s.live}">
+        <span class="b-built" style="width:${pct(s.built)}%"></span>
+        <span class="b-red" style="width:${pct(s.redirected)}%"></span>
+        <span class="b-not" style="width:${pct(s.notBuilt)}%"></span>
+      </span>
+      <span class="cov-nums">${n(s.live)} live &middot; ${s.notBuilt ? `<b>${n(s.notBuilt)} would 404</b>` : "covered"}</span>
+    </div>`;
+  }).join("");
+
+  // ── Filters ─────────────────────────────────────────────────────────────
+  const sections = [...new Set(ROWS.map((r) => r.section))].sort();
+  $("f-section").insertAdjacentHTML("beforeend", sections.map((s) => `<option value="${esc(s)}">${esc(s)}</option>`).join(""));
+
+  let decisions = Object.create(null); // path -> {decision,target,note,updated}
+  let backlog = [];
+  let limit = 150;
+  const open = new Set();
+
+  const DEC_LABEL = { migrate: "Migrate", redirect: "Redirect", drop: "Drop" };
+
+  function filtered() {
+    const q = $("q").value.trim().toLowerCase();
+    const fs = $("f-section").value, fst = $("f-status").value, fd = $("f-design").value, fdec = $("f-dec").value;
+    let out = ROWS.filter((r) => {
+      if (fs && r.section !== fs) return false;
+      if (fst && r.status !== fst) return false;
+      if (fd && r.design !== fd) return false;
+      if (fdec) {
+        const d = decisions[r.path] && decisions[r.path].decision;
+        if (fdec === "__none" ? !!d : d !== fdec) return false;
+      }
+      if (q && !(r.path.includes(q) || r.title.toLowerCase().includes(q))) return false;
+      return true;
+    });
+    const s = $("sort").value;
+    if (s === "words-desc") out.sort((a, b) => b.words - a.words || a.path.localeCompare(b.path));
+    else if (s === "words-asc") out.sort((a, b) => a.words - b.words || a.path.localeCompare(b.path));
+    else if (s === "date-desc") out.sort((a, b) => (b.published || "").localeCompare(a.published || "") || a.path.localeCompare(b.path));
+    else out.sort((a, b) => a.path.localeCompare(b.path));
+    return out;
+  }
+
+  function rowHtml(r) {
+    const d = decisions[r.path] || {};
+    const statusPill = r.status === "not-built"
+      ? '<span class="pill s-not">Not built</span>'
+      : r.status === "redirected"
+        ? `<span class="pill s-redirected">Redirected</span><span class="redir">&rarr; ${esc(r.redirectTo || "")}</span>`
+        : '<span class="pill s-built">Built</span>';
+    const designPill = r.design === "board"
+      ? `<span class="pill d-board">Board</span><span class="redir">${esc(r.designBoard || "")}</span>`
+      : r.design === "default"
+        ? `<span class="pill d-default">Template</span><span class="redir">${esc(r.designBoard || "")}</span>`
+        : '<span class="pill d-none">No design</span>';
+    const flags = (r.flags || []).map((f) => {
+      const m = /^shares-title-with-(\d+)$/.exec(f);
+      return `<span class="flag">${m ? `same title as ${m[1]} other${m[1] === "1" ? "" : "s"}` : esc(f).replace(/-/g, " ")}</span>`;
+    }).join(" ");
+    const hasNote = !!(d.note || d.target);
+    const main = `<tr class="r-${r.status === "not-built" ? "not" : r.status === "redirected" ? "red" : "built"}${d.decision ? " has-dec" : ""}" data-p="${esc(r.path)}">
+      <td>
+        <div class="p-path">${esc(r.path)}</div>
+        ${r.title ? `<div class="p-title">${esc(r.title)}</div>` : ""}
+        ${flags}
+        <button class="notebtn${hasNote ? " on" : ""}" type="button" data-act="toggle">${hasNote ? "Note &amp; target" : "Add note"}</button>
+      </td>
+      <td><span class="p-path">${esc(r.section)}</span></td>
+      <td class="num">${r.words ? n(r.words) : "&mdash;"}</td>
+      <td>${statusPill}</td>
+      <td>${designPill}</td>
+      <td class="dec">
+        <select data-act="dec" aria-label="Decision for ${esc(r.path)}">
+          <option value=""${!d.decision ? " selected" : ""}>Unreviewed</option>
+          <option value="migrate"${d.decision === "migrate" ? " selected" : ""}>Migrate</option>
+          <option value="redirect"${d.decision === "redirect" ? " selected" : ""}>Redirect</option>
+          <option value="drop"${d.decision === "drop" ? " selected" : ""}>Drop</option>
+        </select>
+      </td>
+    </tr>`;
+    if (!open.has(r.path)) return main;
+    return main + `<tr class="detail" data-p="${esc(r.path)}"><td colspan="6">
+      <div class="detail-grid">
+        <div><label for="t-${esc(r.path)}">Redirect target</label>
+          <input type="text" id="t-${esc(r.path)}" data-act="target" value="${esc(d.target || "")}" placeholder="/where-it-should-go/"></div>
+        <div><label for="n-${esc(r.path)}">Note</label>
+          <textarea id="n-${esc(r.path)}" data-act="note" maxlength="280" placeholder="Why (280 characters)">${esc(d.note || "")}</textarea></div>
+      </div>
+    </td></tr>`;
+  }
+
+  function render() {
+    const list = filtered();
+    const slice = list.slice(0, limit);
+    $("rows").innerHTML = slice.map(rowHtml).join("");
+    $("count").textContent = `${n(list.length)} of ${n(ROWS.length)}`;
+    $("shown").textContent = `showing ${n(Math.min(limit, list.length))}`;
+    $("more").hidden = list.length <= limit;
+    renderOrphans();
+  }
+
+  function renderOrphans() {
+    const known = new Set(ROWS.map((r) => r.path));
+    const orphans = Object.keys(decisions).filter((p) => !known.has(p));
+    const el = $("orphans");
+    el.hidden = orphans.length === 0;
+    if (orphans.length) {
+      el.innerHTML = `<strong>${orphans.length} decision${orphans.length === 1 ? "" : "s"} on URLs no longer in the sitemap</strong> &mdash; kept, never auto-deleted, because a URL disappearing from the live site is itself worth knowing: ${orphans.map((p) => `<code>${esc(p)}</code>`).join(", ")}`;
+    }
+  }
+
+  ["q", "f-section", "f-status", "f-design", "f-dec", "sort"].forEach((id) => {
+    $(id).addEventListener("input", () => { limit = 150; render(); });
+  });
+  $("more").addEventListener("click", () => { limit += 150; render(); });
+
+  // ── Storage ─────────────────────────────────────────────────────────────
+  let db = null, decRef = null, blRef = null;
+  let decExists = false, blExists = false;
+
+  function setState(msg, warn) {
+    const el = $("dbstate");
+    el.innerHTML = msg;
+    el.classList.toggle("warn", !!warn);
+  }
+
+  /* Writing one decision, three cases — and the first two are why this is not
+     just a set().
+
+     ⚠️ update() REJECTS `invalid_argument` on a document that does not exist.
+     Against a virgin store the very first decision anyone records would be
+     silently lost, so the document has to be created with set() first.
+
+     After that, update() merges NESTED objects recursively, so writing
+     {items: {"/a/": …}} leaves "/b/" untouched. That is what stops two people
+     reviewing different URLs from clobbering each other's work — a full set()
+     would make the later write win and quietly discard the earlier one.
+
+     Removing a key is the exception: a merge cannot express a deletion, so a
+     reset back to Unreviewed rewrites the whole (small) document. */
+  async function writeDec(path, removed) {
+    if (!decRef) return;
+    try {
+      if (!decExists || removed) {
+        await decRef.set({ items: decisions });
+        decExists = true;
+      } else {
+        await decRef.update({ items: { [path]: decisions[path] } });
+      }
+    } catch (e) {
+      const code = (e && e.code) || "unknown";
+      if (code === "invalid_argument" && !removed) {
+        // The document went away between snapshot and write. Recreate it.
+        try { await decRef.set({ items: decisions }); decExists = true; return; } catch (e2) { /* fall through */ }
+      }
+      setState(`Could not save &mdash; <b>${esc(code)}</b>. Your change is on screen but not stored.`, true);
+    }
+  }
+  async function writeBacklog() {
+    if (!blRef) return;
+    try {
+      await blRef.set({ items: backlog });
+      blExists = true;
+    } catch (e) {
+      setState(`Could not save the open items &mdash; <b>${esc(e && e.code || "unknown")}</b>.`, true);
+    }
+  }
+
+  $("rows").addEventListener("change", (ev) => {
+    const sel = ev.target.closest('[data-act="dec"]');
+    if (!sel) return;
+    const path = ev.target.closest("tr").dataset.p;
+    const cur = decisions[path] || {};
+    const removed = !sel.value && !cur.note && !cur.target;
+    if (removed) delete decisions[path];
+    else decisions[path] = Object.assign({}, cur, { decision: sel.value, updated: new Date().toISOString() });
+    writeDec(path, removed);
+    render();
+  });
+
+  $("rows").addEventListener("click", (ev) => {
+    const btn = ev.target.closest('[data-act="toggle"]');
+    if (!btn) return;
+    const path = btn.closest("tr").dataset.p;
+    open.has(path) ? open.delete(path) : open.add(path);
+    render();
+  });
+
+  let saveTimer = null;
+  $("rows").addEventListener("input", (ev) => {
+    const el = ev.target.closest('[data-act="note"], [data-act="target"]');
+    if (!el) return;
+    const path = el.closest("tr").dataset.p;
+    const field = el.dataset.act;
+    const cur = decisions[path] || {};
+    decisions[path] = Object.assign({}, cur, { [field]: el.value, updated: new Date().toISOString() });
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => writeDec(path, false), 600); // batch keystrokes into one write
+  });
+
+  // ── Backlog ─────────────────────────────────────────────────────────────
+  function renderBacklog() {
+    const el = $("bl");
+    el.innerHTML = backlog.map((it, i) => `<li class="bl-item${it.done ? " done" : ""}">
+      <div><div class="bl-t">${esc(it.title)}</div>${it.detail ? `<div class="bl-d">${esc(it.detail)}</div>` : ""}</div>
+      <div class="bl-actions">
+        <button class="notebtn" type="button" data-i="${i}" data-act="done">${it.done ? "Reopen" : "Done"}</button>
+        <button class="notebtn" type="button" data-i="${i}" data-act="del">Remove</button>
+      </div>
+    </li>`).join("");
+    $("bl-empty").hidden = backlog.length > 0;
+  }
+  $("bl").addEventListener("click", (ev) => {
+    const b = ev.target.closest("button[data-act]");
+    if (!b) return;
+    const i = Number(b.dataset.i);
+    if (b.dataset.act === "done") backlog[i].done = !backlog[i].done;
+    else backlog.splice(i, 1);
+    renderBacklog();
+    writeBacklog();
+  });
+  $("bl-save").addEventListener("click", () => {
+    const t = $("bl-title").value.trim();
+    if (!t) return;
+    backlog.push({ title: t, detail: $("bl-detail").value.trim(), done: false, created: new Date().toISOString() });
+    $("bl-title").value = ""; $("bl-detail").value = "";
+    renderBacklog();
+    writeBacklog();
+  });
+
+  // First paint happens before storage resolves, so the page is useful at rest.
+  render();
+  renderBacklog();
+
+  (async () => {
+    const use = window.claude && window.claude.use;
+    if (!use) { setState("Running without shared storage &mdash; decisions will not be saved.", true); return; }
+    db = await window.claude.use("db");
+    if (!db) { setState("Shared storage is unavailable in this view &mdash; decisions will not be saved.", true); return; }
+    decRef = db.doc("state/decisions");
+    blRef = db.doc("state/backlog");
+
+    decRef.onSnapshot((snap) => {
+      decExists = snap.exists;
+      const items = (snap.data() && snap.data().items) || {};
+      // Normalize on read too: a key written by an older copy still matches.
+      decisions = Object.create(null);
+      for (const k of Object.keys(items)) decisions[normalizePath(k)] = items[k];
+      const matched = Object.keys(decisions).filter((p) => ROWS.some((r) => r.path === p)).length;
+      const total = Object.keys(decisions).length;
+      setState(total === 0
+        ? "Connected. <b>No decisions recorded yet</b> &mdash; every URL is unreviewed and treated as migrate."
+        : `Connected. <b>${n(matched)} of ${n(total)}</b> recorded decisions match a live URL.`,
+        total > 0 && matched === 0);
+      render();
+    }, (e) => setState(`Shared storage stopped: <b>${esc(e.code)}</b>. Reload to reconnect.`, true));
+
+    blRef.onSnapshot((snap) => {
+      blExists = snap.exists;
+      backlog = (snap.data() && snap.data().items) || [];
+      renderBacklog();
+    }, () => { /* the decisions listener already reports storage trouble */ });
+  })();
+})();
+</script>

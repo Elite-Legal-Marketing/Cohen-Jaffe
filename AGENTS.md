@@ -27,11 +27,48 @@ npm run build        # production build — a gate; must be green before pushing
 npm run check:types  # astro check; the OTHER gate — astro build does NOT typecheck
 npm run typegen      # regenerate sanity.types.ts after any schema change
 npm run preview      # serve the built dist/
+npm run inventory    # rebuild the migration inventory + tracker page (see below)
 ```
 
 Both gates must pass. They catch different things, and neither catches the Studio actually
 rendering — for that, load `/admin/` in a browser. See "URLs: trailing slash" for why
 that slash matters locally.
+
+## The migration tracker
+
+**https://claude.ai/code/artifact/132be22d-3167-4080-8b5e-9950dc5fe163**
+
+Every URL the live site publishes, joined against what this repo builds, plus the open-items
+list. **1,658 live URLs; at the time of writing 1,527 of them would 404 at launch.**
+
+> **Regenerating it is `npm run inventory`, then republish `scripts/tracker.html`.
+> Never hand-edit `scripts/inventory.json` or `scripts/tracker.html` — both are generated.**
+> `scripts/tracker-template.html` is the source you edit.
+
+**The ownership line, and it matters more than it looks.** The tracker owns **state**; this
+file and `HANDOFF.md` own **knowledge**. Nothing appears in both.
+
+That split is not tidiness, it is the fix for a failure this repo has already had:
+`HANDOFF.md` announced "`hp_community`, four commits, **NOT PUSHED**" in bold, three times,
+and was contradicted by a merge commit **51 seconds later**. It failed structurally, not
+carelessly — a document cannot record its own push. So anything a script can compute is
+computed: build status comes from `dist/`, redirect status from `vercel.json`, and nobody
+can edit either. The only hand-held values are the SEO team's decisions and the open items,
+and no code change can contradict a human judgment.
+
+⚠️ **This does not sync by itself.** The page cannot read the repo and the repo cannot write
+to the tracker's store; the loop closes only through a Claude session. The guarantee is *one
+command regenerates every derived column, and the recorded decisions survive it untouched* —
+not that it stays current on its own.
+
+⚠️ **`normalizePath()` exists twice** — in `scripts/build-inventory.ts` and again in
+`scripts/tracker-template.html` — and the two must stay identical. Stored decisions are keyed
+on it, so drift makes every key miss and the whole decision set render as empty. The script
+prints the match count on every run for exactly this reason.
+
+**Purge calls are the SEO team's, not ours.** There is no Search Console access, so the
+tracker ships word counts and shared-title counts as evidence to sort by. It deliberately has
+no "thin content" flag: a threshold is a verdict.
 
 ## Where things live
 
@@ -56,6 +93,9 @@ that slash matters locally.
 | `src/components/Footer.astro` | Four-column footer on the forest gradient |
 | `src/data/navigation.ts` | **Nav + footer architecture and every URL** — the Sanity seam |
 | `src/lib/urls.ts` | `isCurrent` / `isWithin` — comparison-only URL helpers |
+| `scripts/build-inventory.ts` | Builds the migration inventory from the live sitemaps + REST API |
+| `scripts/tracker-template.html` | The tracker page — **edit this one** |
+| `scripts/inventory.json` · `scripts/tracker.html` | **Generated** by `npm run inventory` — never hand-edit |
 | `src/assets/` | Images that go through Astro's pipeline (the two logos) |
 | `src/pages/` | Routes |
 | `.claude/launch.json` | Dev-server config for the preview tooling |
@@ -72,8 +112,14 @@ working directory):
 - **`Claude Files/CLAUDE.md`** — firm-specific content notes (e.g. the community
   involvement list). Reference it; do not copy it wholesale into pages, and note that it
   marks some content as "do NOT add unless asked".
-- **`Sitesucker/`** — a full local mirror of the current WordPress site (~217 URL
-  folders). This is the content and URL source for the migration: it's where existing
+- **`Sitesucker/`** — a full local mirror of the current WordPress site. ⚠️ **It holds
+  ~1,646 content pages, not 217** — "217" counts TOP-LEVEL folders (210 actual) and has
+  misled every estimate on this project. The live site publishes **1,658 URLs**; run
+  `npm run inventory` for the current figure rather than quoting one from memory.
+  ⚠️ **And the mirror is a crawl, not a statement of what is indexed** — for anything
+  URL-shaped the Yoast sitemaps are the source, and for bulk content the REST API is
+  (see `faq-extract.ts` for why the mirror was wrong about the FAQs specifically).
+  This is the content and URL source for the migration: it's where existing
   copy, page inventory, and the live URL structure come from. Preserve those URLs, or
   plan redirects, when the new site goes up.
 
@@ -319,16 +365,24 @@ is kept as a comment at the top of `src/data/navigation.ts`.
 Note the header currently has **no** room for a language control in the nav row (it costs
 ~120px the bar does not have); when it returns it belongs in the 24/7 utility cluster.
 
-Two live-nav links point at pages **absent from the mirror** — `/medical-device-lawyer-long-island/`
-and `/personal-injury-lawyer-nassau-county/`. Both are written as absolute paths in the
-live nav, which is exactly how SiteSucker leaves a link it never downloaded. Confirm they
-still resolve before launch.
+✅ **RESOLVED 2026-09-09.** Two live-nav links were flagged as pages absent from the mirror —
+`/medical-device-lawyer-long-island/` and `/personal-injury-lawyer-nassau-county/`. **Both
+return 200 and both are in the live sitemap.** SiteSucker simply never downloaded them, which
+is what "absent from the mirror" always meant. Nothing to do.
 
 ## URLs: trailing slash — ALWAYS
 
 Settled 2026-09-01 from evidence, not preference: all 2262 unique `og:url` values in the
 WordPress mirror end in `/`, and the live site 301s the unslashed form to the slashed one.
 Match what is already indexed.
+
+⚠️ **65 of the 1,658 live sitemap entries omit the trailing slash** — `/defective-cars`,
+`/cancer-malpractice-lawyers`, `/personal-injury-lawyer-nassau-county` and 62 others. **This
+is not a counter-example and does not reopen the decision.** Checked 2026-09-09: those pages'
+own `<link rel="canonical">` is the *slashed* form in every case, and the unslashed form
+either 200s at the same content or 301s to the slashed one. It is a Yoast defect in their
+sitemap generation. `normalizePath()` in `scripts/build-inventory.ts` folds them to the
+slashed form, which is what is actually indexed.
 
 Three layers must agree, and they are already set:
 - `astro.config.mjs` → `trailingSlash: "always"`
