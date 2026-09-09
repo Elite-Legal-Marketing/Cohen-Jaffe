@@ -360,6 +360,17 @@ export type FirmDetails = {
   legalDisclaimer: string;
 };
 
+export type Organization = {
+  _id: string;
+  _type: "organization";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  name: string;
+  href?: string;
+  note?: string;
+};
+
 export type Faq = {
   _id: string;
   _type: "faq";
@@ -778,6 +789,7 @@ export type AllSanitySchemaTypes =
   | Hero
   | ContactSection
   | FirmDetails
+  | Organization
   | Faq
   | Slug
   | SanityImageAssetReference
@@ -1155,6 +1167,16 @@ export type FIRM_DETAILS_QUERY_RESULT =
       name: string;
       shortName: null;
       blurb: null;
+      phone: null;
+      sms: null;
+      offices: null;
+      advertisingLabel: null;
+      legalDisclaimer: null;
+    }
+  | {
+      name: string;
+      shortName: null;
+      blurb: null;
       phone: string | null;
       sms: null;
       offices: null;
@@ -1418,6 +1440,44 @@ export type THANK_YOU_PAGE_QUERY_RESULT =
     }
   | null;
 
+// Source: src/lib/queries.ts
+// Variable: ORGANIZATIONS_QUERY
+// Query: *[_type == "organization"] | order(lower(name) asc){    _id,    name,    href,    note  }
+export type ORGANIZATIONS_QUERY_RESULT = Array<{
+  _id: string;
+  name: string;
+  href: string | null;
+  note: string | null;
+}>;
+
+// Source: src/lib/queries.ts
+// Variable: COMMUNITY_ATTORNEY_QUERY
+// Query: *[_id == "attorney-richard-jaffe"][0]{    name,    role,    portrait  }
+export type COMMUNITY_ATTORNEY_QUERY_RESULT =
+  | {
+      name: null;
+      role: null;
+      portrait: null;
+    }
+  | {
+      name: string;
+      role: null;
+      portrait: null;
+    }
+  | {
+      name: string;
+      role: string;
+      portrait: {
+        asset?: SanityImageAssetReference;
+        media?: unknown;
+        hotspot?: SanityImageHotspot;
+        crop?: SanityImageCrop;
+        alt?: string;
+        _type: "image";
+      };
+    }
+  | null;
+
 // Query TypeMap
 import "@sanity/client";
 declare module "@sanity/client" {
@@ -1429,5 +1489,7 @@ declare module "@sanity/client" {
     '\n  *[_id == "faqsPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    listEyebrow,\n    listHeading,\n    stats[]{ _key, figure, label, body },\n    quote{\n      text,\n      attorney->{ name, role }\n    }\n  }\n': FAQS_PAGE_QUERY_RESULT;
     '\n  *[_id == "contactSection"][0]{\n    eyebrow,\n    heading,\n    lead,\n    callLabel,\n    textLabel,\n    travelLabel,\n    travelText,\n    noteLabel,\n    disclaimer,\n    badge,\n    formHeading,\n    submitLabel,\n    spanishLabel\n  }\n': CONTACT_SECTION_QUERY_RESULT;
     '\n  *[_id == "thankYouPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    cta{ label, href },\n    waitEyebrow,\n    waitHeading,\n    steps[]{ _key, title, body },\n    readHeading,\n    readLead,\n    readPrimary{ label, href },\n    readSecondary{ label, href }\n  }\n': THANK_YOU_PAGE_QUERY_RESULT;
+    '\n  *[_type == "organization"] | order(lower(name) asc){\n    _id,\n    name,\n    href,\n    note\n  }\n': ORGANIZATIONS_QUERY_RESULT;
+    '\n  *[_id == "attorney-richard-jaffe"][0]{\n    name,\n    role,\n    portrait\n  }\n': COMMUNITY_ATTORNEY_QUERY_RESULT;
   }
 }

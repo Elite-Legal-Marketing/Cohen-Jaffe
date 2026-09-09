@@ -14,10 +14,16 @@ import WhyUs from "../components/WhyUs.astro";
 import CaseBanner from "../components/CaseBanner.astro";
 import FaqSection from "../components/FaqSection.astro";
 import Community from "../components/Community.astro";
-import { HOME_PAGE_QUERY } from "../lib/queries";
-import type { HOME_PAGE_QUERY_RESULT } from "../sanity/sanity.types";
+import { HOME_PAGE_QUERY, ORGANIZATIONS_QUERY } from "../lib/queries";
+import type {
+  HOME_PAGE_QUERY_RESULT,
+  ORGANIZATIONS_QUERY_RESULT,
+} from "../sanity/sanity.types";
 
-const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
+const [home, organizations] = await Promise.all([
+  sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY),
+  sanityClient.fetch<ORGANIZATIONS_QUERY_RESULT>(ORGANIZATIONS_QUERY),
+]);
 
 ---
 
@@ -38,7 +44,8 @@ const home = await sanityClient.fetch<HOME_PAGE_QUERY_RESULT>(HOME_PAGE_QUERY);
   {home?.whyUs && <WhyUs section={home.whyUs} />}
   {home?.caseBanner && <CaseBanner section={home.caseBanner} />}
   {home?.faqs && <FaqSection section={home.faqs} />}
-  {/* Hardcoded content until the design is approved — AGENTS.md, "Building
-      sections". No `home?.` guard because there is nothing in Sanity yet. */}
-  <Community />
+  {/* Copy is still hardcoded pending approval — AGENTS.md, "Building
+      sections". The ORGANIZATIONS are modelled, because /about/our-community/
+      prints the same fifteen. */}
+  <Community organizations={organizations} />
 </Layout>

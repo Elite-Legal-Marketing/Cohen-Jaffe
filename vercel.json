@@ -25,6 +25,12 @@
     },
     { "source": "/faqs/employment-law-faqs", "destination": "/faqs/", "permanent": true },
     { "source": "/faqs/medical-malpractice-faqs", "destination": "/faqs/", "permanent": true },
-    { "source": "/faqs/motorcycle-accidents-faqs", "destination": "/faqs/", "permanent": true }
+    { "source": "/faqs/motorcycle-accidents-faqs", "destination": "/faqs/", "permanent": true },
+
+    {
+      "source": "/about/community-scholarship",
+      "destination": "/about/our-community/",
+      "permanent": true
+    }
   ]
 }

@@ -8,6 +8,7 @@ import { faqsPage } from "./documents/faqsPage";
 import { firmDetails } from "./documents/firmDetails";
 import { featuredCaseResult } from "./documents/featuredCaseResult";
 import { homePage } from "./documents/homePage";
+import { organization } from "./documents/organization";
 import { practiceArea } from "./documents/practiceArea";
 import { thankYouPage } from "./documents/thankYouPage";
 import { review } from "./documents/review";
@@ -50,6 +51,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   review,
   videoReview,
   faq,
+  organization,
   firmDetails,
   contactSection,
   // Section objects — one per band of a page

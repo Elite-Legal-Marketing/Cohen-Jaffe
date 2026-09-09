@@ -268,3 +268,56 @@ export const THANK_YOU_PAGE_QUERY = defineQuery(`
     readSecondary{ label, href }
   }
 `);
+
+/**
+ * The charities and clubs the firm supports.
+ *
+ * Ordered here rather than at render, unlike the homepage band's first pass:
+ * both surfaces want the same alphabetical order, so it is the query's job.
+ *
+ * ⚠️ `lower(name)`, NOT `name`. GROQ's `order()` is CASE-SENSITIVE, so every
+ * capital sorts ahead of every lowercase letter: on a plain `order(name asc)`
+ * "CMSA Long Island" lands between "Blue Knights" and "Center for
+ * Developmental Disabilities", because it compares "M" against "e". It shows up
+ * the moment one name is an acronym and looks like a random misfiling rather
+ * than a sort rule. Both surfaces read this query, so fixing it here fixes it
+ * in both places.
+ *
+ * `note` is projected even though the homepage band never prints it — one query
+ * for two surfaces is worth more than the ~1 KB the band discards, and a second
+ * near-identical query is a second thing to keep in step.
+ */
+export const ORGANIZATIONS_QUERY = defineQuery(`
+  *[_type == "organization"] | order(lower(name) asc){
+    _id,
+    name,
+    href,
+    note
+  }
+`);
+
+/**
+ * The attorney quoted on `/about/our-community/`.
+ *
+ * The page's copy is hardcoded pending approval, but the ATTRIBUTION is not:
+ * house rule 8 says a quote attributed to a person carries a reference to that
+ * person, so the name and role cannot drift from their bio. The quote text
+ * belongs to the page; the name, role and portrait belong to the attorney.
+ *
+ * It matters here. The live site calls Richard Jaffe "founding partner" in the
+ * very sentence this page quotes, while the Studio — which the client has
+ * edited since — has him as Managing Partner and Stephen Cohen as Founding
+ * Partner. Reading the role rather than typing it means the page cannot
+ * contradict the attorneys' own pages.
+ *
+ * An id rather than a slug lookup because the person is named BY the hardcoded
+ * copy; when this page is modelled it becomes an `attorneyQuote` field and this
+ * query goes away.
+ */
+export const COMMUNITY_ATTORNEY_QUERY = defineQuery(`
+  *[_id == "attorney-richard-jaffe"][0]{
+    name,
+    role,
+    portrait
+  }
+`);
