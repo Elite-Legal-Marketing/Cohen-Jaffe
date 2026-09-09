@@ -34,6 +34,7 @@ import { UsersIcon } from "@sanity/icons/Users";
 const SINGLETONS = [
   "homePage",
   "faqsPage",
+  "communityPage",
   "thankYouPage",
   "firmDetails",
   "contactSection",
@@ -79,6 +80,7 @@ export const structure: StructureResolver = (S) =>
             .items([
               singleton(S, "homePage", "Homepage", HomeIcon),
               singleton(S, "faqsPage", "FAQs", HelpCircleIcon),
+              singleton(S, "communityPage", "Our Community", HeartIcon),
               singleton(S, "thankYouPage", "Thank You", CheckmarkCircleIcon),
             ]),
         ),

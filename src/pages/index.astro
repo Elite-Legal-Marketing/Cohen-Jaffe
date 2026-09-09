@@ -44,8 +44,5 @@ const [home, organizations] = await Promise.all([
   {home?.whyUs && <WhyUs section={home.whyUs} />}
   {home?.caseBanner && <CaseBanner section={home.caseBanner} />}
   {home?.faqs && <FaqSection section={home.faqs} />}
-  {/* Copy is still hardcoded pending approval — AGENTS.md, "Building
-      sections". The ORGANIZATIONS are modelled, because /about/our-community/
-      prints the same fifteen. */}
-  <Community organizations={organizations} />
+  {home?.community && <Community section={home.community} organizations={organizations} />}
 </Layout>

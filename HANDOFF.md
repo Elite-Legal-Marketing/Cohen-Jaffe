@@ -2,8 +2,8 @@
 
 **Rewritten whole each time. This is the present state, not a changelog.**
 Last updated: 2026-09-09 (the homepage community band, the `organization`
-collection and `/about/our-community/`, on `hp_community` — three commits,
-**NOT PUSHED**)
+collection and `/about/our-community/` — all built, modelled and seeded — on
+`hp_community`, four commits, **NOT PUSHED**)
 
 ## ⚠️ Read this before writing any code
 
@@ -58,16 +58,21 @@ RECOGNITION and AREAS WE SERVE** — the board's last four, in that order.
 FAQs. **`src/data/` holds `navigation.ts` alone.**
 
 ⚠️ **ONE BRANCH IS IN FLIGHT AND IT IS NOT PUSHED.** `hp_community`, cut from `master`
-(`3a9fc50`), three commits. Nothing is stacked on it.
+(`3a9fc50`), four commits. Nothing is stacked on it.
 
-Gates: `npm run build` green at **185 pages**, `npm run check:types` **0 errors (117
-files)**, `npm run typegen` **9 queries, 56 schema types**, `npx sanity documents validate
---yes` clean at **347 documents, 0 errors, 0 warnings**.
+Gates: `npm run build` green at **185 pages**, `npm run check:types` **0 errors (121
+files)**, `npm run typegen` **9 queries, 58 schema types**, `npx sanity documents validate
+--yes` clean at **348 documents, 0 errors, 0 warnings**.
 
-The 347 are 180 FAQs + 60 case results + 47 practice areas + 21 reviews + **20
+The 348 are 180 FAQs + 60 case results + 47 practice areas + 21 reviews + **20
 organizations** + 6 attorneys + 4 featured case results + 4 video reviews + `homePage` +
-`firmDetails` + `faqsPage` + `thankYouPage` + `contactSection`. (`*[]` returns 370 — the
-extra 23 are image assets, which validation does not count.)
+`firmDetails` + `faqsPage` + **`communityPage`** + `thankYouPage` + `contactSection`.
+(`*[]` returns 371 — the extra 23 are image assets, which validation does not count.)
+
+⚠️ **NOTHING ON EITHER COMMUNITY SURFACE IS HARDCODED ANY MORE.** Both were built, approved
+and then modelled, in that order, on 2026-09-09. The homepage band reads
+`homePage.community`; the page reads the `communityPage` singleton. The only things in code
+are the seven placeholder tiles, which are scaffolding rather than content.
 
 ---
 
@@ -189,6 +194,34 @@ verbatim including the measured `* 1.5` tablet override. The repo's bar for prom
 second consumer — `.toggle` came out of `About.astro` at exactly this point — so this
 belongs in `global.css`. Not done because it means editing a shipped page. **Raised.**
 
+### How it is modelled
+
+**`communityPage`, a singleton** — Studio → Pages → **Our Community**. Four tabs: Hero,
+Intro, Organizations, In memoriam. Seeded by `scripts/seed-community-page.ts`, which
+carries the full provenance of every string.
+
+⚠️ **FLAT FIELDS IN TABS, NOT NESTED SECTION OBJECTS.** This follows `faqsPage`, not
+`homePage`. Rule 2 wraps every section in a collapsible object because the homepage has
+fifteen and an always-expanded form is unusable; this page has four, and three of them
+would be single-use object types holding three strings each. Tabs do the same job for TWO
+new schema types instead of five. The `intro*` / `orgs*` / `memorial*` prefixes are the
+same idiom as `faqsPage`'s `list*`.
+
+⚠️ **`introQuoteBody` IS A SIBLING OF `introQuote`, NOT A FIELD INSIDE IT.** The card shows
+a pull quote, a second paragraph, then ONE attribution. `attorneyQuote` is shared with "Our
+goals", the fee explainer and the FAQs page — adding a second text field to it for this one
+card would put an empty box on all four.
+
+**The attribution is a real reference now (rule 8)**, which deleted the hand-rolled
+`COMMUNITY_ATTORNEY_QUERY` that fetched Richard Jaffe by id. It matters here specifically:
+the live site calls him "founding partner" in the very sentence this page quotes, while the
+Studio has him as Managing Partner. The page renders the Studio's value and so cannot
+contradict his own bio.
+
+⚠️ **NO HERO IMAGE FIELD, AND NO SCHOLARSHIP SECTION.** Both absences are decisions, and
+both are defended in the type's docblock — a field for an image the design does not render
+is a field an editor will fill and then wonder about.
+
 **The memorial links to the fund** (`https://www.reaganjax.memorial/`), the same target and
 label the homepage band uses. It described the fund at length with no way to reach it.
 
@@ -202,8 +235,19 @@ the hero, so its grid is a plain single row and `align-items: start` aligns the 
 
 ## The homepage community band
 
-`src/components/Community.astro`. **Copy is still hardcoded pending approval; only the
-organizations are modelled.**
+`src/components/Community.astro`, reading `homePage.community` — a `communitySection`
+object, collapsible and collapsed like every other homepage band. Seeded by
+`scripts/seed-home-community.ts`.
+
+⚠️ **THE ORGANIZATIONS ARE NOT A FIELD ON IT.** They are the collection, shown in full, so
+there is nothing to curate — contrast `faqSection.faqs`, where eight of a hundred and
+eighty ARE a choice made on the homepage. **The seven photographs are not a field either,
+yet**: modelling seven empty image slots before there is anything to put in them would be
+seven fields every editor sees and none of them can fill. It gains a `photos` array when
+the firm supplies them.
+
+⚠️ **The card link is a `textLink`, the button is a `ctaLink`** (rule 10) — the type is
+picked by how a link is RENDERED, not by whether it is a call to action.
 
 ⚠️ **THE SEVEN PHOTOGRAPHS DO NOT EXIST.** They are the section's entire visual weight. The
 tiles are scaffolding — one flat `--border-deep` fill, a label, `aria-hidden` — and the
@@ -219,7 +263,8 @@ both layouts.**
 
 ⚠️ **"A promise Stephen made to his grandchildren." is the board's heading and appears in no
 source.** Everything else on that card checks out — the fund, 2014, the purpose, "founding
-partner". The promise does not. **Open.**
+partner". The promise does not. **Open — but now a Studio edit rather than a deploy, which
+is the point of modelling it.**
 
 ⚠️ **The strip is 442px tall over 14 lines at 375px** — 28% of the section for a supporting
 detail. Left as built on the client's instruction.
@@ -408,11 +453,12 @@ Richard Jaffe.
 
 **Nine queries:** `HOME_PAGE_QUERY`, `FIRM_DETAILS_QUERY`, `FAQS_QUERY`, `FAQ_INDEX_QUERY`,
 `FAQS_PAGE_QUERY`, `CONTACT_SECTION_QUERY`, `THANK_YOU_PAGE_QUERY`, `ORGANIZATIONS_QUERY`,
-`COMMUNITY_ATTORNEY_QUERY`.
+`COMMUNITY_PAGE_QUERY`.
 
-**Desk shape:** **Pages** → { Homepage, FAQs, Thank You } · **Collections** → { Case Results
-→ { Featured, Case Results }, Reviews → { Video, Written }, Attorneys, Practice Areas, FAQs,
-**Organizations** } · **Site Settings** → { Firm Details, Contact Form }.
+**Desk shape:** **Pages** → { Homepage, FAQs, **Our Community**, Thank You } ·
+**Collections** → { Case Results → { Featured, Case Results }, Reviews → { Video, Written },
+Attorneys, Practice Areas, FAQs, **Organizations** } · **Site Settings** → { Firm Details,
+Contact Form }.
 
 ⚠️ Two rules in `structure.ts`, neither of which fails loudly: anything listed explicitly
 must also be in `LISTED` or the Studio shows it twice; any singleton must be in `SINGLETONS`
@@ -443,31 +489,34 @@ or the Studio offers a "create new" beside it.
 5. **Two organizations link to Facebook** because the live page has no other target.
 6. ⚠️ **`.page-hero` is copied from `/faqs/`, not shared.** Two consumers; it belongs in
    `global.css`.
-7. ⚠️ **The scholarship redirect assumes the contest is retired.** The live page still says
+7. **`RichText.astro`'s docblock is wrong.** It claims "`.prose` also caps the measure at
+   ~68 characters"; `global.css` says explicitly *"No measure cap: `.prose` fills whatever
+   column it is given"*, and computed `max-width` is `none`. One line, in a shipped file.
+8. ⚠️ **The scholarship redirect assumes the contest is retired.** The live page still says
    "Each year". See the dependency above.
-8. **The FAQs page quote is unsourced** and attributed to Richard Jaffe. Now a Studio edit.
+9. **The FAQs page quote is unsourced** and attributed to Richard Jaffe. Now a Studio edit.
    Same for **"Our goals"**.
-9. **"Millions / Recovered"** has no figure behind it. The ledger holds 60 real recoveries.
-10. **The 110 `tel:` links** baked into FAQ answers.
-11. **Should any FAQ categories be combined?** The rail mixes how it happened, what was
+10. **"Millions / Recovered"** has no figure behind it. The ledger holds 60 real recoveries.
+11. **The 110 `tel:` links** baked into FAQ answers.
+12. **Should any FAQ categories be combined?** The rail mixes how it happened, what was
     injured, and which department. The two defensible merges are Slip and Fall Injury →
     Premises Liability and Neck Injuries (1) → Personal Injury. **"Personal Injury" is
     functionally "everything else"** and might be better named "General".
-12. **Google Business Profile API access** — a client action, 3-10 business days.
-13. **Real reviews** for the 22 placeholders, **real client videos** for all four
+13. **Google Business Profile API access** — a client action, 3-10 business days.
+14. **Real reviews** for the 22 placeholders, **real client videos** for all four
     `videoReview` documents.
-14. **Case results needs real names, quotes, photographs and insurer-offer figures.**
-15. **Two attorneys carry a placeholder video** (`c6b0eghb5r`). A play button over a named
+15. **Case results needs real names, quotes, photographs and insurer-offer figures.**
+16. **Two attorneys carry a placeholder video** (`c6b0eghb5r`). A play button over a named
     attorney's portrait is a promise the video is of that attorney.
-16. **Nine practice-area URLs need confirming live.**
-17. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
+17. **Nine practice-area URLs need confirming live.**
+18. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
     form's "contact me in Spanish" checkbox **presumes someone acts on it**.
-18. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
+19. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does not
     allow.
 
 ## What's next
 
-1. **Push `hp_community` and open its PR.** Three commits, both gates green.
+1. **Push `hp_community` and open its PR.** Four commits, all gates green.
 2. **Four homepage sections remain unbuilt**: the blog band, contact, recognition and
    "Areas we serve", in the board's order.
 3. **`/about/testimonials/`** — `CJ - Testimonials.dc.html` approved, `caseType` exists, and
@@ -493,6 +542,15 @@ or the Studio offers a "create new" beside it.
   untyped props forever. **Confirm with `const probe: number = <the prop>`**; the error
   names the resolved type, and `Record<string, any>` is the tell. All 20 Props-declaring
   components were swept; no others are affected.
+- ⚠️ **SCOPED CSS DOES NOT REACH A CHILD COMPONENT'S OWN MARKUP.** A class passed to a
+  component lands on its root element, but that element does not carry the PARENT's scope
+  attribute — so a rule written in the parent compiles to `.thing[data-astro-cid-…]` and
+  silently matches nothing. Wrap the inner selector in `:global()`. Same family as the
+  `Props` failure above: correct-looking code that quietly does nothing.
+- ⚠️ **TYPEGEN IS THE BRACE CHECK FOR GROQ.** An unbalanced projection in `queries.ts` fails
+  with a character offset and a query count one short — **`8 queries` when nine are written
+  is the tell**, and it is easy to read past. A balance sweep over every `defineQuery`
+  template finds it faster than the offset does.
 - ⚠️ **A RUNNING DEV SERVER SERVES STALE SCOPED CSS, AND IT PRODUCES WRONG MEASUREMENTS.**
   This is worse than the "my edit did not apply" symptom it was first filed under: a
   `getComputedStyle` reading against stale CSS looks like data. A correct, correctly-ordered
@@ -544,7 +602,7 @@ or the Studio offers a "create new" beside it.
 - ⚠️ **IMPORTING A SCRIPT WITH A TOP-LEVEL `main()` RUNS IT.** Keep shared seed data in a
   data-only module.
 - **Never put a `//` comment inside a `defineQuery` template** — typegen silently
-  regenerates with 0 queries. It currently reports **9 queries and 56 schema types**.
+  regenerates with 0 queries. It currently reports **9 queries and 58 schema types**.
 - **Typegen counts an auto-generated `<type>.reference` per referenced document type.**
 - **A dereferenced reference array (`refs[]->`) comes back in the array's own order.** GROQ's
   `in` does not.

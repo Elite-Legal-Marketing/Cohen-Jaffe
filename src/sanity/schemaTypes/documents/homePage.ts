@@ -119,6 +119,12 @@ export const homePage = defineType({
       type: "faqSection",
       options: { collapsible: true, collapsed: true },
     }),
+    defineField({
+      name: "community",
+      title: "In the community",
+      type: "communitySection",
+      options: { collapsible: true, collapsed: true },
+    }),
   ],
   preview: {
     prepare: () => ({ title: "Homepage" }),

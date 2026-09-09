@@ -51,129 +51,24 @@ import { sanityClient } from "sanity:client";
 
 import Layout from "../../layouts/Layout.astro";
 import { urlFor } from "../../lib/image";
-import { COMMUNITY_ATTORNEY_QUERY, ORGANIZATIONS_QUERY } from "../../lib/queries";
+import RichText from "../../components/RichText.astro";
+import { COMMUNITY_PAGE_QUERY, ORGANIZATIONS_QUERY } from "../../lib/queries";
 import type {
-  COMMUNITY_ATTORNEY_QUERY_RESULT,
+  COMMUNITY_PAGE_QUERY_RESULT,
   ORGANIZATIONS_QUERY_RESULT,
 } from "../../sanity/sanity.types";
 
 
-const [organizations, jaffe] = await Promise.all([
+const [organizations, page] = await Promise.all([
   sanityClient.fetch<ORGANIZATIONS_QUERY_RESULT>(ORGANIZATIONS_QUERY),
-  sanityClient.fetch<COMMUNITY_ATTORNEY_QUERY_RESULT>(COMMUNITY_ATTORNEY_QUERY),
+  sanityClient.fetch<COMMUNITY_PAGE_QUERY_RESULT>(COMMUNITY_PAGE_QUERY),
 ]);
 
-const PAGE = {
-  /**
-   * ⚠️ THE H1 IS THE LIVE PAGE'S H1, VERBATIM (client, 2026-09-09). The board
-   * draws "This is our neighborhood too." over the kicker "Our community
-   * focus"; the live page uses "Our Community Focus" AS the h1, and that is
-   * the string the URL, the nav item, the footer link and the browser title
-   * all already say. Matching it means the page answers to one name
-   * everywhere instead of four.
-   *
-   * The board's kicker became the heading, so its heading had to go somewhere
-   * or be lost — "Why we show up" moves up from the intro to be the kicker
-   * here, which is why the intro below has no kicker of its own.
-   */
-  eyebrow: "Why we show up",
-  heading: "Our Community Focus",
-  lead: "Our entire team strives to serve the community through volunteer work in a wide variety of organizations — sometimes with legal help, and just as often with our time.",
-
-  intro: {
-    /**
-     * ⚠️ THIS REPLACES THE BOARD'S "Fifty years in one community earns you a
-     * responsibility to it." — cut 2026-09-09 because "fifty years" returns
-     * ZERO hits across the live site and the 217-page mirror. The firm
-     * advertises "100 years combined", which is a different claim about
-     * different people. The heading now says what the source says.
-     */
-    heading: "Not all of it is legal work.",
-    /**
-     * ⚠️ EVERY SENTENCE BELOW IS FROM THE LIVE `/about/our-community/` PAGE,
-     * refetched 2026-09-09 and byte-identical to the mirror. It replaces two
-     * board paragraphs, one of which was a rewrite of a different page's
-     * opening and one of which was invented ("charity rides, toy runs, golf
-     * outings, and fundraisers across Nassau, Suffolk, and Queens — most of
-     * them run by people we have known for decades").
-     *
-     * The brief was everything the page carries that the three sections below
-     * do NOT: the organizations list covers fifteen names, the memorial covers
-     * the fund and the golf outing, the scholarship band covers the contest.
-     * What was left is the firm-level commitment, the five organizations that
-     * are named on the live page but absent from our collection, and — the
-     * best material on the page — what the firm's own people do personally.
-     *
-     * ⚠️ FIVE ORGANIZATIONS WERE CARRIED HERE IN PROSE FOR ONE COMMIT and are
-     * now `organization` documents instead — Holy Family, CMSA Long Island, the
-     * All Kids Fair, the Over 50 Fair and the Health & Wellness Fest, moved on
-     * the client's instruction (2026-09-09). Do not put them back in this
-     * paragraph: the section below prints all twenty.
-     *
-     * ⚠️ MARIA FIORE IS A NAMED REAL PERSON and a paralegal, not an attorney.
-     * The live page names her; if she leaves the firm this line goes with her.
-     */
-    body: [
-      "The attorneys and staff at the Law Office of Cohen & Jaffe are committed to the Long Island communities where we live and work. Some of that service is legal. Much of it is not — it goes to health, to youth development, and to the families who need the help most.",
-      "Richard Jaffe has served as a volunteer firefighter and medic with the Jericho Fire Department and as a medic for Brentwood Legion Ambulance. He has coached basketball for the Jericho Athletic Association and lacrosse at the Jericho Lacrosse Club, and he helped victims of 9/11 through Trial Lawyers Care. He still volunteers as a small claims court arbitrator and sits as a mediator for the Supreme Court of New York.",
-      "It is not only the attorneys. Paralegal Maria Fiore volunteers at her church’s food pantry, and the firm has given to the Tuberous Sclerosis Alliance for every like its Facebook page received.",
-      "We represent injured people and people who have suffered discrimination at work, so a good deal of our practice is already spent improving lives in this community. The rest is what our attorneys and staff do with their own time.",
-    ],
-    /**
-     * ⚠️ BOTH OF THESE ARE REAL AND VERBATIM, which is worth recording because
-     * so much of this board is not. They are on the live
-     * `/about/community-scholarship/` page, where the firm prints them as
-     * Richard Jaffe's own words. Unlike the homepage's "Our goals" pull quote
-     * and the FAQs band's, these need no confirming.
-     */
-    quote: "Community service represents a critical aspect of our firm.",
-    quoteBody:
-      "To further extend our commitment to giving back to the community, we want to help today’s young volunteers succeed in their academic and professional pursuits. When they venture out into their own careers, they will, in a way, be continuing our legacy.",
-  },
-
-  organizations: {
-    eyebrow: "Organizations we support",
-    heading: "Where our time and money go.",
-    /**
-     * ⚠️ REPLACES the board's "Some of these we have supported for twenty
-     * years. Others started with a client who told us about a group that
-     * needed help, and we showed up." Both sentences were invented — nothing
-     * in the mirror dates any of these relationships, and no client is
-     * recorded as having introduced one. This is the live page's own framing
-     * of the same list.
-     */
-    lead: "A small sample of the many ways our attorneys and staff give their time to help make Long Island a better place.",
-  },
-
-  /**
-   * The in-memoriam panel. Every fact here is on the live
-   * `/about/our-community/` page: the 2014 accident, both children, their
-   * ages, the grandmother, and the outing at Pine Hollow. The board's own
-   * wording is kept because it is accurate to that account.
-   */
-  memorial: {
-    eyebrow: "In memoriam",
-    heading: "The Reagan and Jax Memorial Golf Outing",
-    body: "Held each year at Pine Hollow Country Club in East Norwich, the outing is a memorial to Stephen Cohen’s two grandchildren — three-year-old Reagan Cohen and eighteen-month-old Jaxson Cohen — who died in an ATV accident while visiting their grandparents in 2014. The children’s grandmother, Renee Monroe, died in the accident as well.",
-    /**
-     * ⚠️ UNSOURCED, and attributed to the firm rather than to a person, which
-     * is the only reason it is less serious than the board's other inventions.
-     * It is still a sentence nobody at Cohen & Jaffe is recorded as having
-     * said, printed beneath an account of a real family's bereavement.
-     */
-    pullQuote:
-      "Every family we represent has lost something. Ours is no different, and it is why we do not treat any of this as routine.",
-    note: "Proceeds from the outing support the causes the family cares about most, including organizations serving children and families in crisis on Long Island.",
-    /**
-     * The fund's own site, and the same target and label the homepage band
-     * uses — this page had been describing the fund at length with no way to
-     * reach it. It is what the live `/about/our-community/` page links the
-     * words "Reagan and Jax Cohen Memorial Fund" to.
-     */
-    href: "https://www.reaganjax.memorial/",
-  },
-
-};
+/**
+ * The attorney behind the intro quote, dereferenced by the query — house rule
+ * 8, so the name and role come from their bio and cannot go stale here.
+ */
+const quoteAttorney = page?.introQuote?.attorney;
 
 /**
  * The organizations, split into the board's three cards.
@@ -207,15 +102,15 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
     the same colour in the first place. Inserting a section means re-checking
     its two neighbours. */}
 <Layout
-  title="Our Community Focus"
-  description="The Long Island charities, clubs and causes the Law Office of Cohen & Jaffe supports — and why we show up."
+  title={page?.heading ?? "Our Community Focus"}
+  description={page?.lead ?? undefined}
 >
   <section class="page-hero surface-forest-deep">
     <div class="container">
       <div class="page-hero__copy">
-        <p class="eyebrow">{PAGE.eyebrow}</p>
-        <h1 class="page-hero__title">{PAGE.heading}</h1>
-        <p class="page-hero__lead">{PAGE.lead}</p>
+        <p class="eyebrow">{page?.eyebrow}</p>
+        <h1 class="page-hero__title">{page?.heading}</h1>
+        <p class="page-hero__lead">{page?.lead}</p>
       </div>
     </div>
   </section>
@@ -229,20 +124,22 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
           the card past a kicker that is no longer here; `.memorial__panel`
           still needs it, and still has it. */}
       <div class="intro__copy">
-        <h2 id="intro-heading" class="intro__heading">{PAGE.intro.heading}</h2>
-        {PAGE.intro.body.map((paragraph) => <p class="intro__body">{paragraph}</p>)}
+        <h2 id="intro-heading" class="intro__heading">{page?.introHeading}</h2>
+        {/* `.prose` carries the paragraph rhythm — the reset zeroes margins,
+            and this is authored long-form rather than a designed stack. */}
+        {page?.introBody && <RichText class="intro__body" value={page.introBody} />}
       </div>
 
       <figure class="quote-card">
-        <blockquote class="quote-card__lead">“{PAGE.intro.quote}”</blockquote>
-        <p class="quote-card__body">“{PAGE.intro.quoteBody}”</p>
+        <blockquote class="quote-card__lead">“{page?.introQuote?.text}”</blockquote>
+        {page?.introQuoteBody && <p class="quote-card__body">“{page.introQuoteBody}”</p>}
         {
-          jaffe && (
+          quoteAttorney && (
             <figcaption class="quote-card__by">
-              {jaffe.portrait && (
+              {quoteAttorney.portrait && (
                 <img
                   class="quote-card__portrait"
-                  src={urlFor(jaffe.portrait).width(128).height(128).url()}
+                  src={urlFor(quoteAttorney.portrait).width(128).height(128).url()}
                   alt=""
                   width="64"
                   height="64"
@@ -250,8 +147,10 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
                 />
               )}
               <span>
-                <span class="quote-card__name">{jaffe.name}</span>
-                {jaffe.role && <span class="eyebrow eyebrow--bare quote-card__role">{jaffe.role}</span>}
+                <span class="quote-card__name">{quoteAttorney.name}</span>
+                {quoteAttorney.role && (
+                  <span class="eyebrow eyebrow--bare quote-card__role">{quoteAttorney.role}</span>
+                )}
               </span>
             </figcaption>
           )
@@ -264,10 +163,10 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
     <div class="container">
       <header class="causes__head">
         <div>
-          <p class="eyebrow">{PAGE.organizations.eyebrow}</p>
-          <h2 id="causes-heading" class="causes__heading">{PAGE.organizations.heading}</h2>
+          <p class="eyebrow">{page?.orgsEyebrow}</p>
+          <h2 id="causes-heading" class="causes__heading">{page?.orgsHeading}</h2>
         </div>
-        <p class="causes__lead">{PAGE.organizations.lead}</p>
+        <p class="causes__lead">{page?.orgsLead}</p>
       </header>
 
       <div class="causes__grid">
@@ -301,28 +200,32 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
           reason: the pull quote lines up with the heading, not with the
           "In memoriam" kicker above it. */}
       <div class="memorial__panel">
-        <p class="eyebrow eyebrow--bare memorial__eyebrow">{PAGE.memorial.eyebrow}</p>
+        <p class="eyebrow eyebrow--bare memorial__eyebrow">{page?.memorialEyebrow}</p>
 
         <div class="memorial__copy">
-          <h2 id="memorial-heading" class="memorial__heading">{PAGE.memorial.heading}</h2>
-          <p class="memorial__body">{PAGE.memorial.body}</p>
+          <h2 id="memorial-heading" class="memorial__heading">{page?.memorialHeading}</h2>
+          <p class="memorial__body">{page?.memorialBody}</p>
         </div>
 
         <div class="memorial__aside">
-          <p class="memorial__quote">{PAGE.memorial.pullQuote}</p>
+          <p class="memorial__quote">{page?.memorialQuote}</p>
           <hr class="memorial__rule" />
-          <p class="memorial__note">{PAGE.memorial.note}</p>
-          <p class="memorial__link">
-            <a
-              class="link-arrow"
-              href={PAGE.memorial.href}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              About the fund
-              <span class="arrow" aria-hidden="true">→</span>
-            </a>
-          </p>
+          <p class="memorial__note">{page?.memorialNote}</p>
+          {
+            page?.memorialLink?.href && (
+              <p class="memorial__link">
+                <a
+                  class="link-arrow"
+                  href={page.memorialLink.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {page.memorialLink.label}
+                  <span class="arrow" aria-hidden="true">→</span>
+                </a>
+              </p>
+            )
+          }
         </div>
       </div>
     </div>
@@ -391,13 +294,12 @@ const organizationColumns = Array.from({ length: COLUMNS }, (_, i) =>
     margin-block-end: var(--space-28);
   }
 
-  /* The reset zeroes paragraph margins site-wide and `.prose` is for authored
-     long-form, not a designed two-column band — so the gap is owned here. */
-  .intro__body + .intro__body {
-    margin-block-start: var(--space-22);
-  }
-
-  .intro__body {
+  /* ⚠️ `:global`, because this class rides on `RichText`'s root element and a
+     component's own markup does not carry this page's scope attribute — a
+     plain `.intro__body` rule compiles to `.intro__body[data-astro-cid-…]` and
+     silently matches nothing. The paragraph rhythm itself comes from `.prose`,
+     which `RichText` always emits; this only sets the size the section wants. */
+  .intro__body :global(p) {
     font-size: var(--fs-body-lg);
     line-height: var(--lh-body-lg);
   }

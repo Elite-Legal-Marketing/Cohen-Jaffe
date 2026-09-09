@@ -7,10 +7,10 @@
  * From `Cohen & Jaffe Homepage v1.dc.html` markup 678-706, the section between
  * the FAQ band and the blog band.
  *
- * ⚠️ CONTENT IS HARDCODED ON PURPOSE. AGENTS.md → "Building sections": build it,
- * approve it, then model it. `COMMUNITY` below is shaped the way the GROQ
- * projection will return it, so wiring is a swap from this constant to a prop
- * rather than a rewrite.
+ * Content comes from the `community` field on the `homePage` singleton; its
+ * provenance is in the docblock of `scripts/seed-home-community.ts`, not
+ * repeated here. The ORGANIZATIONS are a collection, read in full — the same
+ * twenty `/about/our-community/` prints with their notes.
  *
  * ⚠️ THE SEVEN PHOTOGRAPHS DO NOT EXIST YET. `.community__tile` is scaffolding
  * — a flat `--border-deep` block with a label — and the whole `PHOTO_SLOTS`
@@ -20,7 +20,10 @@
  * deleted later anyway, and one flat colour reads unmistakably as "photos to
  * come" where four subtly different ones read as a design.
  */
-import type { ORGANIZATIONS_QUERY_RESULT } from "../sanity/sanity.types";
+import type {
+  HOME_PAGE_QUERY_RESULT,
+  ORGANIZATIONS_QUERY_RESULT,
+} from "../sanity/sanity.types";
 
 /**
  * ⚠️ THE ORGANIZATIONS ARE THE ONE MODELLED THING IN THIS SECTION. They are a
@@ -55,29 +58,14 @@ import type { ORGANIZATIONS_QUERY_RESULT } from "../sanity/sanity.types";
  * names the resolved type, and `Record<string, any>` is the tell.
  */
 type Organization = ORGANIZATIONS_QUERY_RESULT[number];
+type Section = NonNullable<NonNullable<HOME_PAGE_QUERY_RESULT>["community"]>;
 
 interface Props {
+  section: Section;
   organizations: Organization[];
 }
 
-const { organizations } = Astro.props;
-
-const COMMUNITY = {
-  eyebrow: "In the community",
-  heading: "We're from here.",
-  feature: {
-    label: "The Reagan and Jax Cohen Memorial Fund",
-    heading: "A promise Stephen made to his grandchildren.",
-    body: "In 2014, founding partner Stephen Cohen lost his two young grandchildren. The fund in their names supports organizations working for the health of children.",
-    /* The fund's OWN site, which is what the live `/about/our-community/` page
-       links these words to (verified 200). Not `/about/our-community/` — the
-       section's own button already goes there, and a memorial to the founder's
-       grandchildren should not point at the firm's marketing page. The one
-       outbound link on the homepage, and correctly so. */
-    link: { label: "About the fund", href: "https://www.reaganjax.memorial/" },
-  },
-  cta: { label: "More ways we show up", href: "/about/our-community/" },
-};
+const { section, organizations } = Astro.props;
 
 /**
  * The seven placeholder tiles, in the artboard's order, named by shape rather
@@ -95,9 +83,9 @@ const PHOTO_SLOTS = ["wide", "", "tall", "", "wide", "wide", "wide"] as const;
 <section class="community section surface-sand" aria-labelledby="community-heading">
   <div class="container">
     <header class="community__head">
-      <p class="eyebrow eyebrow--center">{COMMUNITY.eyebrow}</p>
+      <p class="eyebrow eyebrow--center">{section.eyebrow}</p>
       {/* The h2's own 0.5em is zeroed — this header owns the gap to the mosaic. */}
-      <h2 id="community-heading">{COMMUNITY.heading}</h2>
+      <h2 id="community-heading">{section.heading}</h2>
     </header>
 
     <div class="community__grid">
@@ -105,21 +93,25 @@ const PHOTO_SLOTS = ["wide", "", "tall", "", "wide", "wide", "wide"] as const;
         {/* `--bare`, not the plain `.eyebrow`: the dash means "a section starts
             here", and this labels a card inside one that has already started. */}
         <p class="eyebrow eyebrow--bare community__card-label">
-          {COMMUNITY.feature.label}
+          {section.featureLabel}
         </p>
-        <h3 class="community__card-heading">{COMMUNITY.feature.heading}</h3>
-        <p class="community__card-body">{COMMUNITY.feature.body}</p>
-        <p>
-          <a
-            class="link-arrow"
-            href={COMMUNITY.feature.link.href}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {COMMUNITY.feature.link.label}
-            <span class="arrow" aria-hidden="true">→</span>
-          </a>
-        </p>
+        <h3 class="community__card-heading">{section.featureHeading}</h3>
+        <p class="community__card-body">{section.featureBody}</p>
+        {
+          section.featureLink?.href && (
+            <p>
+              <a
+                class="link-arrow"
+                href={section.featureLink.href}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {section.featureLink.label}
+                <span class="arrow" aria-hidden="true">→</span>
+              </a>
+            </p>
+          )
+        }
       </article>
 
       {
@@ -161,7 +153,13 @@ const PHOTO_SLOTS = ["wide", "", "tall", "", "wide", "wide", "wide"] as const;
           already says it goes somewhere with its whole shape. The artboard draws
           one inside this button; `.btn .arrow { display: none }` in global.css
           is the guard, but the fix is to leave it out of the markup. */}
-      <a class="btn btn--green" href={COMMUNITY.cta.href}>{COMMUNITY.cta.label}</a>
+      {
+        section.cta?.href && (
+          <a class="btn btn--green" href={section.cta.href}>
+            {section.cta.label}
+          </a>
+        )
+      }
     </div>
   </div>
 </section>

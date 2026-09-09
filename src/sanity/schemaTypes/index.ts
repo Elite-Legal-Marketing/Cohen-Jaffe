@@ -2,6 +2,7 @@ import type { SchemaTypeDefinition } from "sanity";
 
 import { attorney } from "./documents/attorney";
 import { caseResult } from "./documents/caseResult";
+import { communityPage } from "./documents/communityPage";
 import { contactSection } from "./documents/contactSection";
 import { faq } from "./documents/faq";
 import { faqsPage } from "./documents/faqsPage";
@@ -17,6 +18,7 @@ import { aboutSection } from "./objects/aboutSection";
 import { attorneyQuote } from "./objects/attorneyQuote";
 import { attorneysSection } from "./objects/attorneysSection";
 import { caseBannerSection } from "./objects/caseBannerSection";
+import { communitySection } from "./objects/communitySection";
 import { caseResultsSection } from "./objects/caseResultsSection";
 import { expectation } from "./objects/expectation";
 import { feeColumn } from "./objects/feeColumn";
@@ -43,6 +45,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   // Documents
   homePage,
   faqsPage,
+  communityPage,
   thankYouPage,
   featuredCaseResult,
   caseResult,
@@ -66,6 +69,7 @@ export const schemaTypes: SchemaTypeDefinition[] = [
   whyUsSection,
   caseBannerSection,
   faqSection,
+  communitySection,
   // Shared objects
   attorneyQuote,
   ctaLink,

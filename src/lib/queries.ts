@@ -133,6 +133,15 @@ export const HOME_PAGE_QUERY = defineQuery(`
       closingHeading,
       closingLead,
       closingCta{ label, href }
+    },
+    community{
+      eyebrow,
+      heading,
+      featureLabel,
+      featureHeading,
+      featureBody,
+      featureLink{ label, href },
+      cta{ label, href }
     }
   }
 `);
@@ -297,27 +306,38 @@ export const ORGANIZATIONS_QUERY = defineQuery(`
 `);
 
 /**
- * The attorney quoted on `/about/our-community/`.
+ * `/about/our-community/` — the whole page.
  *
- * The page's copy is hardcoded pending approval, but the ATTRIBUTION is not:
- * house rule 8 says a quote attributed to a person carries a reference to that
- * person, so the name and role cannot drift from their bio. The quote text
- * belongs to the page; the name, role and portrait belong to the attorney.
+ * The ORGANIZATIONS are not here: they are a collection, fetched separately by
+ * `ORGANIZATIONS_QUERY`, because the same twenty feed the homepage band too.
  *
- * It matters here. The live site calls Richard Jaffe "founding partner" in the
- * very sentence this page quotes, while the Studio — which the client has
- * edited since — has him as Managing Partner and Stephen Cohen as Founding
- * Partner. Reading the role rather than typing it means the page cannot
- * contradict the attorneys' own pages.
- *
- * An id rather than a slug lookup because the person is named BY the hardcoded
- * copy; when this page is modelled it becomes an `attorneyQuote` field and this
- * query goes away.
+ * `introQuote.attorney` is dereferenced for name, role and portrait — house
+ * rule 8, and it replaces a hand-rolled query that fetched Richard Jaffe by id
+ * because the hardcoded version had nowhere to put a reference. The live site
+ * calls him "founding partner" in the very sentence quoted on this page while
+ * the Studio has him as Managing Partner, so reading the role rather than
+ * typing it is what stops the page contradicting his bio.
  */
-export const COMMUNITY_ATTORNEY_QUERY = defineQuery(`
-  *[_id == "attorney-richard-jaffe"][0]{
-    name,
-    role,
-    portrait
+export const COMMUNITY_PAGE_QUERY = defineQuery(`
+  *[_id == "communityPage"][0]{
+    eyebrow,
+    heading,
+    lead,
+    introHeading,
+    introBody,
+    introQuote{
+      text,
+      attorney->{ name, role, portrait }
+    },
+    introQuoteBody,
+    orgsEyebrow,
+    orgsHeading,
+    orgsLead,
+    memorialEyebrow,
+    memorialHeading,
+    memorialBody,
+    memorialQuote,
+    memorialNote,
+    memorialLink{ label, href }
   }
 `);

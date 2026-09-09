@@ -150,6 +150,17 @@ export type AttorneyQuote = {
   attorney: AttorneyReference;
 };
 
+export type CommunitySection = {
+  _type: "communitySection";
+  eyebrow: string;
+  heading: string;
+  featureLabel: string;
+  featureHeading: string;
+  featureBody: string;
+  featureLink?: TextLink;
+  cta?: CtaLink;
+};
+
 export type FaqReference = {
   _ref: string;
   _type: "reference";
@@ -615,6 +626,30 @@ export type ThankYouPage = {
   readSecondary?: CtaLink;
 };
 
+export type CommunityPage = {
+  _id: string;
+  _type: "communityPage";
+  _createdAt: string;
+  _updatedAt: string;
+  _rev: string;
+  eyebrow: string;
+  heading: string;
+  lead: string;
+  introHeading: string;
+  introBody: RichText;
+  introQuote: AttorneyQuote;
+  introQuoteBody?: string;
+  orgsEyebrow: string;
+  orgsHeading: string;
+  orgsLead: string;
+  memorialEyebrow: string;
+  memorialHeading: string;
+  memorialBody: string;
+  memorialQuote?: string;
+  memorialNote?: string;
+  memorialLink?: TextLink;
+};
+
 export type FaqsPage = {
   _id: string;
   _type: "faqsPage";
@@ -656,6 +691,7 @@ export type HomePage = {
   whyUs?: WhyUsSection;
   caseBanner?: CaseBannerSection;
   faqs?: FaqSection;
+  community?: CommunitySection;
 };
 
 export type SanityImagePaletteSwatch = {
@@ -772,6 +808,7 @@ export type AllSanitySchemaTypes =
   | CtaLink
   | AttorneyReference
   | AttorneyQuote
+  | CommunitySection
   | FaqReference
   | FaqSection
   | CaseBannerSection
@@ -802,6 +839,7 @@ export type AllSanitySchemaTypes =
   | CaseResult
   | FeaturedCaseResult
   | ThankYouPage
+  | CommunityPage
   | FaqsPage
   | HomePage
   | SanityImagePaletteSwatch
@@ -815,7 +853,7 @@ export type AllSanitySchemaTypes =
 
 // Source: src/lib/queries.ts
 // Variable: HOME_PAGE_QUERY
-// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    },    practiceAreas{      eyebrow,      heading,      subheading,      tabs[]{        _key,        headline,        callout,        links[]{ _key, label, href },        area->{          _id,          name,          "slug": slug.current,          icon,          linkLabel,          image{ ..., alt }        }      },      disclaimer,      allHeading,      allLink{ label, href },      allAreas[]->{ _id, name, "slug": slug.current }    },    deadlines{      eyebrow,      heading,      lead,      cta{ label, href },      deadlines[]{ _key, figure, unit, body }    },    reviews{      eyebrow,      heading,      lead,      cta{ label, href },      reviews[]->{        _id,        _type,        location,        _type == "review" => { author, quote },        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }      }    },    attorneys{      eyebrow,      heading,      cta{ label, href },      attorneys[]->{        _id,        name,        role,        "slug": slug.current,        quote,        wistiaId,        portrait{ ..., alt }      }    },    whyUs{      eyebrow,      heading,      lead,      reasons[]{ _key, title, body }    },    caseBanner{      heading,      cta{ label, href }    },    faqs{      eyebrow,      heading,      lead,      faqs[]->{ _id, question, "slug": slug.current, category, answer },      closingHeading,      closingLead,      closingCta{ label, href }    }  }
+// Query: *[_id == "homePage"][0]{    hero{      eyebrow,      heading,      headingAccent,      body,      buttons[]{ _key, label, href }    },    stats[]{ _key, figure, label, body },    caseResults{      heading,      lead,      link{ label, href },      disclaimer,      results[]->{        _id,        recovered,        insurerOffered,        category,        county,        clientName,        quote,        wistiaId,        image{ ..., alt }      }    },    about{      eyebrow,      heading,      body,      expectationsLabel,      expectations[]{ _key, title, blurb, detail },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      video{ eyebrow, title, wistiaId, coverAlt }    },    fees{      heading,      columns[]{ _key, label, body },      quote{        text,        attorney->{ name, role, "slug": slug.current, portrait }      },      cta{ label, href },      disclaimer    },    practiceAreas{      eyebrow,      heading,      subheading,      tabs[]{        _key,        headline,        callout,        links[]{ _key, label, href },        area->{          _id,          name,          "slug": slug.current,          icon,          linkLabel,          image{ ..., alt }        }      },      disclaimer,      allHeading,      allLink{ label, href },      allAreas[]->{ _id, name, "slug": slug.current }    },    deadlines{      eyebrow,      heading,      lead,      cta{ label, href },      deadlines[]{ _key, figure, unit, body }    },    reviews{      eyebrow,      heading,      lead,      cta{ label, href },      reviews[]->{        _id,        _type,        location,        _type == "review" => { author, quote },        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }      }    },    attorneys{      eyebrow,      heading,      cta{ label, href },      attorneys[]->{        _id,        name,        role,        "slug": slug.current,        quote,        wistiaId,        portrait{ ..., alt }      }    },    whyUs{      eyebrow,      heading,      lead,      reasons[]{ _key, title, body }    },    caseBanner{      heading,      cta{ label, href }    },    faqs{      eyebrow,      heading,      lead,      faqs[]->{ _id, question, "slug": slug.current, category, answer },      closingHeading,      closingLead,      closingCta{ label, href }    },    community{      eyebrow,      heading,      featureLabel,      featureHeading,      featureBody,      featureLink{ label, href },      cta{ label, href }    }  }
 export type HOME_PAGE_QUERY_RESULT =
   | {
       hero: null;
@@ -830,6 +868,7 @@ export type HOME_PAGE_QUERY_RESULT =
       whyUs: null;
       caseBanner: null;
       faqs: null;
+      community: null;
     }
   | {
       hero: null;
@@ -849,6 +888,7 @@ export type HOME_PAGE_QUERY_RESULT =
       whyUs: null;
       caseBanner: null;
       faqs: null;
+      community: null;
     }
   | {
       hero: {
@@ -1142,6 +1182,21 @@ export type HOME_PAGE_QUERY_RESULT =
         closingHeading: string;
         closingLead: string;
         closingCta: {
+          label: string;
+          href: string;
+        } | null;
+      } | null;
+      community: {
+        eyebrow: string;
+        heading: string;
+        featureLabel: string;
+        featureHeading: string;
+        featureBody: string;
+        featureLink: {
+          label: string;
+          href: string;
+        } | null;
+        cta: {
           label: string;
           href: string;
         } | null;
@@ -1451,30 +1506,79 @@ export type ORGANIZATIONS_QUERY_RESULT = Array<{
 }>;
 
 // Source: src/lib/queries.ts
-// Variable: COMMUNITY_ATTORNEY_QUERY
-// Query: *[_id == "attorney-richard-jaffe"][0]{    name,    role,    portrait  }
-export type COMMUNITY_ATTORNEY_QUERY_RESULT =
+// Variable: COMMUNITY_PAGE_QUERY
+// Query: *[_id == "communityPage"][0]{    eyebrow,    heading,    lead,    introHeading,    introBody,    introQuote{      text,      attorney->{ name, role, portrait }    },    introQuoteBody,    orgsEyebrow,    orgsHeading,    orgsLead,    memorialEyebrow,    memorialHeading,    memorialBody,    memorialQuote,    memorialNote,    memorialLink{ label, href }  }
+export type COMMUNITY_PAGE_QUERY_RESULT =
   | {
-      name: null;
-      role: null;
-      portrait: null;
+      eyebrow: null;
+      heading: null;
+      lead: null;
+      introHeading: null;
+      introBody: null;
+      introQuote: null;
+      introQuoteBody: null;
+      orgsEyebrow: null;
+      orgsHeading: null;
+      orgsLead: null;
+      memorialEyebrow: null;
+      memorialHeading: null;
+      memorialBody: null;
+      memorialQuote: null;
+      memorialNote: null;
+      memorialLink: null;
     }
   | {
-      name: string;
-      role: null;
-      portrait: null;
-    }
-  | {
-      name: string;
-      role: string;
-      portrait: {
-        asset?: SanityImageAssetReference;
-        media?: unknown;
-        hotspot?: SanityImageHotspot;
-        crop?: SanityImageCrop;
-        alt?: string;
-        _type: "image";
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      introHeading: string;
+      introBody: RichText;
+      introQuote: {
+        text: string;
+        attorney: {
+          name: string;
+          role: string;
+          portrait: {
+            asset?: SanityImageAssetReference;
+            media?: unknown;
+            hotspot?: SanityImageHotspot;
+            crop?: SanityImageCrop;
+            alt?: string;
+            _type: "image";
+          };
+        };
       };
+      introQuoteBody: string | null;
+      orgsEyebrow: string;
+      orgsHeading: string;
+      orgsLead: string;
+      memorialEyebrow: string;
+      memorialHeading: string;
+      memorialBody: string;
+      memorialQuote: string | null;
+      memorialNote: string | null;
+      memorialLink: {
+        label: string;
+        href: string;
+      } | null;
+    }
+  | {
+      eyebrow: string;
+      heading: string;
+      lead: string;
+      introHeading: null;
+      introBody: null;
+      introQuote: null;
+      introQuoteBody: null;
+      orgsEyebrow: null;
+      orgsHeading: null;
+      orgsLead: null;
+      memorialEyebrow: null;
+      memorialHeading: null;
+      memorialBody: null;
+      memorialQuote: null;
+      memorialNote: null;
+      memorialLink: null;
     }
   | null;
 
@@ -1482,7 +1586,7 @@ export type COMMUNITY_ATTORNEY_QUERY_RESULT =
 import "@sanity/client";
 declare module "@sanity/client" {
   interface SanityQueries {
-    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    },\n    attorneys{\n      eyebrow,\n      heading,\n      cta{ label, href },\n      attorneys[]->{\n        _id,\n        name,\n        role,\n        "slug": slug.current,\n        quote,\n        wistiaId,\n        portrait{ ..., alt }\n      }\n    },\n    whyUs{\n      eyebrow,\n      heading,\n      lead,\n      reasons[]{ _key, title, body }\n    },\n    caseBanner{\n      heading,\n      cta{ label, href }\n    },\n    faqs{\n      eyebrow,\n      heading,\n      lead,\n      faqs[]->{ _id, question, "slug": slug.current, category, answer },\n      closingHeading,\n      closingLead,\n      closingCta{ label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
+    '\n  *[_id == "homePage"][0]{\n    hero{\n      eyebrow,\n      heading,\n      headingAccent,\n      body,\n      buttons[]{ _key, label, href }\n    },\n    stats[]{ _key, figure, label, body },\n    caseResults{\n      heading,\n      lead,\n      link{ label, href },\n      disclaimer,\n      results[]->{\n        _id,\n        recovered,\n        insurerOffered,\n        category,\n        county,\n        clientName,\n        quote,\n        wistiaId,\n        image{ ..., alt }\n      }\n    },\n    about{\n      eyebrow,\n      heading,\n      body,\n      expectationsLabel,\n      expectations[]{ _key, title, blurb, detail },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      video{ eyebrow, title, wistiaId, coverAlt }\n    },\n    fees{\n      heading,\n      columns[]{ _key, label, body },\n      quote{\n        text,\n        attorney->{ name, role, "slug": slug.current, portrait }\n      },\n      cta{ label, href },\n      disclaimer\n    },\n    practiceAreas{\n      eyebrow,\n      heading,\n      subheading,\n      tabs[]{\n        _key,\n        headline,\n        callout,\n        links[]{ _key, label, href },\n        area->{\n          _id,\n          name,\n          "slug": slug.current,\n          icon,\n          linkLabel,\n          image{ ..., alt }\n        }\n      },\n      disclaimer,\n      allHeading,\n      allLink{ label, href },\n      allAreas[]->{ _id, name, "slug": slug.current }\n    },\n    deadlines{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      deadlines[]{ _key, figure, unit, body }\n    },\n    reviews{\n      eyebrow,\n      heading,\n      lead,\n      cta{ label, href },\n      reviews[]->{\n        _id,\n        _type,\n        location,\n        _type == "review" => { author, quote },\n        _type == "videoReview" => { clientName, headline, wistiaId, poster{ ..., alt } }\n      }\n    },\n    attorneys{\n      eyebrow,\n      heading,\n      cta{ label, href },\n      attorneys[]->{\n        _id,\n        name,\n        role,\n        "slug": slug.current,\n        quote,\n        wistiaId,\n        portrait{ ..., alt }\n      }\n    },\n    whyUs{\n      eyebrow,\n      heading,\n      lead,\n      reasons[]{ _key, title, body }\n    },\n    caseBanner{\n      heading,\n      cta{ label, href }\n    },\n    faqs{\n      eyebrow,\n      heading,\n      lead,\n      faqs[]->{ _id, question, "slug": slug.current, category, answer },\n      closingHeading,\n      closingLead,\n      closingCta{ label, href }\n    },\n    community{\n      eyebrow,\n      heading,\n      featureLabel,\n      featureHeading,\n      featureBody,\n      featureLink{ label, href },\n      cta{ label, href }\n    }\n  }\n': HOME_PAGE_QUERY_RESULT;
     '\n  *[_id == "firmDetails"][0]{\n    name,\n    shortName,\n    blurb,\n    phone,\n    sms,\n    offices[]{\n      _key,\n      name,\n      badge,\n      street,\n      cityStateZip,\n      phone,\n      hours,\n      directions,\n      map,\n      href\n    },\n    advertisingLabel,\n    legalDisclaimer\n  }\n': FIRM_DETAILS_QUERY_RESULT;
     '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category,\n    answer\n  }\n': FAQS_QUERY_RESULT;
     '\n  *[_type == "faq"] | order(question asc){\n    _id,\n    question,\n    "slug": slug.current,\n    category\n  }\n': FAQ_INDEX_QUERY_RESULT;
@@ -1490,6 +1594,6 @@ declare module "@sanity/client" {
     '\n  *[_id == "contactSection"][0]{\n    eyebrow,\n    heading,\n    lead,\n    callLabel,\n    textLabel,\n    travelLabel,\n    travelText,\n    noteLabel,\n    disclaimer,\n    badge,\n    formHeading,\n    submitLabel,\n    spanishLabel\n  }\n': CONTACT_SECTION_QUERY_RESULT;
     '\n  *[_id == "thankYouPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    cta{ label, href },\n    waitEyebrow,\n    waitHeading,\n    steps[]{ _key, title, body },\n    readHeading,\n    readLead,\n    readPrimary{ label, href },\n    readSecondary{ label, href }\n  }\n': THANK_YOU_PAGE_QUERY_RESULT;
     '\n  *[_type == "organization"] | order(lower(name) asc){\n    _id,\n    name,\n    href,\n    note\n  }\n': ORGANIZATIONS_QUERY_RESULT;
-    '\n  *[_id == "attorney-richard-jaffe"][0]{\n    name,\n    role,\n    portrait\n  }\n': COMMUNITY_ATTORNEY_QUERY_RESULT;
+    '\n  *[_id == "communityPage"][0]{\n    eyebrow,\n    heading,\n    lead,\n    introHeading,\n    introBody,\n    introQuote{\n      text,\n      attorney->{ name, role, portrait }\n    },\n    introQuoteBody,\n    orgsEyebrow,\n    orgsHeading,\n    orgsLead,\n    memorialEyebrow,\n    memorialHeading,\n    memorialBody,\n    memorialQuote,\n    memorialNote,\n    memorialLink{ label, href }\n  }\n': COMMUNITY_PAGE_QUERY_RESULT;
   }
 }
