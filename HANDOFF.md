@@ -1,8 +1,8 @@
 # Handoff — Cohen & Jaffe
 
 **Rewritten whole each time. This is the present state, not a changelog.**
-Last updated: 2026-09-08 (the FAQ library migrated and every FAQ surface built and
-modelled, on `faqs` — three commits, **NOT PUSHED**)
+Last updated: 2026-09-09 (the homepage community band built, on `hp_community` —
+one commit, **NOT PUSHED**)
 
 ## ⚠️ Read this before writing any code
 
@@ -15,47 +15,100 @@ AGENTS.md → Conventions:
 > through Sanity and turn things off or remove items I never asked for."*
 
 **Build what was asked and nothing beside it. Suggest extras in a sentence; do not build
-them and explain afterwards.** It bit again on 2026-09-08, and this time it was a
-scope misread rather than a stray field: asked to "model everything into studio" for the
-FAQ work, the session modelled the contact form and the thank-you page too. The client's
-correction — *"Are you modeling 'everything' I meant everything we just worked on the
-FAQ's"* — was fair, and only luck made the answer "keep both, they're done" rather than an
-hour of reverting. **When an instruction's scope is ambiguous, ask before building, not
-after.**
+them and explain afterwards.** It has bitten twice: once as stray fields (five on the
+reviews collection, all removed), once as a scope misread — asked to "model everything into
+studio" for the FAQ work, the session modelled the contact form and the thank-you page too.
+**When an instruction's scope is ambiguous, ask before building, not after.**
 
-**And a second lesson, from 2026-09-08: AN APPROVED ARTBOARD IS NOT ALWAYS A GOOD DESIGN.**
-The attorneys band was built exactly as drawn and the client's verdict was *"Not in love
-with how this is turning out. Not your fault. I don't think the section was designed well
-by the designer."* When a section is built faithfully and still reads badly, say so and
-show it — that is what the build-it-then-approve order is FOR.
+**AN APPROVED ARTBOARD IS NOT ALWAYS A GOOD DESIGN.** The attorneys band was built exactly
+as drawn and the client's verdict was *"Not in love with how this is turning out. Not your
+fault. I don't think the section was designed well by the designer."* When a section is
+built faithfully and still reads badly, say so and show it — that is what the
+build-it-then-approve order is FOR.
+
+**AND AN APPROVED ARTBOARD IS NOT A SOURCE.** The designer invented copy on at least four
+sections: the pull quotes credited to Richard Jaffe in "Our goals" and the practice-areas
+band, the "still works a weekly shift" line in "Why Cohen & Jaffe", and — found 2026-09-09 —
+"Cystic Fibrosis Foundation" in the community strip, which appears nowhere on the live site
+or in the 217-page mirror. **Check any named fact on a board against the mirror before
+building it.** On legal advertising these are not typos.
 
 ## Where things stand
 
-**Twelve of the homepage's fifteen sections exist and all twelve are finished** — hero,
-stats, case results, "Our goals", the fee explainer, practice areas, the New York
+**Thirteen of the homepage's SEVENTEEN sections exist and all thirteen are finished** —
+hero, stats, case results, "Our goals", the fee explainer, practice areas, the New York
 deadlines band, testimonials, the attorneys band, "Why Cohen & Jaffe", the case review
-banner and the FAQ band. Every one built, modelled, seeded and wired. **`src/data/` holds
+banner, the FAQ band and the community band. Every one built and approved; every one
+modelled, seeded and wired EXCEPT the community band, which is hardcoded pending approval.
+
+⚠️ **THE COUNT USED TO SAY FIFTEEN AND THAT WAS WRONG.** The board draws seventeen real
+sections between NAV and FOOTER. `MID CTA BAR` (line 576) is an empty comment with no
+markup and does not count; `CASE BANNER` is drawn inside the FAQ block at 621-628 and does.
+The four still unbuilt are **RESOURCES (the blog band), CONTACT, RECOGNITION and AREAS WE
+SERVE** — the board's last four, in that order.
+
+**`src/pages/`** holds `index.astro`, `faqs/index.astro`, `faqs/[slug].astro` and
+`thank-you.astro` — **184 pages build**, of which 180 are FAQs. **`src/data/` holds
 `navigation.ts` alone.**
 
-**The site now has interior pages.** `src/pages/` holds `index.astro`, `faqs/index.astro`,
-`faqs/[slug].astro` and `thank-you.astro` — **184 pages build**, of which 180 are FAQs.
+⚠️ **ONE BRANCH IS IN FLIGHT AND IT IS NOT PUSHED.** `hp_community`, cut from `master`
+(`3a9fc50`), one commit: `54c8269` *Build the homepage community band*. Nothing is stacked
+on it. The FAQ work that the previous handoff described as unpushed is **merged** — PR #20.
 
-⚠️ **ONE BRANCH IS IN FLIGHT AND IT IS NOT PUSHED.** `faqs`, cut from `master` (`5052fbe`),
-three commits ahead:
-
-| | |
-| --- | --- |
-| `1635850` | Migrate the FAQ library and build the FAQ pages and homepage band |
-| `3a2fdb0` | Build the FAQs hub, the contact form and the thank-you page |
-| `ab55a5e` | Model the FAQ band, the FAQs page, the contact form and the thank-you page |
-
-Gates: `npm run build` green at **184 pages**, `npm run check:types` **0 errors (111
-files)**, `npm run typegen` **7 queries, 55 schema types**, `npx sanity documents validate
---yes` clean at **327 documents, 0 errors, 0 warnings**.
+Gates: `npm run build` green at **184 pages**, `npm run check:types` **0 errors (112
+files)**. No schema changed on this branch, so `npm run typegen` still reports **7 queries,
+55 schema types** and `npx sanity documents validate --yes` is clean at **327 documents, 0
+errors, 0 warnings**.
 
 The 327 are 180 FAQs + 60 case results + 47 practice areas + 21 reviews + 6 attorneys +
 4 featured case results + 4 video reviews + `homePage` + `firmDetails` + `faqsPage` +
 `thankYouPage` + `contactSection`.
+
+---
+
+## The community band — the one section not yet in Sanity
+
+`src/components/Community.astro`, rendered unconditionally at the end of `index.astro`
+because there is nothing in Sanity to guard on. Content is a `COMMUNITY` constant shaped
+the way the GROQ projection will return it, so wiring is a swap to a prop.
+
+⚠️ **THE SEVEN PHOTOGRAPHS DO NOT EXIST.** They are the section's entire visual weight and
+nothing in `Claude Files/assets/` or the repo fills them. The tiles are scaffolding — one
+flat `--border-deep` fill, a label, `aria-hidden` — and the whole `PHOTO_SLOTS` array plus
+its three CSS rules come OUT when the firm supplies images. The board tints its seven
+placeholders four slightly different greys; deliberately not carried over, because four
+one-off hexes would have to be deleted anyway and a uniform fill reads as "photos to come"
+where four varied ones read as a design.
+
+**The grid rows are `minmax(_, auto)`, not the board's fixed 150px.** The card's column
+narrows faster than the row height does: at 1660 it has 460px of content in a 460px box, and
+at 1280 the same copy wants ~390px in a 357px box. Because the tiles occupy exactly the
+three rows the card spans, letting them grow keeps the mosaic aligned rather than breaking
+it.
+
+**The tile spans tile a 4-wide x 3-tall block EXACTLY** (2 + 1 + 1x2 + 1 + 2 + 2 + 2 =
+twelve cells). That is the whole reason the sub-1280 layout can drop the card to its own
+row and reuse the spans untouched on a four-column grid. **Changing one shape breaks both
+layouts.**
+
+**The strip is sourced from the live `/about/our-community/` page, names and URLs both**,
+and rendered alphabetically from a derived `ORGANIZATIONS` constant — the source array
+stays in the board's order so it is diffable against the board and the live page. Fifteen
+names, not the board's sixteen. Every URL was requested and returns 200.
+
+- ⚠️ **Tuberous Sclerosis Alliance is UNLINKED** — the live page names it in running text
+  without a link, and `tsalliance.org` would be an invented source.
+- **Cinema Arts Centre is the one URL rewritten**: the mirror's `/about-us/mission/` now
+  404s, so it points at the page that path was reorganised into.
+- **Blue Knights and Fighters of Fire link to Facebook**, because that is what the live page
+  does — neither has a site of its own.
+- Patriot Guard and the Film Expo **answer 406 to a plain `curl` and 200 to a browser**.
+  That is a bot filter, not a dead link; do not "fix" them.
+
+**"About the fund" goes to `https://www.reaganjax.memorial/`**, the fund's own site, which
+is what the live page links those words to. NOT `/about/our-community/` — the section's own
+button already goes there, and a memorial to the founder's grandchildren should not point
+at the firm's marketing page.
 
 ---
 
@@ -80,6 +133,9 @@ which turns 7 into 60. **127 − 7 + 60 = 180.**
 renders its list over AJAX, so SiteSucker captured an empty `<div>`. The mirror is also a
 page behind. `GET /wp-json/wp/v2/pages?parent=3025` is the source, and it carries the
 category on each record.
+
+(For the community strip the mirror IS the source — that page is static HTML and complete.
+Which source is right depends on whether the live page renders its content over AJAX.)
 
 ### ⚠️ Five source hazards, all measured, all silent
 
@@ -188,10 +244,11 @@ bug the practice-areas rail hit with seven.
 
 Other notes: the category rail is one row that scrolls **inside the container**, not to the
 page edge, sorted **alphabetically** (not by count — a count sort reshuffles the rail every
-time the collection changes). The grid is 4 / 2 / 1 across, skipping three columns because
-**16 divides by 4, 2 and 1** and a three-across fold strands a card at every batch
-boundary. There is **one count, in the pills** — the header count was removed because two
-numbers disagreed for a moment on every filter change.
+time the collection changes; the community strip is sorted for the same reason). The grid
+is 4 / 2 / 1 across, skipping three columns because **16 divides by 4, 2 and 1** and a
+three-across fold strands a card at every batch boundary. There is **one count, in the
+pills** — the header count was removed because two numbers disagreed for a moment on every
+filter change.
 
 ### `/faqs/<slug>/` — the detail pages
 
@@ -263,7 +320,8 @@ wrong.
 signature, no card blurb, no carousel, three partners not six, no staff portraits. ⚠️
 `attorneys[]` is `.required().length(3)` at **error** severity on the client's instruction.
 ⚠️ **`seed-attorneys.ts` MUST NEVER BE RE-RUN** — it is `createOrReplace` and the three
-partners' roles have been edited in the Studio since.
+partners' roles have been edited in the Studio since. (Stephen M. Cohen is **Founding
+Partner** there; the live site says only "Partner". The Studio is the current truth.)
 
 **Case results** — `featuredCaseResult` (4, fabricated artboard copy) and `caseResult` (60,
 real). ⚠️ **The four featured ones must be replaced with genuine client stories before
@@ -294,9 +352,10 @@ Richard Jaffe.
 
 ## What is wired
 
-Every homepage section reads from `homePage` through `HOME_PAGE_QUERY`. Seven queries
-total: `HOME_PAGE_QUERY`, `FIRM_DETAILS_QUERY`, `FAQS_QUERY`, `FAQ_INDEX_QUERY`,
-`FAQS_PAGE_QUERY`, `CONTACT_SECTION_QUERY`, `THANK_YOU_PAGE_QUERY`.
+Every homepage section EXCEPT the community band reads from `homePage` through
+`HOME_PAGE_QUERY`. Seven queries total: `HOME_PAGE_QUERY`, `FIRM_DETAILS_QUERY`,
+`FAQS_QUERY`, `FAQ_INDEX_QUERY`, `FAQS_PAGE_QUERY`, `CONTACT_SECTION_QUERY`,
+`THANK_YOU_PAGE_QUERY`.
 
 **Desk shape:** **Pages** → { Homepage, FAQs, Thank You } · **Collections** → { Case
 Results → { Featured, Case Results }, Reviews → { Video, Written }, Attorneys, Practice
@@ -311,7 +370,7 @@ its quote is `attorneyQuote` — so the attribution is a **reference** to
 `attorney-richard-jaffe`. ⚠️ **That reuse costs the quote its gold middle clause**, because
 `attorneyQuote` deliberately has no `accent` field.
 
-**Site-wide rules added 2026-09-08:**
+**Site-wide rules:**
 - ⚠️ **An arrow never goes inside a `.btn`.** The arrow is a text link's affordance; a
   button already says it goes somewhere with its whole shape. `.btn .arrow { display:
   none }` is a guard, not the fix — take it out of the markup.
@@ -330,45 +389,60 @@ its quote is `attorneyQuote` — so the attribution is a **reference** to
    indexed thank-you page turns up in search for people who never submitted anything and
    corrupts the conversion numbers the firm's spend is measured against. **Neither may
    launch as-is.**
-2. **The FAQs page quote is unsourced** and attributed to Richard Jaffe on legal
+2. ⚠️ **The community band needs seven photographs.** They are the section's entire visual
+   weight and it cannot be approved without them.
+3. ⚠️ **"A promise Stephen made to his grandchildren."** is the board's heading on the
+   community card and appears in no source. Everything else on that card checks out against
+   the live page — the fund, 2014, the purpose, "founding partner". The promise does not.
+   It is a narrative claim about a real bereavement on legal advertising.
+4. **The community strip is 442px tall over 14 lines at 375px** — 28% of the section, for a
+   supporting detail. Left as built on the client's instruction; the cheap fix is dropping
+   its line-height below 768.
+5. **Two community links go to Facebook** (Blue Knights, Fighters of Fire) because the live
+   page has no other target for them.
+6. **The FAQs page quote is unsourced** and attributed to Richard Jaffe on legal
    advertising. Now a Studio edit rather than a deploy. Same for **"Our goals"**.
-3. **"Millions / Recovered"** on the FAQs claims band has no figure behind it. The ledger
+7. **"Millions / Recovered"** on the FAQs claims band has no figure behind it. The ledger
    holds 60 real recoveries if the firm would rather print a number.
-4. **The 110 `tel:` links** baked into FAQ answers.
-5. **Should any FAQ categories be combined?** Raised and left open. The rail mixes three
+8. **The 110 `tel:` links** baked into FAQ answers.
+9. **Should any FAQ categories be combined?** Raised and left open. The rail mixes three
    kinds of thing — how it happened (Car, Truck, Slip and Fall), what was injured (Brain,
    Neck, Birth), and which department (Personal Injury, Employment Law). The two defensible
    merges are Slip and Fall Injury → Premises Liability and Neck Injuries (1) → Personal
    Injury. **"Personal Injury" is functionally "everything else"** and might be better named
    "General". Cheap to change: it is a dropdown value plus one line in `faqCategories.ts`.
-6. **Google Business Profile API access** — a client action, 3-10 business days. Nothing
-   started.
-7. **Real reviews** for the 22 placeholders, and **real client videos** for all four
-   `videoReview` documents.
-8. **Case results needs real names, quotes, photographs and insurer-offer figures.**
-9. **Two attorneys carry a placeholder video** (`c6b0eghb5r`, on Cohen and Jaffe). A play
-   button over a named attorney's portrait is a promise the video is of that attorney.
-   **Unset or replace before launch.**
-10. **Nine practice-area URLs need confirming live.**
-11. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
+10. **Google Business Profile API access** — a client action, 3-10 business days. Nothing
+    started.
+11. **Real reviews** for the 22 placeholders, and **real client videos** for all four
+    `videoReview` documents.
+12. **Case results needs real names, quotes, photographs and insurer-offer figures.**
+13. **Two attorneys carry a placeholder video** (`c6b0eghb5r`, on Cohen and Jaffe). A play
+    button over a named attorney's portrait is a promise the video is of that attorney.
+    **Unset or replace before launch.**
+14. **Nine practice-area URLs need confirming live.**
+15. **The Spanish section is deferred** — background in `navigation.ts`. ⚠️ The contact
     form's "contact me in Spanish" checkbox is a different thing (a preference, not a
     language switcher) and **presumes someone acts on it**.
-12. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does
+16. **The firm's wrongful-death page lists "grief" as recoverable**, which New York does
     not allow.
 
 ## What's next
 
-1. **Push `faqs` and open its PR.** Three commits, both gates green, nothing stacked on it.
-2. **Three homepage sections remain unbuilt** of the fifteen.
-3. **`/about/testimonials/`** — `CJ - Testimonials.dc.html` is approved, `caseType` exists
+1. **Approve the community band, then model it** — and push `hp_community`.
+2. **Four homepage sections remain unbuilt**: the blog band, contact, recognition and
+   "Areas we serve", in the board's order.
+3. **`/about/our-community/`** — the community band's button points at it and it does not
+   exist yet, so that link 404s locally. `CJ - Community.dc.html` and
+   `CJ - Community Involvement.dc.html` are both drawn.
+4. **`/about/testimonials/`** — `CJ - Testimonials.dc.html` is approved, `caseType` exists
    for it, and the "Read all reviews" button already points at it.
-4. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both boards approved, and
+5. **`/about/attorneys/`** and **`/about/attorneys/[slug]/`** — both boards approved, and
    the homepage band's "View Profile →" links already point at the second. ⚠️ **McNaughton
    and Sawicki have neither a hotspot nor a crop**, and the same square that cut Jaffe and
    Tiger will cut them.
-5. **`/practice-areas/`** and **`/case-results/`**.
-6. **Wire the contact form**, and give `/thank-you/` its `noindex`.
-7. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
+6. **`/practice-areas/`** and **`/case-results/`**.
+7. **Wire the contact form**, and give `/thank-you/` its `noindex`.
+8. Then a **`video`** type once the Wistia uploads exist, and **set `site` in
    `astro.config.mjs`** so `Layout.astro` emits a canonical link.
 
 ## Things that would surprise someone
@@ -380,6 +454,16 @@ its quote is `attorneyQuote` — so the attribution is a **reference** to
   perspective excludes drafts. Use `npx sanity documents get drafts.<id>`.
 - ⚠️ **A Sanity document id must NEVER contain a dot** (non-public — the Studio and CLI show
   healthy documents while the site dereferences every one to null) **or a slash** (invalid).
+- ⚠️ **A BARE `<ul>` STILL HAS BULLETS.** The reset does not strip `list-style`, and making
+  the list a flex container does NOT drop the markers — blockification leaves a `list-item`
+  a `list-item`. The community strip shipped a disc in front of every name for an hour.
+  ⚠️ **And it survives the obvious measurement:** an `outside` marker paints beyond the li's
+  border box, so comparing the text's left edge to the li's reports 0 whether or not a
+  bullet is there. Read `list-style-type` and `display` instead.
+- ⚠️ **A SEPARATOR DRAWN WITH `li + li::before` ORPHANS ON EVERY WRAPPED LINE.** A flex item
+  carries its own pseudo-element, so the middot travels to the FRONT of whatever line its
+  name wraps onto. Draw it `::after` on all but the last, where it is glued to the name it
+  follows. Invisible until the row wraps — it looked correct on the first render.
 - ⚠️ **`global.css` HAS A COMPLETE FORM SYSTEM, and `.field` is the INPUT, not a wrapper.**
   Using `.field` on a wrapper div turns it into a 60px white box with the label sitting on
   it and the input overflowing into the row below. The set is `.field`, `.field-label`,
@@ -398,17 +482,23 @@ its quote is `attorneyQuote` — so the attribution is a **reference** to
   rather than gathered in it. Seven candidates were rendered under the quote band's scrim
   before `team-street` (2.01:1) was chosen; a 3.37:1 frame crops to a black strip and a
   square one loses most of itself.
+- ⚠️ **`aspect-ratio` plus `max-height` shrinks the WIDTH**, and **a fixed grid row plus a
+  narrowing column overflows**. Both are the same shape of bug: a size that is derived
+  rather than set. Size the axis that matters directly, or give the row a `minmax(_, auto)`.
 - ⚠️ **IN A HIDDEN BROWSER PANE:** the page cannot scroll, `requestAnimationFrame` never
   fires, transitions never advance, and **`innerWidth` can be 0** — which makes every height
   reading nonsense (a FAQ row measured "10,615px tall"). Force an explicit viewport with
   `resize_window` first. **Paint-only computed styles also read one interaction stale**,
   while layout-affecting ones update; a `background-color` can lag while `display` is
-  current.
+  current. To see a section that is far down the page, hide its previous siblings rather
+  than scrolling.
+- ⚠️ **A SCREENSHOT SCALED TO THE PANE HIDES 13px TYPE.** A 1660px viewport in an 800px pane
+  is a 48% reduction, and a stray bullet, a doubled separator or a wrong glyph is simply not
+  legible. Set the viewport near the pane's own width when checking micro-type.
 - **Lazy images do not paint before the first screenshot in that pane.** Two captures, or
   set `loading = "eager"`.
 - **A running dev server can serve a STALE scoped-CSS module** while the file on disk is
-  correct. `touch` the component and reload. This cost two rounds of "the edit did not
-  apply" on 2026-09-08.
+  correct. `touch` the component and reload.
 - **`--measure` NO LONGER EXISTS.** Use `--container-prose` (790px).
 - **Never put a `//` comment inside a `defineQuery` template** — typegen silently
   regenerates with 0 queries. It currently reports **7 queries and 55 schema types**.
